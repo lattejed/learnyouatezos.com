@@ -1,5 +1,7 @@
 <h2>Implementing Porter Stemmer in Haskell</h2>
 
+<p class="date">2013-06-10</p>
+
 <p>I recently started learning Haskell. Like many programmers who get interested in the language I've spent as much time studying the language as I have trying to find an excuse to actually use it. It's a somewhat difficult language to learn -- at least if you haven't worked with functional programming before -- and it's not really a go-to language for most situations. Finding a reason to use it can be challenging.</p>
 
 <p>My answer to this has been to work on projects that don't have an immediate application. For reasons I won't bore you with, I decided to (re)implement Porter's stemming algorithm. The point of a stemming algorithm is to reduce words to common roots, which is often used as a pre-processing step when building a search engine or doing other NLP work. For example, the words "stemmer", "stemming", "stemmed" are all based on "stem" and share a common meaning. Reducing these words to their root, "stem", makes processing them further a lot easier.</p>
