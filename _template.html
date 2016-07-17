@@ -24,8 +24,8 @@
         margin-top: 0;
         margin-bottom: 0;
         padding-left: 0;
+        list-style-position: inside;
       }
-      li { display: block; }
       h1, h2, h3, h4, h5, h6 {
         margin-top: 0;
         margin-bottom: 1em;
@@ -38,6 +38,13 @@
       p {
         margin-top: 0;
         margin-bottom: 1em;
+      }
+      sup {
+        position: relative;
+        top: -.5em;
+        vertical-align: baseline;
+        font-size: 75%;
+        line-height: 0;
       }
       strong { font-weight: bold; }
       img {
@@ -54,7 +61,9 @@
         border: 0;
         padding: 0;
       }
+      .footer { color: #7F7F7F; }
     </style>
+    <link href="./prism.css" rel="stylesheet">
   </head>
 
   <body>
@@ -63,7 +72,7 @@
 
     [[ CONTENT ]]
 
-    <p><a href="https://github.com/lattejed/lattejed.com">fork</a></p>
+    <p class="footer">Copyright Matthew Smith 2013-2016 - <a href="https://github.com/lattejed/lattejed.com">source</a></p>
 
     <script>
       var idx = 0;
@@ -74,6 +83,7 @@
         idx = (idx + 1) % cols.length;
       }, 1);
     </script>
+    <script src="./prism.js"></script>
   </body>
 </html>
 

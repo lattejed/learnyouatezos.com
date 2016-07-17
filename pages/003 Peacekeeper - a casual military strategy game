@@ -54,6 +54,7 @@
         border: 0;
         padding: 0;
       }
+      .footer { color: #7F7F7F; }
     </style>
   </head>
 
@@ -63,7 +64,7 @@
 
     
 
-    <p><a href="https://github.com/lattejed/lattejed.com">fork</a></p>
+    <p class="footer">Copyright Matthew Smith 2013-2016 - <a href="https://github.com/lattejed/lattejed.com">source</a></p>
 
     <script>
       var idx = 0;
