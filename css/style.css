@@ -1,0 +1,84 @@
+
+/**
+ * Main CSS 
+ * some original defs from https://github.com/jaydenseric/Fix 
+ */
+
+html {
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 40px;
+  font-family: monospace;
+  /*font-size: 16px;*/
+  line-height: 1.2;
+  background: #000000;
+  color: #00FF00;
+  max-width: 500px;
+}
+
+ul, ol {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-left: 0;
+}
+
+li {
+  display: block;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: inherit;
+}
+
+h1 {
+  /* font-size: 210%; */
+}
+
+h2 {
+  /* font-size: 180%; */
+}
+
+h3 {
+  /* font-size: 150%; */
+}
+
+blockquote {
+  margin: 0;
+  padding: 0;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 0;
+  /* font-size: 120%; */
+}
+
+strong {
+  font-weight: bold;
+}
+
+img {
+  border: 0;
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+a {
+  text-decoration: underline;
+  color: inherit;
+}
+
+::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+

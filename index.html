@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Latte, Jed? | Articles about creating games, software</title>
+    <style>
+      /* some original defs from https://github.com/jaydenseric/Fix */
+      html {
+        -ms-text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        margin: 40px;
+        font-family: monospace;
+        line-height: 1.2;
+        background: #030303;
+        color: #FCFCFC;
+        max-width: 500px;
+      }
+      ul, ol {
+        margin-top: 0;
+        margin-bottom: 0;
+        padding-left: 0;
+      }
+      li { display: block; }
+      h1, h2, h3, h4, h5, h6 {
+        margin-top: 0;
+        margin-bottom: 1em;
+        font-size: inherit;
+      }
+      blockquote {
+        margin: 0;
+        padding: 0;
+      }
+      p {
+        margin-top: 0;
+        margin-bottom: 1em;
+      }
+      strong { font-weight: bold; }
+      img {
+        border: 0;
+        max-width: 100%;
+        height: auto;
+        vertical-align: middle;
+      }
+      a {
+        text-decoration: underline;
+        color: inherit;
+      }
+      ::-moz-focus-inner {
+        border: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1><a href="/">L<span id="blink">a</span>tte, Jed?</a></h1>
+    <h1>===========</h1>
+
+    
+<h2>Articles about software engineering, games, etc.</h2>
+
+<p><a href="pages/003 Peacekeeper - a casual military strategy game">003 Peacekeeper - a casual military strategy game</a></p>
+<p><a href="pages/002 My first five minutes on a server with a shell script.html">002 My first five minutes on a server with a shell script</a></p>
+<p><a href="pages/001 Notes on building a full text search engine.html">001 Notes on building a full text search engine</a></p>
+
+<h2>About me</h2>
+
+<p><img width="100px" src="./img/me.jpg"></p>
+
+<p>Born in the US, I've spent half my life as a resident of Bangkok, a city of award-winning chefs, beautiful people, traffic jams and the occassional coup d'etat.</p>
+
+<p>I'm a serial entrepreneur, though not the billionaire, private jet kind. I like making things, which include companies, software and video games.</p>
+
+<p>I love playing video games, eating at fancy restaurants and spending time with my wife and son. My wife is GM of a company in the field of architecture. My son teaches me something new every day.</p>
+
+<p>Always happy to talk. Email me at <a href="mailto:m@lattejed.com">m@lattejed.com</a>.</p>
+
+<p>Get updates at <a href="https://twitter.com/latte_jed">twitter.com/latte_jed</a></p>
+
+<!-- 
+vim: tabstop=2 shiftwidth=2 expandtab
+-->
+
+
+    <script>
+      var idx = 0;
+      var cols = ['#FF0000', '#00FF00', '#0000FF'];
+      var b = document.getElementById('blink');
+      setInterval(function() {
+        b.style.color = cols[idx];
+        idx = (idx + 1) % cols.length;
+      }, 1);
+    </script>
+  </body>
+</html>
+
+<!-- 
+vim: tabstop=2 shiftwidth=2 expandtab
+-->
