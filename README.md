@@ -1,8 +1,8 @@
 ```bash
 
-# build
+# build, using node
 ./make.sh
 
-# using nodemon
+# develop, using nodemon
 ./watch.sh
 ```
