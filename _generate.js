@@ -14,6 +14,13 @@ function fail(err) {
     process.exit(1);
 }
 
+function slugify(str) {
+    return str
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-\.]+/g, '');
+}
+
 if (process.argv.length < 5) {
     fail();
 }
@@ -38,10 +45,11 @@ try {
     for (var i=0; i<pagePaths.length; i++) {
         var pagePath = pagePaths[i];           
         var parsed = path.parse(pagePath); 
-        links.push('<p><a href="'+path.join(PAGES_DIR, parsed.base)+'">'+parsed.name+'</a></p>');
+        var slug = slugify(parsed.base);
+        links.push('<p><a href="'+path.join(PAGES_DIR, slug)+'">'+parsed.name+'</a></p>');
         var content = fs.readFileSync(path.join(__dirname, pagePath), 'utf8');
         var page = template.replace(CONTENT_BLOCK, content); 
-        fs.writeFileSync(path.join(__dirname, PAGES_DIR, parsed.base), page, 'utf8');
+        fs.writeFileSync(path.join(__dirname, PAGES_DIR, slug), page, 'utf8');
     }
     index = index.replace(LINKS_BLOCK, links.join('\n'));
     index = template.replace(CONTENT_BLOCK, index); 
