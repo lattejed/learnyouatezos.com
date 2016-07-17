@@ -17,7 +17,10 @@
         margin: 40px;
         font-family: monospace;
         line-height: 1.2;
-        background: #030303;
+        background-image: url(/img/background-image.jpg);
+        background-color: #030303;
+        background-size: 100% auto;
+        background-repeat: no-repeat;
         color: #FCFCFC;
         max-width: 500px;
       }
@@ -65,12 +68,12 @@
         border: 0;
         padding: 0;
       }
-      .footer { color: #7F7F7F; }
+      .footer { color: rgba(255,255,255,0.5); }
       .code {
         white-space: pre-wrap;
-        color: #00FF00;
         padding: 10px;
-        border: 1px dotted #00FF00;
+        border: 1px solid #FFFFFF;
+        background: rgba(0,0,0, 0.75);
       }
     </style>
   </head>
@@ -85,7 +88,10 @@
 
     <script>
       var idx = 0;
+      /*
       var cols = ['#FF0000', '#00FF00', '#0000FF'];
+      */
+      var cols = ['#FF0000', '#000000', '#FFFFFF'];
       var b = document.getElementById('blink');
       setInterval(function() {
         b.style.color = cols[idx];
