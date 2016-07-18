@@ -22,7 +22,7 @@ git --bare init
 cat << EOF > hooks/post-receive
 
 GIT_WORK_TREE=/home/deploy/$SITE git checkout -f
-sudo nginx restart
+sudo service nginx restart
 EOF
 
 chmod +x hooks/post-receive
@@ -54,5 +54,5 @@ server {
 EOF
 
 sudo ln -s $SITE.nginx /etc/nginx/sites-enabled/
-sudo nginx restart
+sudo service nginx restart
 
