@@ -1,0 +1,21 @@
+<head>
+  <title>{{ request.page_title }}</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  {{ meta_tags }}
+
+  <!--[if IE]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  {{ 'css/poole.css' | asset_url | stylesheet_tag }}
+  {{ 'css/lanyon.css' | asset_url | stylesheet_tag }}
+
+  <link href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700&subset=cyrillic,cyrillic-ext,latin-ext"
+        rel="stylesheet">
+
+  {{ posthaven.includes_for_head }}
+</head>

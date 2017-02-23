@@ -1,11 +1,8 @@
 {% if site.navigation_menu.items != empty %}
-  <nav class="nav-menu">
-    <ul>
-    {% for menu_item in site.navigation_menu.items %}
-      <li class="{{ menu_item.url | text_if_current}}">
-        <a href="{{ menu_item.url }}">{{ menu_item.title }}</a>
-      </li>
-    {% endfor %}
-    </ul>
+  <nav class="sidebar-nav">
+  {% for menu_item in site.navigation_menu.items %}
+    <a class="sidebar-nav-item {{ menu_item.url | text_if_current: 'active' }}"
+       href="{{ menu_item.url }}">{{ menu_item.title }}</a>
+  {% endfor %}
   </nav>
 {% endif %}

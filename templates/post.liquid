@@ -3,7 +3,7 @@
 <footer class="post-responses">
   {% if post.response_count > 0 %}
     <div class="responses">
-      <h4>{{ post.response_count | pluralize: 'Response' }}</h4>
+      <h2>{{ post.response_count | pluralize: 'Response' }}</h2>
       {% for response in post.responses %}
         {% include 'response' %}
       {% endfor %}
@@ -20,7 +20,7 @@
 
   {% if site.comments_enabled? %}
     <div class="new-comment">
-      <h4>Comment</h4>
+      <h2>Add a Comment</h2>
       {% form 'comment' %}
     </div>
   {% endif %}

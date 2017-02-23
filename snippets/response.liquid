@@ -1,11 +1,11 @@
 {% case response.type  %}
 {% when "comment" %}
   <div class="response">
-    <div class="comment">
+    <div class="comment-body">
       {{ response.body }}
     </div>
     <div class="byline">
-      by {{ response.display_name }}
+      <strong class="name">{{ response.display_name }}</strong>
       <span class="time-ago">{{ response.created_at | relative_date }}</span>
     </div>
   </div>

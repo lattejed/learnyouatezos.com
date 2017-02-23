@@ -1,8 +1,8 @@
 {% unless site.blogroll == empty %}
   {% for menu in site.blogroll %}
     {% unless menu.items == empty %}
-      <section class="blogroll">
-          <h1>{{ menu.title }}</h1>
+      <section class="blogroll sidebar-item">
+          <h2>{{ menu.title }}</h2>
           <ul>
             {% for menu_item in menu.items %}
               <li class="menu-item {{ menu_item.url | text_if_current}}">

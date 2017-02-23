@@ -1,6 +1,6 @@
 {% if site.tags.size > 0 %}
-  <section>
-    <h1>Tags</h1>
+  <section class="tags sidebar-item">
+    <h2>Tags</h2>
     <ul>
       {% for t in site.tags limit:10 %}
         <li class="{{ t.url | text_if_current}}">

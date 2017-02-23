@@ -1,11 +1,10 @@
 <article class="post post-{{ post.id }}">
-  <header>
-    {% if post.private? %}
-      <div class="private-indicator" title="This post is private">&#128274;</div>
-    {% endif %}
+  {% if post.private? %}
+    <div class="private-indicator" title="This post is private">&#128274;</div>
+  {% endif %}
 
-    <h1 class="title"><a href="{{ post.url }}">{{ post.title }}</a></h1>
-  </header>
+  <h1 class="post-title"><a href="{{ post.url }}">{{ post.title }}</a></h1>
+  <span class="post-date">{{ post.published_at | local_date: '%d %b %Y' }}</span>
 
   <div class="body">
     {% if post.url.current_page? %}
@@ -17,19 +16,6 @@
 
   <footer>
     <div class="details">
-      {% unless post.url.current_page? %}
-        {% if post.comment_count > 0 %}
-          <a href="{{ post.url }}" class="{{ post.url | text_if_current }}">
-            {{ post.comment_count | pluralize: 'comment' }}
-          </a>
-          &bull;
-        {% endif %}
-      {% endunless %}
-      posted
-      <a href="{{ post.url }}" class="{{ post.url | text_if_current }}">
-        {{ post.published_at | relative_date }}
-      </a>
-
       {% if post.show_byline? %}
         <span class="author">
           by
@@ -41,27 +27,30 @@
         </span>
       {% endif %}
 
-      {% if post.url.current_page? %}
-        |
-        <span class="view-count">
-          {{ post | view_count: 'page view' }}
-        </span>
-      {% endif %}
+      {% unless post.url.current_page? %}
+        {% if post.show_byline? %}
+           &bull;
+        {% endif %}
+        {% if post.comment_count > 0 %}
+          <a href="{{ post.url }}" class="{{ post.url | text_if_current }}">
+            {{ post.comment_count | pluralize: 'comment' }}
+          </a>
+        {% endif %}
+      {% endunless %}
     </div>
+
     {% unless post.tags == empty %}
       <div class="tags">
-        <ul>
-          <li>tags:</li>
-
+          tags:
           {% for t in post.tags %}
-            <li class="{{ t.url | text_if_current}}">
-              <a href="{{ t.url }}">{{ t.name }}</a>
-            </li>
+            <a class="tag" href="{{ t.url }}">{{ t.name }}</a>
           {% endfor %}
         </ul>
       </div>
     {% endunless %}
 
-    {{ post | share_buttons }}
+    <div class="share-links">
+      {{ post | share_buttons }}
+    </div>
   </footer>
 </article>

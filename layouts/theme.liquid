@@ -1,79 +1,53 @@
 <!DOCTYPE html>
 <html class='no-js'>
-  <head>
-    <title>{{ request.page_title }}</title>
+  {% include 'head' %}
 
-    <meta content='width=device-width,initial-scale=1' name='viewport'>
+  <body class="{% if settings.reverse %}layout-reverse{% endif %}
+               {% if settings.overlay %}sidebar-overlay{% endif %}
+               {% if settings.colorscheme != 'none' %}theme-base-{{ settings.colorscheme }}{% endif %}">
 
-    {% comment %}
-      This provides Posthaven built meta description, Facebook Open Graph and Twitter Card
-      <meta> tags.
-    {% endcomment %}
-    {{ meta_tags }}
+    {% include 'sidebar' %}
 
-    <link href="{{ 'images/favicon.ico' | asset_url }}" rel='shortcut icon' type='image/x-icon'>
-    <!--[if IE]>
-      <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      <div class="masthead">
+        <div class="container">
+          <h3 class="masthead-title">
+            <a href="{{ site.url }}" title="Home">{{ site.name }}</a>
+          </h3>
+        </div>
+      </div>
 
-    {{ 'blog.css' | asset_url | stylesheet_tag }}
+      <div class="container content">
+        {% include 'alerts' %}
 
-    {% comment %} This Required for internal Posthaven functionality to work!.  {% endcomment %}
-    {{ posthaven.includes_for_head }}
-  </head>
+        {{ content_for_layout }}
+      </div>
+    </div>
 
-  <body class='site-{{ site.id }}'>
-    {{ posthaven.user_menu }}
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
 
-    <header>
-      {% include 'alerts' %}
+    <script>
+      (function(document) {
+        var toggle = document.querySelector('.sidebar-toggle');
+        var sidebar = document.querySelector('#sidebar');
+        var checkbox = document.querySelector('#sidebar-checkbox');
 
-      <h1>
-        <a href="{{ site.url }}">{{ site.name | smarty_pants }}</a>
-      </h1>
+        document.addEventListener('click', function(e) {
+          var target = e.target;
 
-      {% unless site.description == empty %}
-        <h3>{{ site.description | smarty_pants }}</h3>
-      {% endunless %}
+          if(!checkbox.checked ||
+             sidebar.contains(target) ||
+             (target === checkbox || target === toggle)) return;
 
-      {% include 'nav_menu' %}
-    </header>
+          checkbox.checked = false;
+        }, false);
+      })(document);
+    </script>
 
-
-    <main>
-      {{ content_for_layout }}
-    </main>
-
-    <aside class="sidebar">
-      {% include 'bio' %}
-
-      <section class="archive">
-        <h1>Archive</h1>
-        {% form 'archive' %}
-        <a href="{{ site.archive_url }}">Browse the archive</a>
-      </section>
-
-      {% include 'contributors' %}
-
-      {% if site.subscription_enabled? %}
-        <section class="subscribe">
-          <h1>Subscribe</h1>
-
-          {% form 'subscribe' include_prompt:true %}
-
-          <a href="{{ site.feed_url }}">Subscribe to the feed</a>
-        </section>
-      {% endif %}
-
-      {% include 'blogroll' %}
-      {% include 'tags' %}
-    </aside>
-
-    <footer>
-      Built with <a href="https://posthaven.com/">Posthaven, blogging forever.</a>
-    </footer>
-
-    {% comment %} This Required for internal Posthaven functionality to work!.  {% endcomment %}
     {{ posthaven.includes_for_body }}
+
   </body>
 </html>
+
