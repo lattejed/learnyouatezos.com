@@ -1,6 +1,7 @@
 languageCode = "en-us"
 title = "Latte, Jed?"
 baseurl = "http://lattejed.com/"
+uglyURLs = false
 
 [params]
     author = "Matthew Smith"
