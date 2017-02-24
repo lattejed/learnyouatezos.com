@@ -1,41 +1,38 @@
-<!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
-     styles, `#sidebar-checkbox` for behavior. -->
-<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
 
-<!-- Toggleable sidebar -->
-<div class="sidebar" id="sidebar">
-  {% if site.description != empty %}
-    <section class="sidebar-item description">
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    {% if site.description != empty %}
+      <section class="sidebar-item description">
       <p>{{ site.description }}</p>
-    </section>
-  {% endif %}
+      </section>
+    {% endif %}
 
-  {% include 'nav_menu' %}
+    {% include 'nav_menu' %}
 
-  {% include 'bio' %}
+    {% include 'bio' %}
 
-  <section class="sidebar-item">
+    <section class="sidebar-item">
     <h2>Archive</h2>
     {% form 'archive' %}
     <a href="{{ site.archive_url }}">Browse the archive</a>
-  </section>
+    </section>
 
-  {% include 'contributors' %}
+    {% include 'contributors' %}
 
-  {% if site.subscription_enabled? %}
-    <section class="subscribe sidebar-item">
+    {% if site.subscription_enabled? %}
+      <section class="subscribe sidebar-item">
       <h2>Subscribe</h2>
 
       {% form 'subscribe' include_prompt:true %}
 
       <a href="{{ site.feed_url }}">Subscribe to the feed</a>
-    </section>
-  {% endif %}
+      </section>
+    {% endif %}
 
-  {% include 'blogroll' %}
-  {% include 'tags' %}
+    {% include 'blogroll' %}
+    {% include 'tags' %}
 
-  <section class="sidebar-item built-with">
+    <section class="sidebar-item built-with">
     <div>Built with <a href="https://posthaven.com/">Posthaven</a></div>
     <div>
       Theme based on
@@ -45,5 +42,6 @@
     <div class="user-menu">
       {{ posthaven.user_menu }}
     </div>
-  </section>
+    </section>
+  </div>
 </div>
