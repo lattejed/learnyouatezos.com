@@ -79,7 +79,8 @@ html {
 
 /* About section */
 .sidebar-about img {
-  
+  width: 50%;  
+  height: 50%;
 }
 
 .sidebar-about h1 {
@@ -128,7 +129,9 @@ a.sidebar-nav-item:focus {
  */
 
 .content {
+  /*
   padding-top:    4rem;
+  */
   padding-bottom: 4rem;
 }
 
