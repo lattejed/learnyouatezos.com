@@ -3,5 +3,7 @@ title = "Latte, Jed?"
 baseurl = "http://lattejed.com/"
 
 [params]
+    author = "Matthew Smith"
     themeColor = "theme-base-08"
+    description = "Site description"
 
