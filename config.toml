@@ -1,0 +1,4 @@
+languageCode = "en-us"
+title = "Latte, Jed?"
+baseurl = "http://lattejed.com/"
+theme = "hyde"
