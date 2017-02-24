@@ -1,0 +1,19 @@
+<section class="posts">
+  {% for post in posts %}
+    {% include 'post' %}
+  {% endfor %}
+</section>
+
+<div class="pagination">
+  {% if posts.pagination.next %}
+    <a class="older" href="{{ posts.pagination.next.url }}">Older</a>
+  {% else %}
+    <span class="older">Older</span>
+  {% endif %}
+  {% if posts.pagination.previous %}
+    <a class="older" href="{{ posts.pagination.previous.url }}">Newer</a>
+  {% else %}
+    <span class="newer">Newer</span>
+  {% endif %}
+</div>
+

@@ -1,0 +1,56 @@
+<article class="post post-{{ post.id }}">
+  {% if post.private? %}
+    <div class="private-indicator" title="This post is private">&#128274;</div>
+  {% endif %}
+
+  <h1 class="post-title"><a href="{{ post.url }}">{{ post.title }}</a></h1>
+  <span class="post-date">{{ post.published_at | local_date: '%d %b %Y' }}</span>
+
+  <div class="body">
+    {% if post.url.current_page? %}
+      {{ post.body }}
+    {% else %}
+      {{ post.excerpt_or_body }}
+    {% endif %}
+  </div>
+
+  <footer>
+    <div class="details">
+      {% if post.show_byline? %}
+        <span class="author">
+          by
+          {% if post.author.url %}
+            <a href="{{ post.author.url }}">{{ post.author.name }}</a>
+          {% else %}
+            {{ post.author.name }}
+          {% endif %}
+        </span>
+      {% endif %}
+
+      {% unless post.url.current_page? %}
+        {% if post.show_byline? %}
+           &bull;
+        {% endif %}
+        {% if post.comment_count > 0 %}
+          <a href="{{ post.url }}" class="{{ post.url | text_if_current }}">
+            {{ post.comment_count | pluralize: 'comment' }}
+          </a>
+        {% endif %}
+      {% endunless %}
+    </div>
+
+    {% unless post.tags == empty %}
+      <div class="tags">
+          tags:
+          {% for t in post.tags %}
+            <a class="tag" href="{{ t.url }}">{{ t.name }}</a>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endunless %}
+
+    <div class="share-links">
+      {{ post | share_buttons }}
+    </div>
+  </footer>
+</article>

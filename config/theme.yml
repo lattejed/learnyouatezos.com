@@ -1,0 +1,31 @@
+---
+name: Lanyon
+author: Posthaven
+url: https://github.com/posthaven/lanyon-theme
+posts_per_page:
+  include_in_settings: true
+  default: 5
+settings:
+- id: reverse
+  label: Move the sidebar to the right side.
+  default: false
+  type: checkbox
+- id: overlay
+  label: Overlay the sidebar (instead of shifting the main content).
+  default: false
+  type: checkbox
+- id: colorscheme
+  label: Color Scheme
+  type: radio
+  default: 'none'
+  options:
+    - {label: 'Black', value: 'none'}
+    - {label: 'Red', value: '08'}
+    - {label: 'Orange', value: '09'}
+    - {label: 'Yellow', value: '0a'}
+    - {label: 'Green', value: '0b'}
+    - {label: 'Cyan', value: '0c'}
+    - {label: 'Blue', value: '0d'}
+    - {label: 'Magenta', value: '0e'}
+    - {label: 'Brown', value: '0f'}
+
