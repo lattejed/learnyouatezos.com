@@ -2,7 +2,7 @@
 title = "First Five (and a Half) Minutes on a Server with Ansible"
 date = "2013-09-03T20:14:43+07:00"
 aliases = [
-    "001-first-five-and-a-half-minutes-on-a-server-with-ansible.html"
+    "/pages/001-first-five-and-a-half-minutes-on-a-server-with-ansible.html"
 ]
 
 +++
