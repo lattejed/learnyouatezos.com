@@ -2,7 +2,7 @@
 title = "First Five (and a Half) Minutes on a Server with a Shell Script"
 date = "2014-10-29T20:14:43+07:00"
 aliases = [
-    "/pages/005-implementing-porter-stemmer-in-haskell.html"
+    "/pages/004-first-five-and-a-half-minutes-on-a-server-with-a-shell-script.html"
 ]
 
 +++
