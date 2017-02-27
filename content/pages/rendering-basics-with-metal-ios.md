@@ -4,27 +4,27 @@ title = "Rendering Basics with Metal iOS"
 
 +++
 
-[Model3D](http://model3d.co) -- 3D modeling sofware we're in the process of launching for iPad -- is built on the new GPU API [Metal](https://developer.apple.com/metal/). Metal lives up to its name (close to the metal) and decidedly pretty awesome, especially when working with the more powerful iPad Pro. There isn't that much written about Metal so I'm going to cover some of the basics, as well as some 3D basics, here.
+[Model3D](http://model3d.co) -- 3D modeling software we're in the process of launching for iPad -- is built on the new GPU API [Metal](https://developer.apple.com/metal/). Metal lives up to its name (close to the metal) and is decidedly pretty awesome, especially when working with the more powerful iPad Pro. There isn't that much written about Metal so I'm going to cover some of the basics, as well as some 3D basics, here.
 
 ### Metal is a Thin Layer Over Apple Hardware
 
-Metal is high performance because it's a thin layer over a small set of GPU hardware. While I won't go into the details, it eliminates most of the overhead of OpenGL as it doesn't have to worry about supporting a wide range of hardware on different platforms. In other words, it's trading performance for portability. If you're developing graphics software specifically for iOS (or macOS) then it's probably worth the tradeoff.
+Metal is high performance because it's a thin layer over a small set of GPU hardware. While I won't go into the details, it eliminates most of the overhead of OpenGL as it doesn't have to worry about supporting a wide range of hardware on different platforms. In other words, it's trading performance for portability. If you're developing graphics software specifically for iOS (or macOS) then it's probably worth the trade off.
 
 ### Metal is Not Opinionated
 
-One of the more challenging things about Metal, at least starting out, is that it's *not* opinionated. Apple's documentation and sample code will not show you one way to work with Metal, but many. This does add to the confusion of working wit the new technology, but since Metal is optimized for performance, this hands off approach is appropriate. In fact, Model3D uses Metal in different ways in the same project -- the 3D controls, for example, are rendered differently than the objects in the workspace. 
+One of the more challenging things about Metal, at least starting out, is that it's *not* opinionated. Apple's documentation and sample code will not show you one way to work with Metal, but many. This does add to the confusion of working with the technology, but since Metal is optimized for performance, this hands off approach is appropriate. In fact, Model3D uses Metal in different ways in the same project -- the 3D controls, for example, are rendered differently than the objects in the workspace. 
 
 ### 3D Basics
 
 ![3D Basics](/img/3d-basics.jpg)
 
-Just in case you're a new to 3D, this covers the basic terminology. Vertices are points in 3D space which are transformed to the 2D space of the screen during rendering. Vertices can be drawn individually as points (with an arbitrary pixel radius). Lines can be draw between vertices. In Metal, a line is always 1px in width. Solids are drawn as a set of triangles, being defined by a set of vertices *and* a set of indices. These are generally drawn in counter-clockwise order where ccw-drawn triangles are front-facing and cw-drawn triangles are rear facing. (This can be reversed.) Face is a fairly loose term as it can mean a single triangle or a set of triangles that form polygon aligned to a plane.
+Just in case you're a new to 3D, this covers the basic terminology. Vertices are points in 3D space which are transformed to the 2D space of the screen during rendering. Vertices can be drawn individually as points (with an arbitrary pixel radius). Lines can be draw between vertices. In Metal, a line is always 1px in width. Solids are drawn as a set of triangles, being defined by a set of vertices *and* a set of indices. These are generally drawn in counter-clockwise order where ccw-drawn triangles are front-facing and cw-drawn triangles are rear facing. (This can be reversed.) Face is a fairly loose term as it can mean a single triangle or a set of triangles that form a polygon aligned to a plane.
 
 ### High Level Rendering
 
 ![Metal Diagram](/img/metal-high-level-diagram.jpg)
 
-Very high level, what we're doing here is to allocate some memory for a texture (a rendering destination), doing some boilerplate pipeline setup, creating a bunch of draw commands and then executing the whole thing. If we're renedering to the screen, that last step will include a `+[MTLCommandBuffer presentDrawable:]` if we're rendering to a texture (to, say, create a UIImage) it will not.
+Very high level, what we're doing here is to allocate some memory for a texture (a rendering destination), doing some boilerplate pipeline setup, creating a bunch of draw commands and then executing the whole thing. If we're rendering to the screen, that last step will include a `+[MTLCommandBuffer presentDrawable:]` if we're rendering to a texture (to, say, create a UIImage) it will not.
 
 All of the magic of rendering is going to happen in the "draw commands" part of that diagram. 
 
@@ -36,7 +36,7 @@ Note we're saying *assign* memory and not allocate. Very small amounts of memory
 
 The "set pipeline state" here refers to `-[MTLRenderCommandEncoder setRenderPipelineState:]` and is where we'll assign our shaders. This pipeline state is specific to the draw commands that will follow and can be reset to another state any number of times before execution.
 
-The actual draw commands will either be executed once per vertex in memory `-[MTLRenderCommandEncoder drawPrimitives:vertexStart:vertexCount:]` or will take an additional index buffer and be executed once per index `[MTLRenderCommandEncoder drawIndexedPrimitives:indexCount: indexType:indexBuffer:indexBufferOffset:]`. The former is useful for drawing points whereas the latter is useful for drawing triangles for solid surfaces.
+The actual draw commands will either be executed once per vertex in memory `-[MTLRenderCommandEncoder drawPrimitives:vertexStart:vertexCount:]` or will take an additional index buffer and be executed once per index `-[MTLRenderCommandEncoder drawIndexedPrimitives:indexCount: indexType:indexBuffer:indexBufferOffset:]`. The former is useful for drawing points whereas the latter is useful for drawing triangles for solid surfaces.
 
 ### Model3D Renderer
 
@@ -86,7 +86,7 @@ The most efficient way to manage memory for workspace objects (the objects we're
 
 Workspace objects are very dynamic. The total number of vertices may change often and the position of those vertices will change constantly. Our triangle indices may change as well. Because of that we want to manage our memory in a way where it's relatively inexpensive to update our vertex data. Because of that we'll use the most "hands on" approach and manually allocate our memory.
 
-Because this memory has to be shared between the CPU and GPU, we can't simply use `malloc`. We're going to have to use a combination of `getpagesize()` and `posix_memalign()`. 
+Because this memory has to be shared between the CPU and GPU, we can't simply use `malloc`. We're going to have to use a combination of `getpagesize` and `posix_memalign`. 
 
 ```objectivec
 - (NSInteger)pageSize {
@@ -101,6 +101,7 @@ Because this memory has to be shared between the CPU and GPU, we can't simply us
         }
     }
     NSInteger ps = [self pageSize];
+    // Round up to next page size multiple
     return (int)ceil((double)bytes / (double)ps) * ps;
 }
 
@@ -153,7 +154,7 @@ The option `MTLResourceCPUCacheModeWriteCombined` is appropriate if we're going 
         
         // Solid pass
 
-        [encoder setRenderPipelineState:rend.lightedPipelineState];
+        [encoder setRenderPipelineState:rend.solidPipelineState];
         [encoder setDepthStencilState:rend.depthStencilA];
 
         [encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle
@@ -189,3 +190,36 @@ The option `MTLResourceCPUCacheModeWriteCombined` is appropriate if we're going 
 }
 ```
 
+You'll notice we're settings our pipeline state three times -- solid, edge and point. These represent both vertex and fragment shaders. If you're not familiar, a shader is the actual program executed, in parallel, by the GPU to render our data into a texture. Although it's not the only way to do it, in this case we're running a vertex shader followed by a fragment shader. A vertex shader is generally run once per vertex. In the case of our solid pass, each vertex may be used more than once as they're shared between independent triangles. For our point pass, each vertex will be used once.
+
+Our fragment (pixel) shader is going to take the interpolated result of our vertex shaderand allow us to draw per-pixel to our destination. 
+
+In their simplest form, these will look something like:
+
+```c
+vertex io_vertex 
+vertex_solid(device vertex_data* vertices [[buffer(0)]],
+             uint vid [[vertex_id]],
+             constant camera_uniform_data& cuni [[buffer(1)]]) {
+    io_vertex overt;
+    vertex_data vert = vertices[vid];
+    overt.position = cuni.cm * vert.pos;
+    overt.color = vert.solid_color;
+    return overt;
+}
+
+fragment float4 
+fragment_simple(io_vertex vert [[stage_in]]) {
+    return vert.color;
+}
+```
+
+You can see the fragment (pixel) shader is just passing along the color we've sent to it. Our vertex shader, in this case, is taking our uniform data, specifically our camera + projection matrix and multiplying our vertex position by it. This could have also been done in our `-render:device:` method, by the CPU, but that would mean not taking advantage of the parallel processing capabilities of the GPU.
+
+You will also notice in the `-render:device:` method that we're keeping track of offsets manually. That's because our memory is laid out something along the lines of:
+
+![Workspace Memory Layout](/img/workspace-mem-layout.jpg)
+
+We have a single block of memory for vertices (typed `vertex_data*`) and a single block of memory for both triangle and edge indices (typed `unsinged int*`). Again, this isn't the only way we can do it, but in this case this is the best way to do it. 
+
+Other renderables (our control objects, 2D lines, etc.) are each managed somewhat differently, but I won't go into them in depth here.

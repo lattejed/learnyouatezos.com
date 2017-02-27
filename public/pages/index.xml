@@ -6,8 +6,235 @@
     <description>Recent content in Pages on Latte, Jed?</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 12 Aug 2016 20:14:43 +0700</lastBuildDate>
+    <lastBuildDate>Mon, 27 Feb 2017 10:34:12 +0700</lastBuildDate>
     <atom:link href="http://lattejed.com/pages/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Rendering Basics with Metal iOS</title>
+      <link>http://lattejed.com/pages/rendering-basics-with-metal-ios/</link>
+      <pubDate>Mon, 27 Feb 2017 10:34:12 +0700</pubDate>
+      
+      <guid>http://lattejed.com/pages/rendering-basics-with-metal-ios/</guid>
+      <description>
+
+&lt;p&gt;&lt;a href=&#34;http://model3d.co&#34;&gt;Model3D&lt;/a&gt; &amp;ndash; 3D modeling software we&amp;rsquo;re in the process of launching for iPad &amp;ndash; is built on the new GPU API &lt;a href=&#34;https://developer.apple.com/metal/&#34;&gt;Metal&lt;/a&gt;. Metal lives up to its name (close to the metal) and is decidedly pretty awesome, especially when working with the more powerful iPad Pro. There isn&amp;rsquo;t that much written about Metal so I&amp;rsquo;m going to cover some of the basics, as well as some 3D basics, here.&lt;/p&gt;
+
+&lt;h3 id=&#34;metal-is-a-thin-layer-over-apple-hardware&#34;&gt;Metal is a Thin Layer Over Apple Hardware&lt;/h3&gt;
+
+&lt;p&gt;Metal is high performance because it&amp;rsquo;s a thin layer over a small set of GPU hardware. While I won&amp;rsquo;t go into the details, it eliminates most of the overhead of OpenGL as it doesn&amp;rsquo;t have to worry about supporting a wide range of hardware on different platforms. In other words, it&amp;rsquo;s trading performance for portability. If you&amp;rsquo;re developing graphics software specifically for iOS (or macOS) then it&amp;rsquo;s probably worth the trade off.&lt;/p&gt;
+
+&lt;h3 id=&#34;metal-is-not-opinionated&#34;&gt;Metal is Not Opinionated&lt;/h3&gt;
+
+&lt;p&gt;One of the more challenging things about Metal, at least starting out, is that it&amp;rsquo;s &lt;em&gt;not&lt;/em&gt; opinionated. Apple&amp;rsquo;s documentation and sample code will not show you one way to work with Metal, but many. This does add to the confusion of working with the technology, but since Metal is optimized for performance, this hands off approach is appropriate. In fact, Model3D uses Metal in different ways in the same project &amp;ndash; the 3D controls, for example, are rendered differently than the objects in the workspace.&lt;/p&gt;
+
+&lt;h3 id=&#34;3d-basics&#34;&gt;3D Basics&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lattejed.com/img/3d-basics.jpg&#34; alt=&#34;3D Basics&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Just in case you&amp;rsquo;re a new to 3D, this covers the basic terminology. Vertices are points in 3D space which are transformed to the 2D space of the screen during rendering. Vertices can be drawn individually as points (with an arbitrary pixel radius). Lines can be draw between vertices. In Metal, a line is always 1px in width. Solids are drawn as a set of triangles, being defined by a set of vertices &lt;em&gt;and&lt;/em&gt; a set of indices. These are generally drawn in counter-clockwise order where ccw-drawn triangles are front-facing and cw-drawn triangles are rear facing. (This can be reversed.) Face is a fairly loose term as it can mean a single triangle or a set of triangles that form a polygon aligned to a plane.&lt;/p&gt;
+
+&lt;h3 id=&#34;high-level-rendering&#34;&gt;High Level Rendering&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lattejed.com/img/metal-high-level-diagram.jpg&#34; alt=&#34;Metal Diagram&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Very high level, what we&amp;rsquo;re doing here is to allocate some memory for a texture (a rendering destination), doing some boilerplate pipeline setup, creating a bunch of draw commands and then executing the whole thing. If we&amp;rsquo;re rendering to the screen, that last step will include a &lt;code&gt;+[MTLCommandBuffer presentDrawable:]&lt;/code&gt; if we&amp;rsquo;re rendering to a texture (to, say, create a UIImage) it will not.&lt;/p&gt;
+
+&lt;p&gt;All of the magic of rendering is going to happen in the &amp;ldquo;draw commands&amp;rdquo; part of that diagram.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lattejed.com/img/draw-command-high-level.jpg&#34; alt=&#34;Draw Command Diagram&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The first part of the draw command is assigning memory to the pipeline. This can be &amp;ldquo;uniform&amp;rdquo; structs &amp;ndash; small amounts of memory that will get copied over to GPU memory and be available for shaders. If you&amp;rsquo;re new to graphics programming they&amp;rsquo;re called &amp;ldquo;uniforms&amp;rdquo; because they&amp;rsquo;re the same for each call of the shader, where as, e.g., the vertex data will be different for each call to the shader. The uniform struct might carry a camera / projection matrix (usually a 4x4 matrix of floats) that we&amp;rsquo;ll multiply our vertex positions by (more on that later).&lt;/p&gt;
+
+&lt;p&gt;Note we&amp;rsquo;re saying &lt;em&gt;assign&lt;/em&gt; memory and not allocate. Very small amounts of memory (say under 4kb) may be allocated and assigned each frame, but larger amounts of memory (e.g., vertex data) should be allocated once, or infrequently, and reused. Again, there are many ways to do this and no one correct way.&lt;/p&gt;
+
+&lt;p&gt;The &amp;ldquo;set pipeline state&amp;rdquo; here refers to &lt;code&gt;-[MTLRenderCommandEncoder setRenderPipelineState:]&lt;/code&gt; and is where we&amp;rsquo;ll assign our shaders. This pipeline state is specific to the draw commands that will follow and can be reset to another state any number of times before execution.&lt;/p&gt;
+
+&lt;p&gt;The actual draw commands will either be executed once per vertex in memory &lt;code&gt;-[MTLRenderCommandEncoder drawPrimitives:vertexStart:vertexCount:]&lt;/code&gt; or will take an additional index buffer and be executed once per index &lt;code&gt;-[MTLRenderCommandEncoder drawIndexedPrimitives:indexCount: indexType:indexBuffer:indexBufferOffset:]&lt;/code&gt;. The former is useful for drawing points whereas the latter is useful for drawing triangles for solid surfaces.&lt;/p&gt;
+
+&lt;h3 id=&#34;model3d-renderer&#34;&gt;Model3D Renderer&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-objectivec&#34;&gt;- (void)render:(CAMetalLayer *)layer {
+    
+    id&amp;lt;CAMetalDrawable&amp;gt; currentDrawable = [layer nextDrawable];
+    id&amp;lt;MTLCommandBuffer&amp;gt; commandBuffer = [self.commandQueue commandBuffer];
+    MTLRenderPassDescriptor* pass = [self renderPass:currentDrawable.texture];
+    
+    id&amp;lt;MTLRenderCommandEncoder&amp;gt; encoder;
+    encoder = [commandBuffer renderCommandEncoderWithDescriptor:pass];
+    [encoder setFrontFacingWinding:MTLWindingCounterClockwise];
+    [encoder setCullMode:MTLCullModeBack];
+
+    for (id&amp;lt;BLKRenderable&amp;gt; renderable in _renderables) {
+        [renderable render:encoder device:_device];
+    }
+    
+    [encoder endEncoding];
+    
+    [commandBuffer presentDrawable:currentDrawable];
+    [commandBuffer commit];
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The renderer in Model3D is no more complicated than that. The &lt;code&gt;commandQueue&lt;/code&gt; is cached at startup. The &lt;code&gt;CAMetalDrawable&lt;/code&gt; is passed in via the &lt;code&gt;CAMetalLayer&lt;/code&gt;. The rendering is &amp;ldquo;driven&amp;rdquo; via a &lt;code&gt;CADisplayLink&lt;/code&gt;. In this case the display link is set to fire 60 times per second.&lt;/p&gt;
+
+&lt;p&gt;The actual drawing duties are offloaded to our &lt;code&gt;BLKRenderable&lt;/code&gt; protocol.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-objectivec&#34;&gt;@protocol BLKRenderable &amp;lt;NSObject&amp;gt;
+
+- (NSUInteger)renderOrder;
+- (void)render:(id&amp;lt;MTLRenderCommandEncoder&amp;gt;)encoder device:(id&amp;lt;MTLDevice&amp;gt;)device;
+
+@end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Using this protocol, instead of having the renderer handle everything centrally, allows us to draw things in a way that is most appropriate to the situation.&lt;/p&gt;
+
+&lt;h3 id=&#34;workspace-object-rendering&#34;&gt;Workspace Object Rendering&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lattejed.com/img/apc-render-full.jpg&#34; alt=&#34;APC Render&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The most efficient way to manage memory for workspace objects (the objects we&amp;rsquo;re editing) is different than it would be if we were rendering geometry for a game and it&amp;rsquo;s also different than how we&amp;rsquo;re managing memory for other objects on our screen (e.g., control objects, 2D lines, etc.).&lt;/p&gt;
+
+&lt;p&gt;Workspace objects are very dynamic. The total number of vertices may change often and the position of those vertices will change constantly. Our triangle indices may change as well. Because of that we want to manage our memory in a way where it&amp;rsquo;s relatively inexpensive to update our vertex data. Because of that we&amp;rsquo;ll use the most &amp;ldquo;hands on&amp;rdquo; approach and manually allocate our memory.&lt;/p&gt;
+
+&lt;p&gt;Because this memory has to be shared between the CPU and GPU, we can&amp;rsquo;t simply use &lt;code&gt;malloc&lt;/code&gt;. We&amp;rsquo;re going to have to use a combination of &lt;code&gt;getpagesize&lt;/code&gt; and &lt;code&gt;posix_memalign&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-objectivec&#34;&gt;- (NSInteger)pageSize {
+    return getpagesize();
+}
+
+- (NSInteger)vertexMemorySize {
+    NSInteger bytes = 0;
+    for (BLKObject* obj in _objects) {
+        for (BLKFace* face in obj.faces) {
+            bytes += sizeof(vertex_data) * face.vertices.count;
+        }
+    }
+    NSInteger ps = [self pageSize];
+    // Round up to next page size multiple
+    return (int)ceil((double)bytes / (double)ps) * ps;
+}
+
+- (void)buildVertexMemory:(id&amp;lt;MTLDevice&amp;gt;)device {
+    if (_vertexMemory != NULL) {
+        free(_vertexMemory);
+        _vertexMemory = NULL;
+    }
+    NSUInteger size = [self vertexMemorySize];
+    posix_memalign(&amp;amp;_vertexMemory, [self pageSize], size);
+    _vertexBuffer = [device
+                     newBufferWithBytesNoCopy:_vertexMemory
+                     length:size
+                     options:MTLResourceCPUCacheModeWriteCombined
+                     deallocator:nil];
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This is short but there&amp;rsquo;s actually quite a bit going on here. &lt;code&gt;getpagesize&lt;/code&gt; is actually deprecated but is this the correct way to get the page size of the current hardware. What the page size is differs for different hardware. From Apple docs:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;In OS X and in earlier versions of iOS, the size of a page is 4 kilobytes. In later versions of iOS, A7- and A8-based systems expose 16-kilobyte pages to the 64-bit userspace backed by 4-kilobyte physical pages, while A9 systems expose 16-kilobyte pages backed by 16-kilobyte physical pages.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The short answer is don&amp;rsquo;t hard code it and you won&amp;rsquo;t have to worry about it. Our method &lt;code&gt;buildVertexMemory&lt;/code&gt; is only called when the total number of vertices changes (e.g., and object is added to or deleted from our workspace). It is not called when the vertex data changes and certainly not called every frame.&lt;/p&gt;
+
+&lt;p&gt;The option &lt;code&gt;MTLResourceCPUCacheModeWriteCombined&lt;/code&gt; is appropriate if we&amp;rsquo;re going to manage the memory ourselves and that memory will be written to (but not read by) the CPU (i.e., our program logic). By calling &lt;code&gt;-[MTLDevice newBufferWithBytesNoCopy:length:options:deallocator:&lt;/code&gt; we ensure that memory is not allocated (or managed by) Metal and it&amp;rsquo;s going to use our chunk of page-aligned memory. The effect is that we can now write to the pointer &lt;code&gt;(vertex_data*)_vertexMemory&lt;/code&gt; like any other C array and the GPU will see our updates without further intervention.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-objectivec&#34;&gt;- (void)render:(id&amp;lt;MTLRenderCommandEncoder&amp;gt;)encoder device:(id&amp;lt;MTLDevice&amp;gt;)device {
+    
+    BLKRenderer* rend = [BLKRenderer sharedRenderer];
+    
+    // Update memory if necessary
+    // Update data if necessary
+    
+    camera_uniform_data uni;
+    simd::float4x4 cm = _mainCamera.matrix;
+    uni.cm = self.proj_perspective * cm;
+    
+    [encoder setVertexBytes:&amp;amp;uni length:sizeof(camera_uniform_data) atIndex:1];
+    [encoder setVertexBuffer:_vertexBuffer offset:0 atIndex:0];
+    
+    NSInteger vboffset = 0;
+    NSInteger iboffset = 0;
+    
+    for (BLKObject* obj in _objects) {
+        
+        [encoder setVertexBufferOffset:vboffset atIndex:0];
+        
+        vboffset += sizeof(vertex_data) * obj.vertCount;
+        
+        // Solid pass
+
+        [encoder setRenderPipelineState:rend.solidPipelineState];
+        [encoder setDepthStencilState:rend.depthStencilA];
+
+        [encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+                            indexCount:obj.triCount * 3
+                             indexType:MTLIndexTypeUInt32
+                           indexBuffer:_indexBuffer
+                     indexBufferOffset:iboffset];
+        
+        iboffset += sizeof(index_data) * obj.triCount * 3;
+
+        // Edge pass
+        
+        [encoder setRenderPipelineState:rend.edgePipelineState];
+        [encoder setDepthStencilState:rend.depthStencilA];
+        
+        [encoder drawIndexedPrimitives:MTLPrimitiveTypeLine
+                            indexCount:obj.edgeCount * 2
+                             indexType:MTLIndexTypeUInt32
+                           indexBuffer:_indexBuffer
+                     indexBufferOffset:iboffset];
+        
+        iboffset += sizeof(index_data) * obj.edgeCount * 2;
+
+        // Point pass
+            
+        [encoder setRenderPipelineState:rend.pointPipelineState];
+        [encoder setDepthStencilState:rend.depthStencilA];
+        
+        [encoder drawPrimitives:MTLPrimitiveTypePoint
+                    vertexStart:0
+                    vertexCount:obj.vertCount];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You&amp;rsquo;ll notice we&amp;rsquo;re settings our pipeline state three times &amp;ndash; solid, edge and point. These represent both vertex and fragment shaders. If you&amp;rsquo;re not familiar, a shader is the actual program executed, in parallel, by the GPU to render our data into a texture. Although it&amp;rsquo;s not the only way to do it, in this case we&amp;rsquo;re running a vertex shader followed by a fragment shader. A vertex shader is generally run once per vertex. In the case of our solid pass, each vertex may be used more than once as they&amp;rsquo;re shared between independent triangles. For our point pass, each vertex will be used once.&lt;/p&gt;
+
+&lt;p&gt;Our fragment (pixel) shader is going to take the interpolated result of our vertex shaderand allow us to draw per-pixel to our destination.&lt;/p&gt;
+
+&lt;p&gt;In their simplest form, these will look something like:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;vertex io_vertex 
+vertex_solid(device vertex_data* vertices [[buffer(0)]],
+             uint vid [[vertex_id]],
+             constant camera_uniform_data&amp;amp; cuni [[buffer(1)]]) {
+    io_vertex overt;
+    vertex_data vert = vertices[vid];
+    overt.position = cuni.cm * vert.pos;
+    overt.color = vert.solid_color;
+    return overt;
+}
+
+fragment float4 
+fragment_simple(io_vertex vert [[stage_in]]) {
+    return vert.color;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can see the fragment (pixel) shader is just passing along the color we&amp;rsquo;ve sent to it. Our vertex shader, in this case, is taking our uniform data, specifically our camera + projection matrix and multiplying our vertex position by it. This could have also been done in our &lt;code&gt;-render:device:&lt;/code&gt; method, by the CPU, but that would mean not taking advantage of the parallel processing capabilities of the GPU.&lt;/p&gt;
+
+&lt;p&gt;You will also notice in the &lt;code&gt;-render:device:&lt;/code&gt; method that we&amp;rsquo;re keeping track of offsets manually. That&amp;rsquo;s because our memory is laid out something along the lines of:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lattejed.com/img/workspace-mem-layout.jpg&#34; alt=&#34;Workspace Memory Layout&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We have a single block of memory for vertices (typed &lt;code&gt;vertex_data*&lt;/code&gt;) and a single block of memory for both triangle and edge indices (typed &lt;code&gt;unsinged int*&lt;/code&gt;). Again, this isn&amp;rsquo;t the only way we can do it, but in this case this is the best way to do it.&lt;/p&gt;
+
+&lt;p&gt;Other renderables (our control objects, 2D lines, etc.) are each managed somewhat differently, but I won&amp;rsquo;t go into them in depth here.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>My Disappointment in No Man&#39;s Sky</title>
