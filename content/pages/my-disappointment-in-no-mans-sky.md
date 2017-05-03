@@ -4,7 +4,7 @@ date = "2016-08-12T20:14:43+07:00"
 aliases = [
     "/pages/010-my-disappointment-in-no-mans-sky.html"
 ]
-
+draft = true
 +++
 
 [No Man's Sky](http://www.no-mans-sky.com/) is a game I've been looking forward to for a while now. I'm not that hardcore of a gamer but I do keep up with the latest gen console and try to find the time to play the best games that come out. My absolute favorite of the PS3 was the last Mass Effect game. Not only was that my favorite game (despite some flaws) it was actually my favorite sci-fi experience. The character development, cinematics, music, sound, all of it was just incredible and the format allowed it a depth of storytelling that a 2-3 hour movie simply can't provide. Yes, I was disappointed in the ending -- but only because it was over.

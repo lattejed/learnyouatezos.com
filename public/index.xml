@@ -237,32 +237,6 @@ fragment_simple(io_vertex vert [[stage_in]]) {
     </item>
     
     <item>
-      <title>My Disappointment in No Man&#39;s Sky</title>
-      <link>http://lattejed.com/pages/my-disappointment-in-no-mans-sky/</link>
-      <pubDate>Fri, 12 Aug 2016 20:14:43 +0700</pubDate>
-      
-      <guid>http://lattejed.com/pages/my-disappointment-in-no-mans-sky/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;http://www.no-mans-sky.com/&#34;&gt;No Man&amp;rsquo;s Sky&lt;/a&gt; is a game I&amp;rsquo;ve been looking forward to for a while now. I&amp;rsquo;m not that hardcore of a gamer but I do keep up with the latest gen console and try to find the time to play the best games that come out. My absolute favorite of the PS3 was the last Mass Effect game. Not only was that my favorite game (despite some flaws) it was actually my favorite sci-fi experience. The character development, cinematics, music, sound, all of it was just incredible and the format allowed it a depth of storytelling that a 2-3 hour movie simply can&amp;rsquo;t provide. Yes, I was disappointed in the ending &amp;ndash; but only because it was over.&lt;/p&gt;
-
-&lt;p&gt;No Man&amp;rsquo;s Sky immediately appealed to me both as a sci-fi game lover and also as a software engineer. In broad terms I know how the game was made and the idea of using math to generate the content of a game, especially at that scale, has lots of geek appeal.&lt;/p&gt;
-
-&lt;p&gt;But the technique is not new and it&amp;rsquo;s not used at this scale in most games because it doesn&amp;rsquo;t &amp;ndash; by itself &amp;ndash; produce game worlds that are interesting, believable or enjoyable. Think of an extreme case: It&amp;rsquo;s trivial to generate a 3D game world that consists of an endless desert. One that you could never cross. How fun would it be to walk around that desert?&lt;/p&gt;
-
-&lt;p&gt;So what we have in No Man&amp;rsquo;s Sky is a limitless number of planets that consist of: hills, caves, lakes, rocks and a handful of animals and buildings. All of those are slight variations on one another. There are no cities, nor waves, rivers, waterfalls, foliage, forests, deserts, mountains, glaciers &amp;ndash; the stuff that makes this planet interesting.&lt;/p&gt;
-
-&lt;p&gt;Having said that, I think the repetitive nature of the environment could be overlooked if the gameplay was great. Unfortunately it&amp;rsquo;s not. Gameplay consists of trading and micromanaging inventory. Really, that&amp;rsquo;s it. It&amp;rsquo;s frustrating (whoops, need to reload fuel/batteries/ammo or I can&amp;rsquo;t move/survive/work) and doing anything other than wandering aimlessly feels like a chore. Combat is clunky and usually the outcome is decided before it begins.&lt;/p&gt;
-
-&lt;p&gt;My first game as a kid, on my Atari 400, was Star Raiders. It too had a galaxy map, space combat and resource gathering. All in an 8-bit game. One of my favorite parts of the game is you could warp to an empty part of the galaxy and fly endlessly. It blew my mind that a video game could have that scale. Of course, space was represented by white dots flying towards the screen and since you would never arrive anywhere the trip had no meaning. After a few seconds of amazement I would get bored and go back to actually playing the game.&lt;/p&gt;
-
-&lt;p&gt;No Man&amp;rsquo;s Sky reminds me a lot of that game. Infinite can be fun, for a little while. Then you get bored and want something of substance &amp;ndash; a narrative, a fun gameplay mechanic, a meaningful interaction, anything. No Man&amp;rsquo;s Sky never seems to come around with that second part.&lt;/p&gt;
-
-&lt;p&gt;Another big disappointment for me is how slow everything feels in the game. I guess it&amp;rsquo;s a mixture of a bad frame rate, clunky controls and slow walking / flying speeds. Yes, there is a fast mode for travelling between planets, but that&amp;rsquo;s still 30 - 90 seconds of staring at white dots moving towards the screen. Compare that to, say, Doom. Doom shows what&amp;rsquo;s possible on the PS4 &amp;ndash; amazing levels of detail at a constant 60fps. Responsive and fluid. No Man&amp;rsquo;s Sky makes me feel like I&amp;rsquo;m wading through molasses.&lt;/p&gt;
-
-&lt;p&gt;The only thing I&amp;rsquo;m not disappointed in is paying $100 for a limited edition. I&amp;rsquo;m happy to support this kind of innovation and risk taking. I think the game industry can learn something from this &amp;ndash; you can try something new, fall short of expectations and still find success. The industry as a whole needs more of this.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
       <title>Why my Nom de Guerre is Latte Jed</title>
       <link>http://lattejed.com/pages/why-my-nom-de-guerre-is-latte-jed/</link>
       <pubDate>Fri, 22 Jul 2016 20:14:43 +0700</pubDate>
