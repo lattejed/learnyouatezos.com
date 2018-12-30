@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.18.1" />
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  
+  <title>Writing an Embedded Full Text Search Engine &middot; Latte, Jed?</title>
+  
+
+  
+  <link rel="stylesheet" href="http://lattejed.com/css/poole.css">
+  <link rel="stylesheet" href="http://lattejed.com/css/syntax.css">
+  <link rel="stylesheet" href="http://lattejed.com/css/hyde.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  
+  <link rel="shortcut icon" href="/blkstar.co.logo_128.bt.png">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="Latte, Jed?" />
+
+  <link rel="stylesheet" href="http://lattejed.com/css/highlight/default.css">
+  <script src="http://lattejed.com/js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body class="theme-base-08 ">
+
+    <div class="content container">
+        <div class="post">
+            <h1>Writing an Embedded Full Text Search Engine</h1>
+            <span class="post-date">Tue, Oct 6, 2015</span>
+            
+
+<p><strong>Note: While this monster post should be of interest to anyone working on full text search, I no longer recommend the approach outlined here. 1) In practice, Levenshtein indexes don&rsquo;t give a real advantage vs a properly implemented n-gram index. 2) Levenshtein indexes, even using the technique below, take up too much space. 3) LevelDB isn&rsquo;t a good choice for this</strong></p>
+
+<p>I&rsquo;m currently working on a project and had the opportunity to write an embedded search engine for it. I say opportunity because this is the kind of project that is lots of fun and would be a hard sell to a team. That is, even though there isn&rsquo;t a go-to embeddable search engine, one could almost certainly be put together with existing libraries at a much higher level than how I wrote this one. SQLite, for example, which is more or less the go-to DB for apps, has support for full text search. Apple has SearchKit, which is far from complete or easy to use, but nevertheless would likely be much faster than writing something from scratch.</p>
+
+<p>From scratch is a very nebulous phrase in software development since it&rsquo;s exceedingly rare to write something that isn&rsquo;t built on a whole lot of other, preexisting stuff. This project is no different and while it&rsquo;s about as low level as you&rsquo;d want to get when writing a search engine, it is based on a set of libraries, most notably LevelDB and ICU. LevelDB is an embedded key-value store that is tiny and fast and has a good pedigree. Like SQLite, LevelDB does not run as a separate process and does not have a client-server model. It gets compiled into your app. Hence the embedded part. ICU is the de facto standard for dealing with Unicode &ndash; dealing with things like text tokenization in problematic languages like Chinese as well as Unicode normalization and a host of other things.</p>
+
+<p>So I didn&rsquo;t really start from scratch. I started from a sane set of base libraries. From there however it&rsquo;s still a lot of work to build something that can store and search a set of documents. Before I get into the how I should take a moment to address the why.</p>
+
+<h3 id="why-build-a-search-engine-from-scratch">Why Build a Search Engine from Scratch?</h3>
+
+<p>This is a great question. The high level answer is that I want an end result that is blazingly fast and very accurate. I want something lightweight enough that it can run on OS X as well as iOS or other mobile devices. Now, as a software engineer, I have to be able to answer the question, &ldquo;Is alternative X or Y lacking in any measurable way that is relevant to the application at hand?&rdquo; The problem with that is it&rsquo;s not possible to benchmark a piece of software that hasn&rsquo;t been written yet so I can&rsquo;t say if this approach is better than using SQLite or SearchKit. While I could have tested the performance and features of SQLite and SearchKit, the reality is that I decided to write one from scratch for this project for emotional reasons &ndash; because I wanted to. When this is production-ready it certainly will be interesting to benchmark it against something like SQLite.</p>
+
+<h3 id="high-level-design">High Level Design</h3>
+
+<p>So what is a full text search engine? The goal is to end up with a black box that contains a bunch of documents that can be queried for a word or a phrase. The simplest approach would be to have a set of documents on disk (or in memory) and go through them one by one, breaking them into terms and checking if our search term matches any of those. In essence that&rsquo;s what every search engine does except that practical designs will do a lot of pre-processing to speed up that matching.</p>
+
+<p>A more usable design will take pieces of the documents and create one or more indexes. These indexes are shortcuts &ndash; a manifestation of the ability to trade off between processing time and disk space. The most basic index for full text search would be a word index (in this context usually called an inverted index) &ndash; a list of words that point to the documents that contain them. Here we take up some more space (size of documents + size of word index) but gain the ability to scan through a smaller list of words (alphabetized, duplicates and unimportant words removed) to find matches. Instead of searching all of the documents for the word &ldquo;beautiful&rdquo; we search the index for the word. We can then fetch the set of documents with the word &ldquo;beautiful&rdquo; in them and do some other stuff to decide if those documents are the ones we want or not.</p>
+
+<p>If all we want to do is find exact matches, we&rsquo;re actually most of the way there. This very simple index will allow us to find documents with the word &ldquo;beautiful&rdquo; in them if the following conditions are met:</p>
+
+<ul>
+<li>The word beautiful is spelled correctly as a search term.</li>
+<li>The word beautiful is spelled correctly in the document that contains it.</li>
+<li>The word beautiful doesn&rsquo;t have a prefix or suffix, e.g., &ldquo;beautifully&rdquo;.</li>
+<li>The word beautiful was tokenized properly (related to #3).</li>
+<li>And others&hellip;</li>
+</ul>
+
+<p>The point is this type of all or nothing term search is exceedingly fragile when dealing with human language and human operators. To improve on this, we&rsquo;ll need some manner of approximate or &ldquo;fuzzy&rdquo; matching of terms. When we&rsquo;re talking about matching terms based on similarity we&rsquo;re usually going to look at some type of edit distance, like <a href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein distance</a> (which is what we will eventually use here), but there are interesting alternatives such as <a href="http://blog.nishtahir.com/2015/09/19/fuzzy-string-matching-using-cosine-similarity/">cosine similarity</a>. Regardless of how we determine it, we&rsquo;re calculating how similar our search term is with the terms in each document. For example the words &ldquo;that&rdquo; and &ldquo;than&rdquo; have a Levenshtein distance of 1 (one substitution) and a cosine similarity of ~0.8164 (a score of 1 meaning identical, 0 meaning no similarity). What we consider &ldquo;close enough&rdquo; is an arbitrary threshold.</p>
+
+<p>A naive &ldquo;fuzzy&rdquo; approach would be to calculate the edit distance of our search term against each word in our index. Again, this will be slow as we&rsquo;ll be spending most of our time comparing words that have little or no similarity. While not as bad as testing every word in every document, it&rsquo;s still far from ideal. We could try to speed this up by doing things like only testing words that share a common prefix, but there are plenty of cases where that will fail, such as a spelling error in the first few letters of a word. If we want something more robust we&rsquo;re going to have to get more creative.</p>
+
+<h3 id="precomputed-n-gram-index">Precomputed N-Gram Index</h3>
+
+<p>Since we want to trade disk space for processing time, we want to do as much of the work required for searching ahead of time as possible. That will lead us to an index that is larger and more complex. One of the more common types of precomputed indexes is an n-gram index. N-grams (unigrams, bigrams, trigrams, &hellip;, 25-grams, &hellip;) in this case are our words broken into groups of n letters. Our word &ldquo;beautiful&rdquo; could be broken into the trigrams, &ldquo;bea&rdquo;, &ldquo;eau&rdquo;, &ldquo;aut&rdquo;, &ldquo;uti&rdquo;, etc. What n-grams allow us to do is search for partial word matches. We&rsquo;ll end up fetching a lot of unrelated words (there&rsquo;s an &ldquo;aut&rdquo; in &ldquo;flautist&rdquo;) but the total number will probably be a reasonable amount to do another round of testing for a match (such as calculating cosine similarity). N-grams are neat. They&rsquo;re almost an ideal, universal solution to our problem and they&rsquo;re conceptually very simple.</p>
+
+<p>Where they fall down, however, is their ability to deal with incorrect spelling. It&rsquo;s fairly likely that two words can be similar (in terms of their edit distance) but have zero trigrams in common. (For reasons beyond the scope of this, n-grams for partial word matches are almost always trigrams.) An example would be <a href="http://ntz-develop.blogspot.com/2011/03/fuzzy-string-search.html">&ldquo;vodka&rdquo; misspelled as &ldquo;votka&rdquo;</a>. The Levenshtein distance is 1 but no trigrams match between the two. Since this is going to fail often (I don&rsquo;t have any numbers for this but I think it&rsquo;s a reasonable assumption that it&rsquo;s significant) we&rsquo;re going to have to keep looking.</p>
+
+<h3 id="precomputed-levenshtein-index">Precomputed Levenshtein Index</h3>
+
+<p>Since Levenshtein is the go-to measure of string similarity, it kind of makes sense to combine that with the concept of indexing. The question is how. We could pre-compute &ldquo;Levenshtein variations&rdquo; of words but that&rsquo;s probably going to be zillions of words, right? Right. The problem here is edit distance encompasses all transpositions, insertions, deletions and replacements of letters in a word. For the <a href="http://norvig.com/spell-correct.html">English alphabet and a word 9 letters long, we&rsquo;re looking at over 110,000 possible combinations</a>. That&rsquo;s bad enough but if we get into languages with larger alphabets, like Chinese, we&rsquo;re talking absolutely enormous indexes.</p>
+
+<p>This is where I got stuck for a bit. I felt like I was on the right track but I didn&rsquo;t know how to solve this particular issue. Then I found <a href="http://blog.faroo.com/2012/06/07/improved-edit-distance-based-spelling-correction/">this blog post about a similar approach</a> where they addressed the index size issue. Bingo! It&rsquo;s always humbling when someone beats you to the punch but at the same time it&rsquo;s nice to have a solution present itself.</p>
+
+<p>The basic concept here is instead of pre-calculating all possible Levenshtein variations of word, we only calculate the variations created by deleting letters from a word. The number of variations then is a number much smaller, for our purposes practically so. How does that work? How can we ignore insertions and everything else? The trick is to also calculate the deletion variants of our search term and then query each of those terms against our index. This is actually equivalent to querying a single term against a full Levenshtein index. For further reading, <a href="http://fastss.csg.uzh.ch/">a similar approach is described here</a>.</p>
+
+<p>The stated way to calculate the number of variations is:</p>
+
+<ul>
+<li>x = n for an edit distance of 1</li>
+<li>x = n * (n-1) / 2 for an edit distance of 2</li>
+<li>x = n! / d! / (n-d)! for edit distances &gt; 2</li>
+</ul>
+
+<p>Where n is the length of the word and d is the edit distance. For our 9 letter word above, we&rsquo;re looking at 45 combinations for the same edit distance. Much better than 110,000!</p>
+
+<p>For the record, the <a href="http://blog.faroo.com/2012/06/07/improved-edit-distance-based-spelling-correction/">above calculation</a> isn&rsquo;t 100% correct. Since we&rsquo;re going to be discarding duplicate variations (of the same word) we&rsquo;re going to end up with a smaller total number. Duplication happens when we have repeated letters in a word (the two l&rsquo;s in &ldquo;hello&rdquo;) for example. That&rsquo;s actually good news since the fewer terms we have in our index the better. It should be kept in mind however if trying to determine the total number of variations programmatically for some purpose, such as allocating memory.</p>
+
+<h3 id="edit-distance">Edit Distance</h3>
+
+<p>We should talk about edit distance for a moment. We&rsquo;re going to want to find a &ldquo;Goldilocks&rdquo; edit distance &ndash; one that gives us enough variations to be usable without generating an index that is too large to be practical. If you remember the note about trigrams above, you can guess that this magic number is going to be 3. When we&rsquo;re dealing with the individual letters of a word, two seems to be too few (generates too many matches) and four seems to be too many (generates too few matches). In terms of handling misspellings we&rsquo;re ok too. According to <a href="http://norvig.com/spell-correct.html">this informal study, over 98% of all spelling errors are within edit distance 2 or less</a>. So we&rsquo;re going to end up building our Levenshtein index with an edit distance of 3. Of course, since the universe is cruel, this will lead to its own problems.</p>
+
+<h3 id="levenshtein-index-problem">Levenshtein Index Problem</h3>
+
+<p>While this approach is robust it&rsquo;s not without its own issues. Or, rather than blame the technique, let&rsquo;s say that we expect too much of it. In a practical search engine (especially one that&rsquo;s going to give suggestions on the fly) we&rsquo;re likely going to want some form of prefix matching. That is, as we type &ldquo;tre&rdquo; we&rsquo;re going to want to know if the word &ldquo;trepidation&rdquo; is in our search index (and in our documents). A Levenshtein edit distance of 3 is going to break down with words greater than length 6, since removing 3 letters from these words will never leave us with just the first 3 letters.</p>
+
+<p>One approach could be to store a separate prefix index along with our Levenshtein index (or, more likely, combined with). The problem with that, apart from the fact that it feels like a band-aid, is that it will break down if there&rsquo;s a misspelling in the prefix. Again, not robust enough.</p>
+
+<p>Another approach would be to extend our edit distance to accommodate a three-letter prefix. That is, we&rsquo;re going to calculate an edit distance, per word, of word length - 3. For our 9 letter word above, we&rsquo;re going to calculate an edit distance of 6. Using our calculation above, we find that the number of combinations for edit distance 6 is 465. While that&rsquo;s not too scary by itself, that&rsquo;s an order of magnitude higher than an edit distance of 3. Multiply that by all of the words in our index and we&rsquo;re going to end up with something too large to be practical.</p>
+
+<p>So, what can we do? I ended up using a what I consider to be a clever trick. Since we want to ensure that we&rsquo;re storing the first three letters of every word, we can simply treat each word (over 6 letters) as two words. The first word is the entire word, regardless of the length. The second word is the first 6 letters of the word. We then combine these into one set (removing duplicates). While I&rsquo;ve forgotten the exact increase in index size that I saw using this technique (IIRC it was around 30%), it was well within what&rsquo;s acceptable for this application. In essence we&rsquo;ve given higher weight to the beginning of the word. In practice we&rsquo;re now going to be able to match &ldquo;tre&rdquo; against &ldquo;trepidation&rdquo; without having to use an edit distance as high as 8.</p>
+
+<h3 id="storing-our-index-and-documents">Storing Our Index and Documents</h3>
+
+<p>To index a set of documents using this technique, we&rsquo;re actually going to have to create two indexes. The first index will be a list of our Levenshtein variations of a word that maps to a set of words, since a variation may map to more than one word at a time. The second index will be those words mapped to document ids. A third layer will be document ids to documents. We&rsquo;re not going to call that an index, although since everything here is a set of a values mapped to keys, the distinction is arbitrary.</p>
+
+<ul>
+<li>aut -&gt; [beautiful, flautist, &hellip;]</li>
+<li>beautiful -&gt; [doc_1, doc_9, doc_31, &hellip;]</li>
+<li>doc_1 -&gt; The beautiful girl rapidly typed on the screen of her phone &hellip;</li>
+</ul>
+
+<p>Now that we know how to generate our index, we need to think about storing it on disk. This is where LevelDB comes in. Again, LevelDB is a key value store. That&rsquo;s as simple as a DB can get (and is what you&rsquo;ll find under the hood of more complex databases). LevelDB allows us to store bytes by some manner of key, which are just more bytes. Like magic, it also allows us to retrieve bytes by a given key, provided it exists.</p>
+
+<p>There&rsquo;s not much point in going into the details of how LevelDB works now, but it&rsquo;s an interesting topic. In short, LevelDB was written by some Googlers, loosely based on Google&rsquo;s internet-scale BigTable. Although I&rsquo;m not going to link benchmarks here, it&rsquo;s fast, likely due to a combination of good design and simplicity. It&rsquo;s an ideal fit for what we&rsquo;re doing here, since we don&rsquo;t need anything more complex than a key value store. So far our database is just three &ldquo;tables&rdquo;, a table that stores our documents and our indexes. Having said that, these aren&rsquo;t actually tables as LevelDB has no concept of them.</p>
+
+<p>You could separate data by creating separate database instances, but it&rsquo;s not required nor recommend to do so. What they do recommend is to add namespaces to keys so data with similar roles will be in contiguous blocks. That can be as simple as this:</p>
+
+<ul>
+<li>000_aut -&gt; [beautiful, flautist, &hellip;]</li>
+<li>&hellip;</li>
+<li>001_beautiful -&gt; [doc_1, doc_9, doc_31, &hellip;]</li>
+<li>&hellip;</li>
+<li>002_doc_1 -&gt; The beautiful girl rapidly typed on the screen of her phone &hellip;</li>
+</ul>
+
+<p>Not only is LevelDB not a relational database, it&rsquo;s not even a document-based database. That means if we want to store anything more complicated than a single value we&rsquo;re going to have to serialize and deserialize the data ourselves. That may seem tedious but it does mean we can make sure we&rsquo;re not wasting CPU cycles or disk space marshaling objects in a way that&rsquo;s more complex than we actually need. We wanted something that&rsquo;s close to the metal, so that&rsquo;s what we&rsquo;ve got. I won&rsquo;t go into the details of what I did in this case other than to say that you&rsquo;re likely to want to use some manner of delimited values. If you don&rsquo;t want to go that low level, you could certainly use something like JSON or Google&rsquo;s protocol buffers.</p>
+
+<h3 id="querying-our-index">Querying Our Index</h3>
+
+<p>Now that we&rsquo;ve got our index and documents on disk, we can start querying them. Like was stated before, we&rsquo;re going to need to calculate the Levenshtein variations of our search term (for an edit distance of up to 3) and then match each of those against our index. That means, yes, for a 9 letter word we&rsquo;re going to have to hit the database 45 times. Luckily our database is fast and this is actually OK in practice. Also, most of our querying is going to happen with a 3 letter prefix, for which we&rsquo;ll need to calculate an edit distance of zero (no variations) before testing our index. Similarly, a 4 letter term will only need an edit distance of one. In other words, our most common operations will have the least amount of complexity. A nine letter word is more towards the &ldquo;worst case&rdquo; end of the spectrum.</p>
+
+<p>So what do we get when we run the query? We get all words that contain our search term variations. A simple example:</p>
+
+<ul>
+<li>Search term &ldquo;this&rdquo;.</li>
+<li>Variations of search term: &ldquo;this&rdquo;, &ldquo;his&rdquo;, &ldquo;tis&rdquo;, &ldquo;ths&rdquo;, &ldquo;thi&rdquo;.</li>
+<li>Words retrieved: &ldquo;this&rdquo;, &ldquo;his&rdquo;, &ldquo;thine&rdquo;, &ldquo;history&rdquo;, &ldquo;thick&rdquo;, etc.</li>
+</ul>
+
+<p>The members of the index we retrieve will look something like this:</p>
+
+<ul>
+<li>his -&gt; [his, history, this, &hellip;]</li>
+<li>this -&gt; [this, &hellip;]</li>
+<li>thi -&gt; [thick, this, &hellip;]</li>
+</ul>
+
+<p>If you look at those results you&rsquo;ll see something interesting: the word &ldquo;this&rdquo; is the most common word to appear on the right hand side. In fact, we can &ndash; and will &ndash; use that to rank our results. That won&rsquo;t be the only way we score the results, but that will get us most of the way to determining what the intended word (exact match or not) most likely was.</p>
+
+<h3 id="ranking-results">Ranking Results</h3>
+
+<ul>
+<li>Right hand side word count.</li>
+<li>Edit distance.</li>
+<li>Length of common prefix.</li>
+</ul>
+
+<p>The edit distance in this case is the edit distance of the Levenshtein variation to the original indexed word. The length of the common prefix is unrelated to anything we&rsquo;ve discussed so far. We calculate that by counting how many letters, starting from the beginning of the word, are shared between the Levenshtein variation and the original word. This allows us to give extra weight when scoring words that, you guessed it, share a common prefix. Again, using this was empirically arrived at as it&rsquo;s more natural to rank words that have the same first few letters (or root) higher than others.</p>
+
+<p>I won&rsquo;t go into details of how these individual elements are used to calculate word score. It&rsquo;s not a secret or anything but I wouldn&rsquo;t want to rob you of the joy of figuring it out (what works for your particular application) should you go down this road yourself. In a large, complicated topic, it&rsquo;s one of the fun parts.</p>
+
+<h3 id="ranking-documents">Ranking Documents</h3>
+
+<p>Because writing a search engine is hard, this is only going to get us part of the way there. This will allow us to figure out which word(s) were most likely meant by our querying user (incorrect spelling or not) matched up to the documents that contain those words (again, regardless of spelling or variation). Now, we&rsquo;re going to have to rank the resulting documents to determine which are most relevant to the query.</p>
+
+<p>I should also point out that we&rsquo;re likely going to want to search for phrases instead of just single words. While I&rsquo;m not going to directly address that here for the sake of brevity, the techniques we&rsquo;re outlining here form the base that phrasal search can be built on.</p>
+
+<p>When we rank documents the first thing we&rsquo;re likely to do is some form of counting term frequency. This is a whole topic unto itself but the end result is we&rsquo;re most likely to end up calculating some form of tf-idf or term frequency-inverse document frequency. The basic idea here is that the more times a word appears in a document, the more relevant that document is to that word (from a query). But since that makes common but unimportant words rank very high (e.g., the word &ldquo;the&rdquo;) that frequency is penalized by how often the word appears across the set of all documents. Using td-idf we can rank documents relevant to the query &ldquo;the automobile&rdquo;, picking out those with &ldquo;automobile&rdquo; in them while ignoring documents with the word &ldquo;the&rdquo; in them.</p>
+
+<h3 id="stop-words-canonicalization">Stop Words, Canonicalization</h3>
+
+<p>Backing up a bit, it&rsquo;s worth pointing out that ignoring unimportant words is a critical part of indexing and querying documents like we&rsquo;re doing here. One of the most common ways of dealing with this is to use a list of so-called &ldquo;stop words&rdquo; to ignore words that aren&rsquo;t considered relevant to a meaning of a document or a query. In English stop words will likely be articles, adverbs, etc and words that are rarely considered stop words will be proper nous, etc.</p>
+
+<p>Very closely related to this is a technique called stemming. Stemming is the process of canonicalizing groups of related words to a single form which makes searching more accurate (and reduces index complexity). An example would be the words &ldquo;real&rdquo; and &ldquo;really&rdquo; being mapped to the single word &ldquo;real&rdquo;. Since these words are closely related, it&rsquo;s best to treat them as a single word. Again, that decreases the complexity of our index and also makes searching more robust, as searching for either &ldquo;real&rdquo; or &ldquo;really&rdquo; will bring up documents with either word in them. In English, it&rsquo;s common to use a Porter Stemmer, which is an algorithm first conceived by, you guessed it, Porter, for reducing related English words to common forms.</p>
+
+<p>Now that we&rsquo;ve gone over the use of stop words and stemming, we can go over why we&rsquo;re not using either of these techniques here. The biggest problem with stop words is that they need to be managed per-language. For an application that should handle English as well as Chinese or Hebrew, it&rsquo;s going to be a real pain to track down and manage word lists for all languages your application will likely encounter. There&rsquo;s also the issue of language detection and documents containing more than one language.</p>
+
+<p>Similarly, stemming is language specific. Porter&rsquo;s stemmer is English only. For each additional language we&rsquo;re going to have to find another method, or skip it entirely. Of course, this type of canonicalization might not be needed for all languages, but the issue with language detection above still applies.</p>
+
+<p>Luckily, with our current design, we can just leave these things out. One of the additional benefit of our Levenshtein index is that it&rsquo;s word form-agnostic. Along with dealing with spelling errors, we get matching of different word forms for free. Similarly, instead of directly dealing with stop words &ndash; managing words by their importance relative to the meaning of our documents and queries, i.e, ranking documents by tf-idf, already accounts for this. In fact, although somewhat off topic, it&rsquo;s entirely possible to generate lists of stop words (for any language) using tf-idf. In a sense, anything below a certain (arbitrary) tf-idf score is treated as a stop word.</p>
+
+<h3 id="tf-idf">TF-IDF</h3>
+
+<p>I won&rsquo;t go into implementing tf-idf in too much detail other than showing one of the more common ways to calculate it. A common way to calculate tf-idf is the following form:</p>
+
+<ul>
+<li>tf(t) = how many times t appears in the document / total number of terms in the document</li>
+<li>idf(t) = log( total number of documents / number of docs containing term t )</li>
+<li>tfidf(t) = tf(t) * idf(t)</li>
+</ul>
+
+<p>The use of the natural log in #2 is somewhat arbitrary and just one of the many weighting schemes used. This may have to be tuned to the application at hand. Although tf-idf is a workhorse metric, it&rsquo;s interesting to note that there has yet to be a theoretical explanation for its effectiveness. It&rsquo;s loosely associated with Zipf&rsquo;s law but otherwise doesn&rsquo;t have much in terms of a foundation, probabilistic or otherwise.</p>
+
+<h3 id="closing-the-loop">Closing the Loop</h3>
+
+<p>We can close the loop now. At a high level:</p>
+
+<ul>
+<li>Calculate the Levenshtein variations of our search term (if needed).</li>
+<li>Check the first index for those term(s).</li>
+<li>Rank those terms for relevance, discarding those below a certain threshold.</li>
+<li>Match those terms to documents via the second (word) index.</li>
+<li>Rank those documents by td-idf, discarding those below a certain threshold.</li>
+<li>Present documents to user.</li>
+</ul>
+
+        </div>
+
+        
+    </div>
+
+    <div class="sidebar">
+    <div class="container">
+        <div class="sidebar-about">
+            <img src="http://lattejed.com/img/profile_pic_met.png" />
+            <a href="http://lattejed.com/"><h1>Matthew Smith</h1></a>
+            <p class="lead">
+            <p>Originally from the US, I've spent most of my post-college years as a resident of Bangkok, a city of award-winning chefs, beautiful people, traffic jams and the ocassional coup d'etat.</p>
+            <p>I like tackling hard problems, most recently at the intersection of computer graphics, computational geomerty and product design while creating <a href="http://model3d.co">Model3D, a 3D modeler for iPad Pro and Apple Pencil</a>.</p>
+            <p>Former co-founder of a PR agency, I found my true calling as a software engineer / entrepreneur. I've spent the last decade building products and consulting for iOS and macOS and have learned a dozen or so computer languages.</p> 
+            <p>When I'm not working I spend time with my family. My wife Onne is GM of a company under the <a href="http://dwp.com">dwp</a> umbrella. My son Hadrian attends St. Andrews in central Bangkok.</p>
+            </p>
+        </div>
+
+        
+
+        <p>&copy; 2017. All rights reserved. </p>
+    </div>
+</div>
+
+
+</body>
+</html>

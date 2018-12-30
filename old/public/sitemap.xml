@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>http://lattejed.com/pages/rendering-basics-with-metal-ios/</loc>
+    <lastmod>2017-02-27T10:34:12+07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://lattejed.com/pages/why-my-nom-de-guerre-is-latte-jed/</loc>
+    <lastmod>2016-07-22T20:14:43+07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://lattejed.com/pages/why-ive-lost-faith-in-ethereum-and-wont-invest-in-eth/</loc>
+    <lastmod>2016-07-20T20:14:43+07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://lattejed.com/pages/why-this-site-is-now-self-hosted/</loc>
+    <lastmod>2016-07-19T19:36:48+07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://lattejed.com/pages/writing-an-embedded-full-text-search-engine/</loc>
+    <lastmod>2015-10-06T20:14:43+07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://lattejed.com/pages/first-five-and-a-half-minutes-on-a-server-with-a-shell-script/</loc>
+    <lastmod>2014-10-29T20:14:43+07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://lattejed.com/pages/that-todo-app-you-always-wanted/</loc>
+    <lastmod>2014-10-21T20:14:43+07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://lattejed.com/pages/abusing-blocks-for-cleaner-mvc-in-obj-c/</loc>
+    <lastmod>2014-05-26T20:14:43+07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://lattejed.com/pages/first-five-and-a-half-minutes-on-a-server-with-ansible/</loc>
+    <lastmod>2013-09-03T20:14:43+07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://lattejed.com/pages/implementing-porter-stemmer-in-haskell/</loc>
+    <lastmod>2013-06-10T20:14:43+07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://lattejed.com/</loc>
+    <lastmod>2017-02-27T10:34:12+07:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://lattejed.com/pages/</loc>
+    <lastmod>2017-02-27T10:34:12+07:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+</urlset>
