@@ -1,15 +1,13 @@
 ---
 template: post
-title: Just hack'n
-description: Nothing to see here
+title: A New Blog??
 date: 2018-12-31
 ---
 
-# Post One
+If you follow this blog, which analytics tells me you don't, you'll notice it keeps changing hosting tech, posts get dropped and other chaos. That's because I've both neglected this blog *and* keep telling myself to write more.
 
-This is post one
+But because I'm an obsessive software engineer, I have to start with setting the blog up in a way that makes me happy.
 
+After a few different tries (posthaven, ghost, hugo) I wrote a simple generator in node.js and am currently hosting on a Dokku setup.
 
-```css
-body { color: red; }
-```
+For the time being I'm happy with this. Who knows when I'll change it again. Excelsior!

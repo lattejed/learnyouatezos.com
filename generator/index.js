@@ -28,7 +28,7 @@ let ps = config.pages.map((page) => {
   Object.assign(context, config, {page: parsed.attributes})
   let basepath = path.join(config.templatesDir, context.page.template + '.ejs')
   context.page.content = new sd.Converter().makeHtml(parsed.body)
-  context.page.slug = context.page.title.toLowerCase().replace(/\W+/g, '-') + '.html'
+  context.page.slug = context.page.title.toLowerCase().replace(/\W+/g, '-').replace(/(^-|-$)/, '') + '.html'
   context.page.date = context.page.date.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
