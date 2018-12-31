@@ -4,5 +4,7 @@
   "wwwDir": "www",
   "staticDir": "static",
   "title": "Latte, Jed? - A Blog About Nothing",
-  "description": "Site description here"
+  "description": "Site description here",
+  "author": "Matthew Smith",
+  "bio": "I'm an autodidactict software engineer who previously owned a PR agency in Asia. I'm obsessed with writing software and specialize in MacOS, iOS, 2D/3D graphics and computational geometry."
 }

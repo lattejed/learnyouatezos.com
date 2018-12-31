@@ -1,11 +1,33 @@
 
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   max-width: 640px;
   margin: 0 auto 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#content {
+  flex: 1 0 auto;
 }
 
 img {
   max-width: 600px;
   margin: 0 auto 0 auto;
+}
+
+#footer {
+  background: black;
+  color: white;
+  width: 100%;
+  padding: 20px 20px 80px 20px;
+  flex-shrink: 0;
 }
