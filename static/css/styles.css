@@ -40,6 +40,12 @@ img {
   color: rgb(129, 131, 133);
 }
 
+.tag {
+  background: rgb(29, 31, 33);
+  color: white;
+  padding: 5px;
+}
+
 #footer {
   background: rgb(29, 31, 33);
   color: white;
