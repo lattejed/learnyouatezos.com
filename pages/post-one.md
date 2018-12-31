@@ -2,9 +2,6 @@
 template: post
 title: A New Blog??
 date: 2018-12-31
-tags:
-  - meta
-  - blog
 ---
 
 If you follow this blog, which analytics tells me you don't, you'll notice it keeps changing hosting tech, posts get dropped and other chaos. That's because I've both neglected this blog *and* keep telling myself to write more.
