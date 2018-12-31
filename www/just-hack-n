@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Just hack&#39;n</title>
+  <meta name="description" content="The HTML5 Herald">
+  <meta name="author" content="SitePoint">
+  <link rel="stylesheet" href="/static/css/styles.css?v=1.0">
+</head>
+<body>
+
+<p>Mon Dec 31 2018 07:00:00 GMT+0700 (+07)</p>
+
+<h1 id="postone">Post One</h1>
+<p>This is post one</p>
+
+  <script src="/static/js/scripts.js"></script>
+</body>
+</html>

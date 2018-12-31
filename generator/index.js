@@ -1,61 +1,62 @@
 
 const path = require('path')
 const fs = require('fs')
+const fse = require('fs-extra')
+const fm = require('front-matter')
+const ejs = require('ejs')
+const sd = require('showdown')
 const {
   pages,
   templatesDir,
-  pagesDir
+  pagesDir,
+  wwwDir,
+  staticDir
 } = require('./config')
 
-pages.forEach((page) => {
-  processPage(page)
+try {
+  fse.emptyDirSync(wwwDir)
+} catch (err) {
+  console.log('[ERROR] Cannot empty ' + wwwDir)
+  process.exit(1)
+}
+
+try {
+  fse.copySync(staticDir, path.join(wwwDir, 'static'))
+} catch (err) {
+  console.log('[ERROR] Cannot copy static files ' + err)
+  process.exit(1)
+}
+
+let ps = pages.map((page) => {
+  let context = {}
+  let md = fs.readFileSync(path.join(pagesDir, page)).toString('utf8')
+  let parsed = fm(md)
+  Object.assign(context, parsed, parsed.attributes)
+  context.content = new sd.Converter().makeHtml(context.body)
+  let basepath = path.join(templatesDir, context.template + '.ejs')
+  let slug = context.title.toLowerCase().replace(/\W+/g, '-')
+  return ejs.renderFile(basepath, context, {}).then((html) => {
+    return Promise.resolve({html: html, slug: slug})
+  })
 })
 
-function processPage(page) {
-  let md = fs.readFileSync(path.join(pagesDir, page)).toString('utf8')
-  try {
-    var fmAndC = md.match(/^<!--#([^]+?)-->([^]*)/)
-    var fm = JSON.parse(fmAndC[1])
-    var content = fmAndC[2] // markdown
-    if (!fm.title || !fm.date || !fm.template) {
-      throw 'Bad front matter'
-    }
-  } catch (err) {
-    console.log(`[ERROR] Invalid front matter: ${page}`)
-    process.exit(1)
-  }
-  processCommands(fm.template)
-}
-
-function processCommands(template) {
-  let html = fs.readFileSync(path.join(templatesDir, template)).toString('utf8')
-  let cmds = html.match(/<!--#.+?-->/g).map((m) => {
-    return {
-      slug: m,
-      command: m.match(/<!--#(.+?)-->/)[1].trim()
-    }
+Promise.all(ps).then((pages) => {
+  pages.forEach((page) => {
+    let outpath = path.join(wwwDir, page.slug)
+    fs.writeFileSync(outpath, page.html)
   })
-  cmds.forEach((c) => {
-    let k = c.command.split(' ')[0]
-    let v = c.command.split(' ')[1]
-    switch (k) {
-      case 'uses':
-        console.log('Uses: ' + c.slug)
-        processCommands(v)
-        break
-      case 'include':
-        console.log('Include: ' + c.slug)
-        break
-      default:
-    }
+
+  let context = {title: 'Latte, Jed? | A Blog'}
+
+  let basepath = path.join(templatesDir, 'index.ejs')
+  return ejs.renderFile(basepath, context, {}).then((html) => {
+    return Promise.resolve(html)
   })
-}
 
-function uses(template, context) {
-  let t = fs.readFileSync(path.join(templatesDir, template)).toString('utf8')
-  context['uses'] = t
-}
-
-function include(key, context) {
-
-}
+}).then((index) => {
+  let outpath = path.join(wwwDir, 'index')
+  fs.writeFileSync(outpath, index)
+}).catch((err) => {
+  console.log('[ERROR] Cannot process page ' + err)
+  process.exit(1)
+})

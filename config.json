@@ -1,4 +1,6 @@
 {
   "templatesDir": "templates",
-  "pagesDir": "pages"
+  "pagesDir": "pages",
+  "wwwDir": "www",
+  "staticDir": "static"
 }
