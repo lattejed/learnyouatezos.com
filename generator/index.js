@@ -34,6 +34,7 @@ let ps = site.pages.map((pagePath) => {
   page.slug = page.title.toLowerCase()
     .replace(/\W+/g, '-')
     .replace(/(^-|-$)/, '') + '.html'
+  page.timestamp = page.date.getTime()
   page.date = page.date.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -48,7 +49,7 @@ let ps = site.pages.map((pagePath) => {
 
 Promise.all(ps).then((pages) => {
   pages = pages.sort((a, b) => {
-    return a.date - b.date
+    return b.timestamp - a.timestamp
   })
   pages.forEach((page) => {
     let outpath = path.join(site.wwwDir, page.slug)
