@@ -34,7 +34,7 @@ let ps = pages.map((page) => {
   Object.assign(context, parsed, parsed.attributes)
   context.content = new sd.Converter().makeHtml(context.body)
   let basepath = path.join(templatesDir, context.template + '.ejs')
-  let slug = context.title.toLowerCase().replace(/\W+/g, '-')
+  let slug = context.title.toLowerCase().replace(/\W+/g, '-') + '.html'
   return ejs.renderFile(basepath, context, {}).then((html) => {
     return Promise.resolve({html: html, slug: slug})
   })
@@ -54,7 +54,7 @@ Promise.all(ps).then((pages) => {
   })
 
 }).then((index) => {
-  let outpath = path.join(wwwDir, 'index')
+  let outpath = path.join(wwwDir, 'index.html')
   fs.writeFileSync(outpath, index)
 }).catch((err) => {
   console.log('[ERROR] Cannot process page ' + err)
