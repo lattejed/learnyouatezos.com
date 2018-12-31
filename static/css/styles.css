@@ -31,7 +31,10 @@ a:hover {
 
 img {
   max-width: 600px;
-  margin: 0 auto;
+}
+
+del {
+  color: inherit !important;
 }
 
 .date {

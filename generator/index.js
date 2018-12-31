@@ -5,6 +5,7 @@ const fse = require('fs-extra')
 const fm = require('front-matter')
 const ejs = require('ejs')
 const sd = require('showdown')
+const highlight = require('showdown-highlight')
 const site = require('./config')
 
 try {
@@ -27,8 +28,12 @@ let ps = site.pages.map((pagePath) => {
   let parsed = fm(md)
   Object.assign(page, parsed.attributes)
   let basepath = path.join(site.templatesDir, page.template + '.ejs')
-  page.content = new sd.Converter().makeHtml(parsed.body)
-  page.slug = page.title.toLowerCase().replace(/\W+/g, '-').replace(/(^-|-$)/, '') + '.html'
+  page.content = new sd.Converter({
+    extensions: [highlight]
+  }).makeHtml(parsed.body)
+  page.slug = page.title.toLowerCase()
+    .replace(/\W+/g, '-')
+    .replace(/(^-|-$)/, '') + '.html'
   page.date = page.date.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',

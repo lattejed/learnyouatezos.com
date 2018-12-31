@@ -1,13 +1,10 @@
-+++
-title = "First Five (and a Half) Minutes on a Server with Ansible"
-date = "2013-09-03T20:14:43+07:00"
-aliases = [
-    "/pages/001-first-five-and-a-half-minutes-on-a-server-with-ansible.html"
-]
+---
+template: post
+title: First Five (and a Half) Minutes on a Server with Ansible
+date: 2013-09-03
+---
 
-+++
-
-**Note: The Ansible script below is unusable due to breaking changes. I've written about a similar approach [here](/pages/first-five-and-a-half-minutes-on-a-server-with-a-shell-script) using a simple shell script**
+**Note: The Ansible script below is unusable due to breaking changes. I've written about a similar approach [here](/first-five-and-a-half-minutes-on-a-server-with-a-shell-script.html) using a simple shell script**
 
 This is a response/addendum to two really good "first five minutes" style posts discussing the setting up and basic hardening of a remote server. Brian Kennedy discusses his first five minutes here<sup>1</sup> on Ubuntu. It's a great tutorial covering the basics of security. Of course, if you've gone through it once you'll want to automate it. There is also a post on automating the process<sup>2</sup> (actually using the steps described in Brian's post) with Ansible. The latter was either not tested or only worked on earlier version of Ubuntu/Ansible. I'll cover an updated version here that works with the most recent version of Ansible and Ubuntu 13.04 x64 and includes some helpful additions.
 
@@ -66,8 +63,8 @@ Now that we're setup, we need to create a playbook to run the steps outlined abo
 - hosts: newservers
   vars:
   - ubuntu_release: raring
-  - logwatch_email: 
-    # crypted passwords, generated on a Linux box using: 
+  - logwatch_email:
+    # crypted passwords, generated on a Linux box using:
     # echo 'import crypt,getpass; print crypt.crypt(getpass.getpass(), "$6$YOURSALT")' | python -
   - root_password: ''
   - deploy_password: ''
@@ -175,4 +172,3 @@ You'll notice that the last command will disallow root access. If you don't do i
 <sup>2</sup> http://practicalops.com/my-first-5-minutes-on-a-server.html
 
 <sup>3</sup> http://mosh.mit.edu/
-

@@ -8,6 +8,7 @@
   <meta name="description" content="Site description here">
   <meta name="author" content="Matthew Smith">
   <title>Latte, Jed?</title>
+  <link rel="stylesheet" href="/static/css/github.css?v=1.0">
   <link rel="stylesheet" href="/static/css/typeset.css?v=1.0">
   <link rel="stylesheet" href="/static/css/styles.css?v=1.0">
 </head>
@@ -30,43 +31,43 @@
 <p><img src="/static/img/Swift-ToDo_screencast.gif" alt="To-Do App" /></p>
 <h3 id="subclassingnsmanagedobject">Subclassing NSManagedObject</h3>
 <p>This seems even more straightforward in Swift than it did in Objective-C, mostly because the former is more terse. There's some debate about whether or not to use Xcode generated NSManagedObject subclasses, use a tool like mogenerator or write the classes by hand. After having worked on large projects with mogenerator I can say I'm not really a fan of the "two-class" approach. It adds a lot of bloat the project and doesn't really gain you that much. Swift makes subclassing by hand very easy. This is our <code>ToDo</code> model:</p>
-<pre><code class="swift language-swift">import CoreData
+<pre><code class="hljs swift language-swift"><span class="hljs-keyword">import</span> CoreData
 
-class ToDo: NSManagedObject {
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ToDo</span>: <span class="hljs-title">NSManagedObject</span> </span>{
 
-    @NSManaged
-    var createdAt: NSDate
+    <span class="hljs-meta">@NSManaged</span>
+    <span class="hljs-keyword">var</span> createdAt: <span class="hljs-type">NSDate</span>
 
-    @NSManaged
-    var summary: String?
+    <span class="hljs-meta">@NSManaged</span>
+    <span class="hljs-keyword">var</span> summary: <span class="hljs-type">String</span>?
 
-    @NSManaged
-    var order: Int32
+    <span class="hljs-meta">@NSManaged</span>
+    <span class="hljs-keyword">var</span> order: <span class="hljs-type">Int32</span>
 
-    @NSManaged
-    var completed: Bool
+    <span class="hljs-meta">@NSManaged</span>
+    <span class="hljs-keyword">var</span> completed: <span class="hljs-type">Bool</span>
 
-    class func entityName() -&gt; NSString {
-        return "ToDo"
+    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">func</span> <span class="hljs-title">entityName</span>() -&gt; <span class="hljs-title">NSString</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-string">"ToDo"</span>
     }
 
-    class func insertNewObjectIntoContext(context : NSManagedObjectContext) -&gt; ToDo {
-        let todo = NSEntityDescription.insertNewObjectForEntityForName( self.entityName(), inManagedObjectContext:context ) as ToDo;
-        todo.createdAt = NSDate();
-        todo.order = todo.lastMaxPosition() + 1
-        todo.completed = false
-        return todo;
+    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">func</span> <span class="hljs-title">insertNewObjectIntoContext</span>(<span class="hljs-title">context</span> : <span class="hljs-title">NSManagedObjectContext</span>) -&gt; <span class="hljs-title">ToDo</span> </span>{
+        <span class="hljs-keyword">let</span> todo = <span class="hljs-type">NSEntityDescription</span>.insertNewObjectForEntityForName( <span class="hljs-keyword">self</span>.entityName(), inManagedObjectContext:context ) <span class="hljs-keyword">as</span> <span class="hljs-type">ToDo</span>;
+        todo.createdAt = <span class="hljs-type">NSDate</span>();
+        todo.order = todo.lastMaxPosition() + <span class="hljs-number">1</span>
+        todo.completed = <span class="hljs-literal">false</span>
+        <span class="hljs-keyword">return</span> todo;
     }
 
-    func lastMaxPosition () -&gt; Int32 {
-        let request = NSFetchRequest(entityName: self.entity.name!)
-        request.fetchLimit = 1
-        request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: false)]
+    <span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">lastMaxPosition</span> <span class="hljs-params">()</span></span> -&gt; <span class="hljs-type">Int32</span> {
+        <span class="hljs-keyword">let</span> request = <span class="hljs-type">NSFetchRequest</span>(entityName: <span class="hljs-keyword">self</span>.entity.name!)
+        request.fetchLimit = <span class="hljs-number">1</span>
+        request.sortDescriptors = [<span class="hljs-type">NSSortDescriptor</span>(key: <span class="hljs-string">"order"</span>, ascending: <span class="hljs-literal">false</span>)]
 
-        var error: NSError? = nil
-        let context : NSManagedObjectContext = self.managedObjectContext!
-        let todos = context.executeFetchRequest(request, error: &amp;error) as [ToDo]
-        return todos.isEmpty ? 0 : todos[0].order
+        <span class="hljs-keyword">var</span> error: <span class="hljs-type">NSError</span>? = <span class="hljs-literal">nil</span>
+        <span class="hljs-keyword">let</span> context : <span class="hljs-type">NSManagedObjectContext</span> = <span class="hljs-keyword">self</span>.managedObjectContext!
+        <span class="hljs-keyword">let</span> todos = context.executeFetchRequest(request, error: &amp;error) <span class="hljs-keyword">as</span> [<span class="hljs-type">ToDo</span>]
+        <span class="hljs-keyword">return</span> todos.isEmpty ? <span class="hljs-number">0</span> : todos[<span class="hljs-number">0</span>].order
     }
 }
 </code></pre>
@@ -75,64 +76,64 @@ class ToDo: NSManagedObject {
 <h3 id="movinguitableviewrowsusingnsfetchedresultscontroller">Moving UITableView Rows Using NSFetchedResultsController</h3>
 <p>This is not specific to Swift. When you're rearranging rows with NSFetchedResultsController you'll have to bandage a few methods as well as set an explicit sort order for the records. Setting an explicit sort order in a database is a large topic since setting a sort order on one record inevitably means setting the sort order on other, possibly all, records. If you have a large database then this could be an expensive operation. Since we're not likely to be dealing with large numbers of todo items in this app, we can take a fairly naive approach.</p>
 <p>To set the sort order of a new record we use the method mentioned above and fetch the current first item in the list. To make this insert less expensive, we order the list backwards. When we add a new item the sort order becomes <code>last sort order + 1</code>. That's simple enough but when we're reordering rows things get a little more complicated. Again, since we're likely to be dealing with a small number of items, we'll simply reorder every record when we have to move a row.</p>
-<pre><code class="swift language-swift">// UITableViewDataSource
+<pre><code class="hljs swift language-swift"><span class="hljs-comment">// UITableViewDataSource</span>
 
-var isMovingItem : Bool = false
+<span class="hljs-keyword">var</span> isMovingItem : <span class="hljs-type">Bool</span> = <span class="hljs-literal">false</span>
 
-override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -&gt; Bool {
-    return true
+<span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">tableView</span><span class="hljs-params">(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath)</span></span> -&gt; <span class="hljs-type">Bool</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>
 }
 
-override func tableView(tableView: UITableView, moveRowAtIndexPath sourceIndexPath: NSIndexPath, toIndexPath destinationIndexPath: NSIndexPath) {
-    isMovingItem = true
+<span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">tableView</span><span class="hljs-params">(tableView: UITableView, moveRowAtIndexPath sourceIndexPath: NSIndexPath, toIndexPath destinationIndexPath: NSIndexPath)</span></span> {
+    isMovingItem = <span class="hljs-literal">true</span>
 
-    if var todos = self.fetchedResultsController.fetchedObjects? {
-        let todo = todos[sourceIndexPath.row] as ToDo
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">var</span> todos = <span class="hljs-keyword">self</span>.fetchedResultsController.fetchedObjects? {
+        <span class="hljs-keyword">let</span> todo = todos[sourceIndexPath.row] <span class="hljs-keyword">as</span> <span class="hljs-type">ToDo</span>
         todos.removeAtIndex(sourceIndexPath.row)
         todos.insert(todo, atIndex: destinationIndexPath.row)
 
-        var idx : Int32 = Int32(todos.count)
-        for todo in todos as [ToDo] {
+        <span class="hljs-keyword">var</span> idx : <span class="hljs-type">Int32</span> = <span class="hljs-type">Int32</span>(todos.<span class="hljs-built_in">count</span>)
+        <span class="hljs-keyword">for</span> todo <span class="hljs-keyword">in</span> todos <span class="hljs-keyword">as</span> [<span class="hljs-type">ToDo</span>] {
             todo.order = idx--
         }
         saveContext()
     }
 
-    dispatch_async(dispatch_get_main_queue(), { () -&gt; Void in
-        tableView.reloadRowsAtIndexPaths( tableView.indexPathsForVisibleRows()!, withRowAnimation: UITableViewRowAnimation.Fade )
+    dispatch_async(dispatch_get_main_queue(), { () -&gt; <span class="hljs-type">Void</span> <span class="hljs-keyword">in</span>
+        tableView.reloadRowsAtIndexPaths( tableView.indexPathsForVisibleRows()!, withRowAnimation: <span class="hljs-type">UITableViewRowAnimation</span>.<span class="hljs-type">Fade</span> )
     })
 
-    isMovingItem = false
+    isMovingItem = <span class="hljs-literal">false</span>
 }
 
-// NSFetchedResultsControllerDelegate
+<span class="hljs-comment">// NSFetchedResultsControllerDelegate</span>
 
-func controllerWillChangeContent(controller: NSFetchedResultsController) {
-    if isMovingItem {
-        return
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">controllerWillChangeContent</span><span class="hljs-params">(controller: NSFetchedResultsController)</span></span> {
+    <span class="hljs-keyword">if</span> isMovingItem {
+        <span class="hljs-keyword">return</span>
     }
-    self.tableView.beginUpdates()
+    <span class="hljs-keyword">self</span>.tableView.beginUpdates()
 }
 
-func controller(controller: NSFetchedResultsController, didChangeSection sectionInfo: NSFetchedResultsSectionInfo, atIndex sectionIndex: Int, forChangeType type: NSFetchedResultsChangeType) {
-    if isMovingItem {
-        return
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">controller</span><span class="hljs-params">(controller: NSFetchedResultsController, didChangeSection sectionInfo: NSFetchedResultsSectionInfo, atIndex sectionIndex: Int, forChangeType type: NSFetchedResultsChangeType)</span></span> {
+    <span class="hljs-keyword">if</span> isMovingItem {
+        <span class="hljs-keyword">return</span>
     }
-    // Code removed
+    <span class="hljs-comment">// Code removed</span>
 }
 
-func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
-    if isMovingItem {
-        return
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">controller</span><span class="hljs-params">(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?)</span></span> {
+    <span class="hljs-keyword">if</span> isMovingItem {
+        <span class="hljs-keyword">return</span>
     }
-    // Code removed
+    <span class="hljs-comment">// Code removed</span>
 }
 
-func controllerDidChangeContent(controller: NSFetchedResultsController) {
-    if isMovingItem {
-        return
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">controllerDidChangeContent</span><span class="hljs-params">(controller: NSFetchedResultsController)</span></span> {
+    <span class="hljs-keyword">if</span> isMovingItem {
+        <span class="hljs-keyword">return</span>
     }
-    self.tableView.endUpdates()
+    <span class="hljs-keyword">self</span>.tableView.endUpdates()
 }
 </code></pre>
 <p>In the <code>moveRowAtIndexPath</code> method we copy the fetched results controller's objects to a mutable array and the set the sort order of each record starting from the number of records and working our way down to one.</p>
@@ -141,40 +142,40 @@ func controllerDidChangeContent(controller: NSFetchedResultsController) {
 <h3 id="addingclosurestouialertview">Adding Closures to UIAlertView</h3>
 <p>Objective-C's blocks, combined with categories, allowed for streamlining a lot of UIKit classes by replacing delegation with block-based callbacks. The typical way to do this was to combine a category with a helper object that would act as a delegate. As categories could not contain instance variables, the solution was to use the Objecitve-C runtime's <code>objc_setAssociatedObject</code> and <code>objc_getAssociatedObject</code> to attach the helper object to the object. The helper object is then tied to the lifetime of the object and all is well.</p>
 <p>So can we do this in Swift? <a href="http://www.russbishop.net/swift-storage-for-extension-properties">Yes, you can</a>. Instead of using categories we use a class extension. Since extensions cannot store data, we have to use the helper object and, surprisingly, the Objective-C runtime. It turns out it's straightforward to adapt the original method to Swift with only minor changes.</p>
-<pre><code class="swift language-swift">import Foundation
-import UIKit
+<pre><code class="hljs swift language-swift"><span class="hljs-keyword">import</span> Foundation
+<span class="hljs-keyword">import</span> UIKit
 
-class AlertViewHelper {
-    typealias ActionSheetFinished = (alertView: UIAlertView) -&gt; ()
-    var finished: ActionSheetFinished
-    init(finished: ActionSheetFinished) {
-        self.finished = finished
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AlertViewHelper</span> </span>{
+    <span class="hljs-keyword">typealias</span> <span class="hljs-type">ActionSheetFinished</span> = (alertView: <span class="hljs-type">UIAlertView</span>) -&gt; ()
+    <span class="hljs-keyword">var</span> finished: <span class="hljs-type">ActionSheetFinished</span>
+    <span class="hljs-keyword">init</span>(finished: <span class="hljs-type">ActionSheetFinished</span>) {
+        <span class="hljs-keyword">self</span>.finished = finished
     }
 }
 
-private let _helperClassKey = malloc(4)
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">let</span> _helperClassKey = malloc(<span class="hljs-number">4</span>)
 
-extension UIAlertView: UIAlertViewDelegate {
+<span class="hljs-class"><span class="hljs-keyword">extension</span> <span class="hljs-title">UIAlertView</span>: <span class="hljs-title">UIAlertViewDelegate</span> </span>{
 
-    private var helperObject: AlertViewHelper? {
-        get {
-            let r : AnyObject! = objc_getAssociatedObject(self, _helperClassKey)
-            return r as? AlertViewHelper
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">var</span> helperObject: <span class="hljs-type">AlertViewHelper</span>? {
+        <span class="hljs-keyword">get</span> {
+            <span class="hljs-keyword">let</span> r : <span class="hljs-type">AnyObject</span>! = objc_getAssociatedObject(<span class="hljs-keyword">self</span>, _helperClassKey)
+            <span class="hljs-keyword">return</span> r <span class="hljs-keyword">as</span>? <span class="hljs-type">AlertViewHelper</span>
         }
-        set {
-            objc_setAssociatedObject(self, _helperClassKey, newValue, UInt(OBJC_ASSOCIATION_RETAIN_NONATOMIC));
+        <span class="hljs-keyword">set</span> {
+            objc_setAssociatedObject(<span class="hljs-keyword">self</span>, _helperClassKey, newValue, <span class="hljs-type">UInt</span>(<span class="hljs-type">OBJC_ASSOCIATION_RETAIN_NONATOMIC</span>));
         }
     }
 
-    convenience init(title: String, message: String, cancelButtonTitle: String?, firstButtonTitle: String, finished:(alertView: UIAlertView) -&gt; ()) {
-        self.init(title: title, message: message, delegate: nil, cancelButtonTitle: cancelButtonTitle, otherButtonTitles: firstButtonTitle)
-        self.delegate = self
-        self.helperObject = AlertViewHelper(finished: finished)
+    <span class="hljs-keyword">convenience</span> <span class="hljs-keyword">init</span>(title: <span class="hljs-type">String</span>, message: <span class="hljs-type">String</span>, cancelButtonTitle: <span class="hljs-type">String</span>?, firstButtonTitle: <span class="hljs-type">String</span>, finished:(alertView: <span class="hljs-type">UIAlertView</span>) -&gt; ()) {
+        <span class="hljs-keyword">self</span>.<span class="hljs-keyword">init</span>(title: title, message: message, delegate: <span class="hljs-literal">nil</span>, cancelButtonTitle: cancelButtonTitle, otherButtonTitles: firstButtonTitle)
+        <span class="hljs-keyword">self</span>.delegate = <span class="hljs-keyword">self</span>
+        <span class="hljs-keyword">self</span>.helperObject = <span class="hljs-type">AlertViewHelper</span>(finished: finished)
     }
 
-    public func alertView(alertView: UIAlertView, clickedButtonAtIndex buttonIndex: Int) {
-        if buttonIndex == 1 {
-            self.helperObject?.finished(alertView: self)
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">alertView</span><span class="hljs-params">(alertView: UIAlertView, clickedButtonAtIndex buttonIndex: Int)</span></span> {
+        <span class="hljs-keyword">if</span> buttonIndex == <span class="hljs-number">1</span> {
+            <span class="hljs-keyword">self</span>.helperObject?.finished(alertView: <span class="hljs-keyword">self</span>)
         }
     }
 }

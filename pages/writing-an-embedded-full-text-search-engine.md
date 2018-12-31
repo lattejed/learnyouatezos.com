@@ -1,13 +1,10 @@
-+++
-title = "Writing an Embedded Full Text Search Engine"
-date = "2015-10-06T20:14:43+07:00"
-aliases = [
-    "/pages/006-writing-an-embedded-full-text-search-engine.html"
-]
+---
+template: post
+title: Writing an Embedded Full Text Search Engine
+date: 2015-10-06
+---
 
-+++
-
-**Note: While this monster post should be of interest to anyone working on full text search, I no longer recommend the approach outlined here. 1) In practice, Levenshtein indexes don't give a real advantage vs a properly implemented n-gram index. 2) Levenshtein indexes, even using the technique below, take up too much space. 3) LevelDB isn't a good choice for this**
+**Note: While this monster post might be of interest to anyone working on full text search, I no longer recommend the approach outlined here. 1) In practice, Levenshtein indexes don't give a real advantage vs a properly implemented n-gram index. 2) Levenshtein indexes, even using the technique below, take up too much space. 3) LevelDB isn't a good choice for this**
 
 I'm currently working on a project and had the opportunity to write an embedded search engine for it. I say opportunity because this is the kind of project that is lots of fun and would be a hard sell to a team. That is, even though there isn't a go-to embeddable search engine, one could almost certainly be put together with existing libraries at a much higher level than how I wrote this one. SQLite, for example, which is more or less the go-to DB for apps, has support for full text search. Apple has SearchKit, which is far from complete or easy to use, but nevertheless would likely be much faster than writing something from scratch.
 
@@ -165,4 +162,3 @@ We can close the loop now. At a high level:
 * Match those terms to documents via the second (word) index.
 * Rank those documents by td-idf, discarding those below a certain threshold.
 * Present documents to user.
-

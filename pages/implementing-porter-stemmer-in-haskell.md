@@ -1,11 +1,8 @@
-+++
-title = "Implementing Porter Stemmer in Haskell"
-date = "2013-06-10T20:14:43+07:00"
-aliases = [
-    "/pages/005-implementing-porter-stemmer-in-haskell.html"
-]
-
-+++
+---
+template: post
+title: Implementing Porter Stemmer in Haskell
+date: 2013-06-10
+---
 
 I recently started learning Haskell. Like many programmers who get interested in the language I've spent as much time studying the language as I have trying to find an excuse to actually use it. It's a somewhat difficult language to learn -- at least if you haven't worked with functional programming before -- and it's not really a go-to language for most situations. Finding a reason to use it can be challenging.
 
@@ -52,7 +49,7 @@ My only functional background comes from using the functional features present i
 In Haskell I came up with this:
 
 ```haskell
--- Make a pattern to match the consonants and vowels in a word where a cons is 
+-- Make a pattern to match the consonants and vowels in a word where a cons is
 -- not "aeiou" or y preceded by a cons e.g., "happy" -> ("happy", "cvccv")
 wordDesc :: String -> (String, String)
 wordDesc str = (str, [corv (a,b,i) | (a,b,i) <- zip3 str (rotateR str) [0..len]])
@@ -137,8 +134,8 @@ The first two functions here were described in more detail in the last post. To 
 The functions that follow show why I opted to do it this way: The algorithm sometimes wants to evaluate a word based on its constituent letters and sometimes wants to look at the pattern of consonants and vowels in that word. The functions endswith, hasvowel, and endsdblc (double consonant) don't need an explanation. The function measure is a bit more complex. What are we measuring? We're measuring the number of consonant-vowel sequences in a word.
 
 ```makefile
-A consonant will be denoted by c, a vowel by v. A list ccc... of length greater than 0 will be 
-denoted by C, and a list vvv... of length greater than 0 will be denoted by V. Any word, 
+A consonant will be denoted by c, a vowel by v. A list ccc... of length greater than 0 will be
+denoted by C, and a list vvv... of length greater than 0 will be denoted by V. Any word,
 or part of a word, therefore has one of the four forms:
 
     CVCV ... C
@@ -426,4 +423,3 @@ While that's not completely true, or at least I wouldn't launch a rocket with th
 The utter alien-ness of the language is strong at first but dissipates pretty quickly. I would imagine this is especially true if you've encountered list comprehensions and recursive functions in other languages. While those aren't the entirety of Haskell, they're the right mindset. My entirely unscientific evaluation is that functional languages do stuff "in place" while imperative languages do stuff "in order". It helps me to think of a Haskell module as a single expression (on a single, very long line). While you wouldn't write it that way, I think it's a good mental model to have.
 
 It's worth pointing out that not only are my impressions based on a very short period of time, they're also based on only a subset of the Haskell language. While this module does use the IO Monad, I skipped over working with Haskell's juicier bits like Monads, Haskell's data structures, the Maybe type, etc. I guess my next exercise will be to find a reason to use more of the language.
-

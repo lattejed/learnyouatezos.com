@@ -1,13 +1,10 @@
-+++
-title = "First Five (and a Half) Minutes on a Server with a Shell Script"
-date = "2014-10-29T20:14:43+07:00"
-aliases = [
-    "/pages/004-first-five-and-a-half-minutes-on-a-server-with-a-shell-script.html"
-]
+---
+template: post
+title: First Five (and a Half) Minutes on a Server with a Shell Script
+date: 2014-10-29
+---
 
-+++
-
-About a year ago I wrote [this](/pages/first-five-and-a-half-minutes-on-a-server-with-ansible) about hardening a fresh server using Ansible. This post has received about 10x as much traffic as anything else I've written. Oddly, admin is the area I'm probably least knowledgable about when it comes to software.
+About a year ago I wrote [this](/first-five-and-a-half-minutes-on-a-server-with-ansible.html) about hardening a fresh server using Ansible. This post has received about 10x as much traffic as anything else I've written. Oddly, admin is the area I'm probably least knowledgable about when it comes to software.
 
 Anyway, the Ansible script I wrote about in that post is out of date. I realized this recently after trying to use it on a fresh install. I went about updating it (Ansible has made some breaking changes since then) and came to the realization that it would be faster and easier to just write a shell script.
 
@@ -95,7 +92,7 @@ APT::Periodic::AutocleanInterval "7";
 APT::Periodic::Unattended-Upgrade "1";
 EOF
 
-cat << EOF > /etc/apt/apt.conf.d/50unattended-upgrades 
+cat << EOF > /etc/apt/apt.conf.d/50unattended-upgrades
 Unattended-Upgrade::Allowed-Origins {
     "Ubuntu lucid-security";
 };
@@ -126,4 +123,3 @@ scp secure_ubuntu_10.04_x64.sh root@<ip_address or host>:/root/
 ssh root@<ip_address or host> chmod +x secure_ubuntu_10.04_x64.sh
 ssh root@<ip_address or host> ./secure_ubuntu_10.04_x64.sh
 ```
-

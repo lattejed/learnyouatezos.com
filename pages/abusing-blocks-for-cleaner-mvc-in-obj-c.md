@@ -1,11 +1,8 @@
-+++
-title = "[Ab]using Blocks for Cleaner MVC in Obj-C"
-date = "2014-05-26T20:14:43+07:00"
-aliases = [
-    "/pages/002-abusing-blocks-for-cleaner-mvc-in-obj-c.html"
-]
-
-+++
+---
+template: post
+title: "[Ab]using Blocks for Cleaner MVC in Obj-C"
+date: 2014-05-26
+---
 
 As I've started to utilize blocks more in iOS/OS X development I've noticed a patter emerge and wanted to talk about it. It's using the same building blocks (excuse the pun) are you're likely to find in any Cocoa project but leveraging blocks to the fullest extent has sped up development time for me and led to both thin controllers (which I think are good) and a very strict separation between the different layers in MVC.
 
@@ -62,7 +59,7 @@ static void* const kNSButton_LJBlocks_HelperKey = (void *)&kNSButton_LJBlocks_He
 {
     __NSButtonHelper* helper = [self lj_NSPopupButton_blocks_helper];
     helper.block = block;
-    
+
     [self setAction:@selector(action:)];
     [self setTarget:helper];
 }
@@ -173,8 +170,8 @@ This is simplified to only contain one property, the url of some file. We use a 
                           }
                       }];
     }];
-    
-    [[NSNotificationCenter defaultCenter] 
+
+    [[NSNotificationCenter defaultCenter]
               addObserverForName:kNotificationURLDidUpdate
                           object:nil
                            queue:nil
@@ -196,4 +193,3 @@ This is pretty simple, so why bother?
 I think this is valuable for a number of reasons. It lends conceptual consistency for how a controller operates -- everything cascades from the model and everything is handled in an anonymous function -- the controller is simpler and its role of "mediating" more clearly defined. I also find that it makes it harder to break the rules of MVC (something I do occasionally even though I have quite a bit of experience) which saves refactoring time later.
 
 Another reason is that although controllers should be thin logically, in practice they end up handling a lot of interaction between the view and model layers, which means they end up bloated with dozens of methods, `#pragma mark -` sections, delegate method implementations, etc. Using primarily anonymous functions for this mediation makes controller code more succinct and manageable.
-
