@@ -25,28 +25,33 @@ let ps = config.pages.map((page) => {
   let context = {}
   let md = fs.readFileSync(path.join(config.pagesDir, page)).toString('utf8')
   let parsed = fm(md)
-  Object.assign(context, parsed, parsed.attributes)
-  context.content = new sd.Converter().makeHtml(context.body)
+  Object.assign(context, parsed.attributes)
   let basepath = path.join(config.templatesDir, context.template + '.ejs')
-  let slug = context.title.toLowerCase().replace(/\W+/g, '-') + '.html'
+  context.content = new sd.Converter().makeHtml(parsed.body)
+  context.slug = context.title.toLowerCase().replace(/\W+/g, '-') + '.html'
+  context.date = context.date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
   return ejs.renderFile(basepath, context, {}).then((html) => {
-    return Promise.resolve({html: html, slug: slug})
+    context.html = html
+    return Promise.resolve(context)
   })
 })
 
 Promise.all(ps).then((pages) => {
-  pages.forEach((page) => {
-    let outpath = path.join(config.wwwDir, page.slug)
-    fs.writeFileSync(outpath, page.html)
+  pages.forEach((context) => {
+    console.log(context)
+    let outpath = path.join(config.wwwDir, context.slug)
+    fs.writeFileSync(outpath, context.html)
   })
-
-  let context = Object.assign({}, config)
-
+  let context = Object.assign(config, {pages: pages})
   let basepath = path.join(config.templatesDir, 'index.ejs')
   return ejs.renderFile(basepath, context, {}).then((html) => {
     return Promise.resolve(html)
   })
-
 }).then((index) => {
   let outpath = path.join(config.wwwDir, 'index.html')
   fs.writeFileSync(outpath, index)
