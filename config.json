@@ -2,5 +2,7 @@
   "templatesDir": "templates",
   "pagesDir": "pages",
   "wwwDir": "www",
-  "staticDir": "static"
+  "staticDir": "static",
+  "title": "Latte, Jed? | A Blog About Nothing",
+  "description": "Site description here"
 }
