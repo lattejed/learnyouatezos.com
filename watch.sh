@@ -1,1 +1,1 @@
-nodemon -e js,ejs,css,md,html --ignore www/ generator/index.js
+nodemon -e js,ejs,css,md,html,json --ignore www/ generator/index.js

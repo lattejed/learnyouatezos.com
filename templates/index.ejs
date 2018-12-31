@@ -1,5 +1,7 @@
 <%- include('header'); -%>
 
+<h1><%= title %></h1>
+
 <% pages.forEach((page) => { %>
   <p><%= page.date %> - <a href="/<%= page.slug %>"><%= page.title %></a></p>
 <% }); %>
