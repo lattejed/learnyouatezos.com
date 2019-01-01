@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Latte, Jed? - A Blog About Nothing</title>
+  <link rel="shortcut icon" href="/static/img/blkstar.co.logo_128.bt.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <meta name="description" content="Site description here">
+  <meta name="author" content="Matthew Smith">
+  <title>Latte, Jed?</title>
+  <link rel="stylesheet" href="/static/css/github.css?v=1.0">
+  <link rel="stylesheet" href="/static/css/typeset.css?v=1.0">
+  <link rel="stylesheet" href="/static/css/styles.css?v=1.0">
+</head>
+<body class="typeset">
+  <div id="content">
+
+<h1>Getting Started with Vulkan</h1>
+<p class="date">Tuesday, Jan 1, 2019</p>
+
+<h1 id="post1">POST 1</h1>
+<p>Tutorial: <a href="https://vulkan-tutorial.com">Vulkan</a></p>
+<p>About vulkan &amp; vulkan vs apple -- better performance, more control, tiled rendering (mobile focused)</p>
+<p>multi-threaded (for command submission), standardized byte code for shaders</p>
+<p>Drawing a triangle:</p>
+<p>step 1 - create instance, query for supported hardware, select a (or multipel) pyhysical devices. Can select a more capable card in this step</p>
+<p>step 2 - create a logical device, specifying features. Pick what family of queues to use.</p>
+<p>step 3 - create a (native) window (or equiv). We then need a surface and a swapchain. Swapchain is a collection of render targets. It's how we organize what we're drawing to and what we're presenting. (double - vsync or triple are common)</p>
+<p>step 4 - to use an image from swapchain, we need to wrap it in an image view. imageview refernces part of an image, a framebuffer groups images for color, depth, stencil </p>
+<p>step 5 - render passes - describe what images will be used, how, and how they will be treated. eg color target, cleared to solid color </p>
+<p>step 6 - pipeline - sets up viewport, depth buffer, shaders, reference render pass. This pipeline has to be re-created - need to create pipelines in advance for any possible combo needed. Big performance boost here.</p>
+<p>step 7 - command pools and command buffers. command buffers are allocated from a command pool. commands are sub'd to this. we need to record a command buffer for everyo possilbe image and select at draw time.</p>
+<p>step 8 - main loop. aquire image from swap chain, select correct command buffer, execute it. return image for presentation. Commands are execurted async. we have to syncrhonize e.g, semaphores. we need to wait for draw commands <em>and</em> for presentation to finish.</p>
+<p>validation layers -- optional validation to prevent crashes. </p>
+<h1 id="post2">POST 2</h1>
+<p>Setting up Vulkan + MoltenVK on Mac OSX</p>
+<p>Easier to use the MoltenVK example vs the LunarG SDK.</p>
+<p>What is MoltenVK &amp; it's brief history</p>
+<p>Show an example with CALayer instead of GLFW</p>
+<h1 id="post3">POST 3</h1>
+<p>Example project: We need to build a Mac specific example vis https://vulkan-tutorial.com/Drawing<em>a</em>triangle/Setup/Base_code</p>
+<p>explicity create and destroy all vulkan objects</p>
+<p>(for larger progs, use RAII and e.g., overloading std::shared_ptr)</p>
+<p>create app info</p>
+<pre><code class="hljs cpp language-cpp">VkApplicationInfo appInfo = {};
+appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+appInfo.pApplicationName = <span class="hljs-string">"Hello Triangle"</span>;
+appInfo.applicationVersion = VK_MAKE_VERSION(<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>);
+appInfo.pEngineName = <span class="hljs-string">"No Engine"</span>;
+appInfo.engineVersion = VK_MAKE_VERSION(<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>);
+appInfo.apiVersion = VK_API_VERSION_1_0;
+</code></pre>
+<p>(need to specify <code>sType</code> in many cases)</p>
+<p>instance info:</p>
+<pre><code class="hljs cpp language-cpp">VkInstanceCreateInfo createInfo = {};
+createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+createInfo.pApplicationInfo = &amp;appInfo;
+<span class="hljs-comment">// need to also sepecify extentions</span>
+<span class="hljs-comment">//createInfo.enabledExtensionCount = _;</span>
+<span class="hljs-comment">//createInfo.ppEnabledExtensionNames = _;</span>
+createInfo.enabledLayerCount = <span class="hljs-number">0</span>; <span class="hljs-comment">// <span class="hljs-doctag">TODO:</span></span>
+</code></pre>
+<p>create</p>
+<pre><code class="hljs cpp language-cpp">VkResult result = vkCreateInstance(&amp;createInfo, <span class="hljs-literal">nullptr</span>, &amp;instance);
+<span class="hljs-keyword">if</span> (vkCreateInstance(&amp;createInfo, <span class="hljs-literal">nullptr</span>, &amp;instance) != VK_SUCCESS) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-built_in">std</span>::runtime_error(<span class="hljs-string">"failed to create instance!"</span>);
+}
+</code></pre>
+<p>check extensions</p>
+<pre><code class="hljs cpp language-cpp"><span class="hljs-keyword">uint32_t</span> extensionCount = <span class="hljs-number">0</span>;
+vkEnumerateInstanceExtensionProperties(<span class="hljs-literal">nullptr</span>, &amp;extensionCount, <span class="hljs-literal">nullptr</span>);
+<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;VkExtensionProperties&gt; extensions(extensionCount);
+vkEnumerateInstanceExtensionProperties(<span class="hljs-literal">nullptr</span>, &amp;extensionCount, extensions.data());
+<span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"available extensions:"</span> &lt;&lt; <span class="hljs-built_in">std</span>::<span class="hljs-built_in">endl</span>;
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span>&amp; extension : extensions) {
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"\t"</span> &lt;&lt; extension.extensionName &lt;&lt; <span class="hljs-built_in">std</span>::<span class="hljs-built_in">endl</span>;
+}
+</code></pre>
+<p>cleanup on shutdown</p>
+<pre><code class="hljs cpp language-cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">cleanup</span><span class="hljs-params">()</span> </span>{
+    vkDestroyInstance(instance, <span class="hljs-literal">nullptr</span>);
+    <span class="hljs-comment">//glfwDestroyWindow(window);</span>
+    <span class="hljs-comment">//glfwTerminate();</span>
+}
+</code></pre>
+<p>validation layers:</p>
+<p>https://github.com/KhronosGroup/Vulkan-ValidationLayers</p>
+<p>https://vulkan-tutorial.com/Drawing<em>a</em>triangle/Setup/Validation_layers</p>
+<p>Set this up.</p>
+<p>…………..</p>
+<p>set up physical device:</p>
+<pre><code class="hljs cpp language-cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">pickPhysicalDevice</span><span class="hljs-params">()</span> </span>{
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    <span class="hljs-keyword">uint32_t</span> deviceCount = <span class="hljs-number">0</span>;
+    vkEnumeratePhysicalDevices(instance, &amp;deviceCount, <span class="hljs-literal">nullptr</span>);
+    <span class="hljs-keyword">if</span> (deviceCount == <span class="hljs-number">0</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-built_in">std</span>::runtime_error(<span class="hljs-string">"failed to find GPUs with Vulkan support!"</span>);
+    }
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;VkPhysicalDevice&gt; devices(deviceCount);
+vkEnumeratePhysicalDevices(instance, &amp;deviceCount, devices.data());
+    <span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">isDeviceSuitable</span><span class="hljs-params">(VkPhysicalDevice device)</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    }
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span>&amp; device : devices) {
+    <span class="hljs-keyword">if</span> (isDeviceSuitable(device)) {
+        physicalDevice = device;
+        <span class="hljs-keyword">break</span>;
+    }
+    }
+
+    <span class="hljs-keyword">if</span> (physicalDevice == VK_NULL_HANDLE) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-built_in">std</span>::runtime_error(<span class="hljs-string">"failed to find a suitable GPU!"</span>);
+    }
+}
+
+<span class="hljs-comment">// THis is fine for now</span>
+<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">isDeviceSuitable</span><span class="hljs-params">(VkPhysicalDevice device)</span> </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">isDeviceSuitable</span><span class="hljs-params">(VkPhysicalDevice device)</span> </span>{
+    VkPhysicalDeviceProperties deviceProperties;
+    VkPhysicalDeviceFeatures deviceFeatures;
+    vkGetPhysicalDeviceProperties(device, &amp;deviceProperties);
+    vkGetPhysicalDeviceFeatures(device, &amp;deviceFeatures);
+
+    <span class="hljs-keyword">return</span> deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &amp;&amp;
+           deviceFeatures.geometryShader;
+}
+</code></pre>
+<p>or we can rate devices by suitability</p>
+<p>now we need to do queue families:</p>
+
+  </div><!-- #content -->
+  <div id="footer">
+    <img id="avatar" src="/static/img/avatar.jpg"/>
+    <h3>About me:</h3>
+    <h4>Matthew Smith</h4>
+    <p>I'm an autodidactict software engineer who previously owned a PR agency in Asia. I'm obsessed with writing software and specialize in macOS, iOS, 2D/3D graphics and computational geometry.<br/><br/>I used to be a food and wine enthusiast. Now I'm carnivore / zero carb and thriving on it.</p>
+    <p>Email: m [@] lattejed [.] com</p>
+    <p>Twitter: <a href="https://twitter.com/latte_jed">@latte_jed</a></p>
+    <p>Home: <a href="/">lattejed.com</a></p>
+  </div>
+  <script src="/static/js/scripts.js"></script>
+</body>
+</html>

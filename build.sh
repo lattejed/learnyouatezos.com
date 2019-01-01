@@ -1,0 +1,1 @@
+node generator/index.js

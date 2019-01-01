@@ -1,0 +1,168 @@
+---
+template: post
+title: Getting Started with Vulkan
+date: 2019-01-01
+---
+
+#POST 1
+
+Tutorial: [Vulkan](https://vulkan-tutorial.com)
+
+About vulkan & vulkan vs apple -- better performance, more control, tiled rendering (mobile focused)
+
+multi-threaded (for command submission), standardized byte code for shaders
+
+Drawing a triangle:
+
+step 1 - create instance, query for supported hardware, select a (or multipel) pyhysical devices. Can select a more capable card in this step
+
+step 2 - create a logical device, specifying features. Pick what family of queues to use.
+
+step 3 - create a (native) window (or equiv). We then need a surface and a swapchain. Swapchain is a collection of render targets. It's how we organize what we're drawing to and what we're presenting. (double - vsync or triple are common)
+
+step 4 - to use an image from swapchain, we need to wrap it in an image view. imageview refernces part of an image, a framebuffer groups images for color, depth, stencil 
+
+step 5 - render passes - describe what images will be used, how, and how they will be treated. eg color target, cleared to solid color 
+
+step 6 - pipeline - sets up viewport, depth buffer, shaders, reference render pass. This pipeline has to be re-created - need to create pipelines in advance for any possible combo needed. Big performance boost here.
+
+step 7 - command pools and command buffers. command buffers are allocated from a command pool. commands are sub'd to this. we need to record a command buffer for everyo possilbe image and select at draw time.
+
+step 8 - main loop. aquire image from swap chain, select correct command buffer, execute it. return image for presentation. Commands are execurted async. we have to syncrhonize e.g, semaphores. we need to wait for draw commands *and* for presentation to finish.
+
+validation layers -- optional validation to prevent crashes. 
+
+#POST 2
+
+Setting up Vulkan + MoltenVK on Mac OSX
+
+Easier to use the MoltenVK example vs the LunarG SDK.
+
+What is MoltenVK & it's brief history
+
+Show an example with CALayer instead of GLFW
+
+
+#POST 3
+
+Example project: We need to build a Mac specific example vis https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Base_code
+
+explicity create and destroy all vulkan objects
+
+(for larger progs, use RAII and e.g., overloading std::shared_ptr)
+
+create app info
+
+```cpp
+VkApplicationInfo appInfo = {};
+appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+appInfo.pApplicationName = "Hello Triangle";
+appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+appInfo.pEngineName = "No Engine";
+appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+appInfo.apiVersion = VK_API_VERSION_1_0;
+```
+
+(need to specify `sType` in many cases)
+
+instance info:
+
+```cpp
+VkInstanceCreateInfo createInfo = {};
+createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+createInfo.pApplicationInfo = &appInfo;
+// need to also sepecify extentions
+//createInfo.enabledExtensionCount = _;
+//createInfo.ppEnabledExtensionNames = _;
+createInfo.enabledLayerCount = 0; // TODO:
+``` 
+
+create
+
+```cpp
+VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
+if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create instance!");
+}
+```
+
+check extensions
+
+```cpp
+uint32_t extensionCount = 0;
+vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+std::vector<VkExtensionProperties> extensions(extensionCount);
+vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+std::cout << "available extensions:" << std::endl;
+for (const auto& extension : extensions) {
+    std::cout << "\t" << extension.extensionName << std::endl;
+}
+```
+
+cleanup on shutdown
+
+```cpp
+void cleanup() {
+    vkDestroyInstance(instance, nullptr);
+    //glfwDestroyWindow(window);
+    //glfwTerminate();
+}
+```
+
+validation layers:
+
+https://github.com/KhronosGroup/Vulkan-ValidationLayers
+
+https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Validation_layers
+
+Set this up.
+
+..............
+
+set up physical device:
+
+```cpp
+void pickPhysicalDevice() {
+	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+	uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+	if (deviceCount == 0) {
+    	throw std::runtime_error("failed to find GPUs with Vulkan support!");
+    }
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+	bool isDeviceSuitable(VkPhysicalDevice device) {
+    	return true;
+	}
+	for (const auto& device : devices) {
+    if (isDeviceSuitable(device)) {
+        physicalDevice = device;
+        break;
+    }
+	}
+
+	if (physicalDevice == VK_NULL_HANDLE) {
+    	throw std::runtime_error("failed to find a suitable GPU!");
+	}
+}
+
+// THis is fine for now
+bool isDeviceSuitable(VkPhysicalDevice device) {
+    return true;
+}
+
+bool isDeviceSuitable(VkPhysicalDevice device) {
+    VkPhysicalDeviceProperties deviceProperties;
+    VkPhysicalDeviceFeatures deviceFeatures;
+    vkGetPhysicalDeviceProperties(device, &deviceProperties);
+    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+    return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
+           deviceFeatures.geometryShader;
+}
+```
+
+or we can rate devices by suitability
+
+now we need to do queue families:
+
