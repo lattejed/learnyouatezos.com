@@ -6,6 +6,13 @@ date: 2019-01-01
 
 #POST 1
 
+Why Vulkan on Metal?
+
+- Vulkan pros, Apple split 
+- Metal & Vulkan are similar, a translation layer works (MoltenVK)
+- Build renderer in Vulkan, cross platform works, no need to deal with Metal directly while benefitting from the better API
+- 
+
 Tutorial: [Vulkan](https://vulkan-tutorial.com)
 
 About vulkan & vulkan vs apple -- better performance, more control, tiled rendering (mobile focused)
@@ -34,6 +41,7 @@ validation layers -- optional validation to prevent crashes.
 
 #POST 2
 
+https://github.com/KhronosGroup/MoltenVK
 Setting up Vulkan + MoltenVK on Mac OSX
 
 Easier to use the MoltenVK example vs the LunarG SDK.
@@ -41,6 +49,87 @@ Easier to use the MoltenVK example vs the LunarG SDK.
 What is MoltenVK & it's brief history
 
 Show an example with CALayer instead of GLFW
+
+- Fetch example project / create new project
+- Add / pull MoltenVK submodule
+- Run MoltenVK/fetchDependencies (you may need to run brew install cmake python first)
+- Add MoltenVKPackaging / Build MoltenVKPackage (MacOS Only)
+- Use the static lib. Include headers. The framework isn't valid (missing a valid info.plist)
+- Build the static lib target, add to frameworks and libraries.
+- Add header path `$(PROJECT_DIR)/MoltenVK/MoltenVK/include`
+- add to preprocessor macros: VK_USE_PLATFORM_MACOS_MVK
+- pop `#include <vulkan/vulkan.h>` into your AppDelegate to make sure everything builds ok
+
+
+- create a VulkanViewController and a VulkanView
+
+```objectivecpp
+#import "VulkanView.h"
+#import <QuartzCore/CAMetalLayer.h>
+
+@implementation VulkanView
+
+- (BOOL)wantsUpdateLayer {
+  return YES;
+}
+
++ (Class)layerClass {
+  return [CAMetalLayer class];
+}
+
+- (CALayer *)makeBackingLayer {
+  CALayer* layer = [self.class.layerClass layer];
+  CGSize viewScale = [self convertSizeToBacking: CGSizeMake(1.0, 1.0)];
+  layer.contentsScale = MIN(viewScale.width, viewScale.height);
+  return layer;
+}
+
+- (BOOL)acceptsFirstResponder {
+  return YES;
+}
+
+@end
+```
+
+```objectivecpp
+#import "VulkanViewController.h"
+#import <QuartzCore/CAMetalLayer.h>
+
+static CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink,
+                                    const CVTimeStamp* now,
+                                    const CVTimeStamp* outputTime,
+                                    CVOptionFlags flagsIn,
+                                    CVOptionFlags* flagsOut,
+                                    void* target) {
+  // Call render
+  return kCVReturnSuccess;
+}
+
+@implementation VulkanViewController {
+  CVDisplayLinkRef _displayLink;
+}
+
+- (void)viewDidLoad {
+  [super viewDidLoad];
+  
+  self.view.wantsLayer = YES;    
+  
+  // TODO: Init Vulkan
+  
+  CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
+  CVDisplayLinkSetOutputCallback(_displayLink, &DisplayLinkCallback, nil);
+  CVDisplayLinkStart(_displayLink);
+}
+
+- (void)dealloc {
+  CVDisplayLinkRelease(_displayLink);
+}
+
+@end
+```
+
+We need to pull in validation layers from lunarg 
+
 
 
 #POST 3
@@ -165,4 +254,51 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 or we can rate devices by suitability
 
 now we need to do queue families:
+
+Different types of commands need different queue families, e.g., compute-only queues.
+
+```cpp
+#include <optional>
+
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+
+    bool isComplete() {
+        return graphicsFamily.has_value();
+    }
+};
+
+QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
+    QueueFamilyIndices indices;
+
+    uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(device, 	&queueFamilyCount, nullptr);
+
+	std::vector<VkQueueFamilyProperties> 	queueFamilies(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, 	&queueFamilyCount, queueFamilies.data());
+
+	int i = 0;
+	for (const auto& queueFamily : queueFamilies) {
+    	if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+        	indices.graphicsFamily = i;
+    	}
+
+    	if (indices.isComplete()) {
+        	break;
+   		}
+
+		i++;
+	}
+
+   return indices;
+}
+
+bool isDeviceSuitable(VkPhysicalDevice device) {
+    QueueFamilyIndices indices = findQueueFamilies(device);
+
+    return indices.isComplete();
+}
+```
+
+
 
