@@ -49,6 +49,7 @@
 <p>The upside to that is Vulkan attempts to give as much control as possible so the rendered can be tailored for the task at hand, giving the best possible performance.</p>
 <p>It's not that Metal <em>doesn't</em> give this amount of flexibility, it's just that these decisions are made explicitly with Vulkan, whereas you're working with a lot more defaults with Metal and two languages (Objective-C and Swift) that tend to be less verbose than Vulkan's default C++.</p>
 <h3 id="languagechoices">Language Choices</h3>
+<p><em>[Edit] As <a href="https://twitter.com/SaschaWillems2">Sascha Willems</a> pointed out to me, Vulkan is a C API, with optional C++ headers. I had swapped those two in my mind.</em></p>
 <p>Metal of course gives you Objective-C and Swift. For shaders you have to use Apple's <em>metal</em> format. Metal is similar to GLSL in the sense that they're both C-like, but the two are not compatible.</p>
 <p>Vulkan is written in C++, although bindings do exist, of assorted levels of maturity, for other languages. For our macOS project, however, it doesn't really make sense to work with anything but the default C++.</p>
 <p>Vulkan's shaders have to be in its binary SPIR-V format. Vulkan ships with compilers that accept GLSL and HLSL. I'm pretty sure Metal to SPIR-V compilers exist as well, though you're likely to be using GLSL in this case.</p>
