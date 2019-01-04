@@ -51,14 +51,24 @@ What is MoltenVK & it's brief history
 Show an example with CALayer instead of GLFW
 
 - Fetch example project / create new project
-- Add / pull MoltenVK submodule
-- Run MoltenVK/fetchDependencies (you may need to run brew install cmake python first)
-- Add MoltenVKPackaging / Build MoltenVKPackage (MacOS Only)
-- Use the static lib. Include headers. The framework isn't valid (missing a valid info.plist)
-- Build the static lib target, add to frameworks and libraries.
-- Add header path `$(PROJECT_DIR)/MoltenVK/MoltenVK/include`
-- add to preprocessor macros: VK_USE_PLATFORM_MACOS_MVK
-- pop `#include <vulkan/vulkan.h>` into your AppDelegate to make sure everything builds ok
+- Download lunarg SDK
+- Copy vulkan, molten and validation dylibs
+- copy explicit_layer.d & icd.d
+- set up xcode to copy hirearchy correctly (follow lunarg docs)
+- correct .json files to have correct paths
+- copy headers and set header search paths
+
+- manifest files have relative paths, relative to the file itself *.json
+
+- layer.dylibs get copied to Frameworks
+- manifests get copied to Resources/vulkan/explicit_layer.d
+- MoltenVK gets copied to Frameworks
+- manifest gets copied to Resources/vulkan/icd.d
+
+- can set env VK_LOADER_DEBUG=all to see search paths
+
+- libVulkan.X.X.X.dylib needs to get symlinked / renamed to libVulkan.1.dylib
+
 
 
 - create a VulkanViewController and a VulkanView
