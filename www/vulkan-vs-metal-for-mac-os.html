@@ -26,12 +26,15 @@
 <p>The go-to cross platform rendering API has been OpenGL for ages. If you haven't worked with it, just know that it's awful. It's full of legacy cruft, operates as a giant state machine and otherwise is a big dated piece of dookie.</p>
 <p>(Attempting to do anything advanced with it on macOS is <em>especially</em> unpleasant.)</p>
 <p>The people who are behind OpenGL, Khronos, decided it was time to build a modern GPU API to take advantage of new device capabilities and clear out the cruft. Yes!</p>
-<p>And Apple considered using Vulkan. For a moment.</p>
+<p>And Apple considered using Vulkan. For a moment.*</p>
 <p><img src="/static/img/LOTR_Isildur.jpg" alt="Isildur" /></p>
 <p>This was like that moment in <em>Lord of the Rings</em> when evil could have been destroyed forever, simply by tossing a gold ring into a lava pit, but human greed and pride got in the way.</p>
 <p>Apple decided it would be cooler to do their own thing and called it Metal and any hope the world had of a <em>good</em> cross-platform graphics API was lost.</p>
 <p>Then someone said, fuck it, let's just do Vulkan on Metal and MoltenVK was born. MoltenVK started out as a commercial project but has since been made free and open source (thanks to a donation from Valve?).</p>
 <p>Shortly after, Apple deprecated OpenGL support, more or less forcing people to use Metal. <em>Or so they hoped!</em></p>
+<p>*<em>[Edit] Thanks to <a href="https://twitter.com/fedyac">Fedy</a> for pointing that Metal's release predates the release of Vulkan.</em></p>
+<p>From what I’ve been able to piece together the Khronos Group, (probably) including member Apple,  were discussing a new API and Apple came out of nowhere with Metal. Khronos kicked it into high gear and AMD donated Mantle to speed things up.</p>
+<p>Apple was to market first with Metal but to what extent within the group it looked like Apple would participate is unclear. Maybe they were never expected to though their *GL involvement suggests they would have.</p>
 <h3 id="isvulkanonmetalviable">Is Vulkan on Metal Viable?</h3>
 <p>Running one graphics API on another, compatible-ish API seems less than ideal. I know at least one company that passed on the idea (as a replacement for OpenGL) because of the potential complexity.</p>
 <p>In practice, however, it's very clean. That's because MoltenVK operates as a Layer-0 driver for Vulkan. It's completely transparent from the point of view of your application. Once it's included as a (static or dynamic) library, you don't interact with it anymore. All client code interfaces directly with Vulkan, just as it would on any other platform.</p>
@@ -49,11 +52,11 @@
 <p>The upside to that is Vulkan attempts to give as much control as possible so the rendered can be tailored for the task at hand, giving the best possible performance.</p>
 <p>It's not that Metal <em>doesn't</em> give this amount of flexibility, it's just that these decisions are made explicitly with Vulkan, whereas you're working with a lot more defaults with Metal and two languages (Objective-C and Swift) that tend to be less verbose than Vulkan's default C++.</p>
 <h3 id="languagechoices">Language Choices</h3>
-<p><em>[Edit] As <a href="https://twitter.com/SaschaWillems2">Sascha Willems</a> pointed out to me, Vulkan is a C API, with optional C++ headers. I had swapped those two in my mind.</em></p>
 <p>Metal of course gives you Objective-C and Swift. For shaders you have to use Apple's <em>metal</em> format. Metal is similar to GLSL in the sense that they're both C-like, but the two are not compatible.</p>
 <p>Vulkan is written in C++, although bindings do exist, of assorted levels of maturity, for other languages. For our macOS project, however, it doesn't really make sense to work with anything but the default C++.</p>
 <p>Vulkan's shaders have to be in its binary SPIR-V format. Vulkan ships with compilers that accept GLSL and HLSL. I'm pretty sure Metal to SPIR-V compilers exist as well, though you're likely to be using GLSL in this case.</p>
 <p>The upside to that is GLSL is more or less the 'standard' format for shaders, and a wealth of information exists online for them.</p>
+<p><em>[Edit] As <a href="https://twitter.com/SaschaWillems2">Sascha Willems</a> pointed out to me, Vulkan is a C API, with optional C++ headers. I had swapped those two in my mind.</em></p>
 <h3 id="letsgetstarted">Let's Get Started</h3>
 <p>In the next post, I'll cover how to obtain Vulkan, MoltenVK and how to set up an Xcode project to incorporate them. I'll also cover integrating Vulkan's validation layers, which take a lot of the guesswork out of working with Vulkan.</p>
 <p>Coming soon…</p>
