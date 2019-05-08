@@ -4,8 +4,15 @@
 
 <h2>Table of Contents</h2>
 
+<ol>
 <% pages.forEach((page) => { %>
-  <p><a href="/<%= page.slug %>"><%= page.chapter %>. <%= page.title %></a></p>
+  <li><a href="/<%= page.slug %>"><%= page.title %></a></li>
+  <ul>
+  <% page.sections.forEach((section) => { %>
+    <li><%= section.title %></li>
+  <% }); %>
+  </ul>
 <% }); %>
+</ol>
 
 <%- include('footer'); -%>

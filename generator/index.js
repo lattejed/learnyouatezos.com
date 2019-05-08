@@ -59,7 +59,7 @@ let ps = site.pages.map((pagePath) => {
   page.sections = sectionHeaders.map((section) => {
     let title = section.replace('###', '')
     let slug = title.toLowerCase().replace(/\W+/g, '-')
-    return slug 
+    return {slug: slug, title: title} 
   })
   return ejs.renderFile(basepath, {page: page, site: site}, {}).then((html) => {
     page.html = html
