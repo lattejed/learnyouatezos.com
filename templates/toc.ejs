@@ -1,0 +1,11 @@
+<%- include('header'); -%>
+
+<h1><%= site.title %></h1>
+
+<h2>Table of Contents</h2>
+
+<% pages.forEach((page) => { %>
+  <p><a href="/<%= page.slug %>"><%= page.chapter %>. <%= page.title %></a></p>
+<% }); %>
+
+<%- include('footer'); -%>
