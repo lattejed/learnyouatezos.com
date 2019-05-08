@@ -2,11 +2,13 @@
 const path = require('path')
 const fs = require('fs')
 const fse = require('fs-extra')
+const util = require('util')
 const fm = require('front-matter')
 const ejs = require('ejs')
 const sd = require('showdown')
 const highlight = require('showdown-highlight')
 const site = require('./config')
+const sectionRe = /^###.+/
 
 try {
   fse.emptyDirSync(site.wwwDir)
@@ -24,7 +26,21 @@ try {
 
 let ps = site.pages.map((pagePath) => {
   let page = {}
-  let md = fs.readFileSync(path.join(site.pagesDir, pagePath)).toString('utf8')
+  let mdpath = path.join(site.pagesDir, pagePath)
+  let stats = fs.statSync(mdpath)
+  var md = fs.readFileSync(mdpath).toString('utf8')
+  let sectionHeaders = md.split('\n').map((line) => {
+    let m = line.match(sectionRe)
+    if (m && m.length) {		
+      return m[0].trim()
+    }
+    return null
+  }).filter((el) => !!el)
+  sectionHeaders.forEach((section) => {
+    let title = section.replace('###', '')
+    let slug = title.toLowerCase().replace(/\W+/g, '-')
+    md = md.replace(section, '###[' + title + '](#' + slug + ')')
+  })
   let parsed = fm(md)
   Object.assign(page, parsed.attributes)
   let basepath = path.join(site.templatesDir, page.template + '.ejs')
@@ -34,11 +50,17 @@ let ps = site.pages.map((pagePath) => {
   page.slug = page.title.toLowerCase()
     .replace(/\W+/g, '-')
     .replace(/(^-|-$)/, '') + '.html'
-  page.updatedAt = (new Date()).toLocaleDateString('en-US', {
+  let mtime = new Date(util.inspect(stats.mtime))
+  page.updatedAt = mtime.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'short',
     day: 'numeric'
+  })
+  page.sections = sectionHeaders.map((section) => {
+    let title = section.replace('###', '')
+    let slug = title.toLowerCase().replace(/\W+/g, '-')
+    return slug 
   })
   return ejs.renderFile(basepath, {page: page, site: site}, {}).then((html) => {
     page.html = html
@@ -54,10 +76,10 @@ Promise.all(ps).then((pages) => {
     let outpath = path.join(site.wwwDir, page.slug)
     fs.writeFileSync(outpath, page.html)
   })
-  let basepath = path.join(site.templatesDir, 'index.ejs')
+  let basepath = path.join(site.templatesDir, 'toc.ejs')
   return ejs.renderFile(basepath, {pages: pages, site: site}, {})
 }).then((html) => {
-  let outpath = path.join(site.wwwDir, 'index.html')
+  let outpath = path.join(site.wwwDir, 'toc.html')
   fs.writeFileSync(outpath, html)
 }).catch((err) => {
   console.log('[ERROR] Cannot process page ' + err)
