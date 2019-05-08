@@ -1,7 +1,6 @@
 ---
-template: post
+template: page
 title: "[Ab]using Blocks for Cleaner MVC in Obj-C"
-date: 2014-05-26
 ---
 
 As I've started to utilize blocks more in iOS/OS X development I've noticed a patter emerge and wanted to talk about it. It's using the same building blocks (excuse the pun) are you're likely to find in any Cocoa project but leveraging blocks to the fullest extent has sped up development time for me and led to both thin controllers (which I think are good) and a very strict separation between the different layers in MVC.

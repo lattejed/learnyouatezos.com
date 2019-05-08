@@ -34,8 +34,7 @@ let ps = site.pages.map((pagePath) => {
   page.slug = page.title.toLowerCase()
     .replace(/\W+/g, '-')
     .replace(/(^-|-$)/, '') + '.html'
-  page.timestamp = page.date.getTime()
-  page.date = page.date.toLocaleDateString('en-US', {
+  page.updatedAt = (new Date()).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'short',
