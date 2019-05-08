@@ -70,12 +70,12 @@ let pages = site.pages.map((pagePath) => {
 let ps = pages.map((page, i) => {
   if (i > 0) {
     page.prevSlug = pages[i - 1].slug
+    page.prevTitle = pages[i - 1].title
   }
   if (i < pages.length - 1) {
     page.nextSlug = pages[i + 1].slug
+    page.nextTitle = pages[i + 1].title
   }
-  console.log(page.prevSlug)
-  console.log(page.nextSlug)
   let basepath = path.join(site.templatesDir, page.template + '.ejs')
   return ejs.renderFile(basepath, {page: page, site: site}, {}).then((html) => {
     page.html = html
