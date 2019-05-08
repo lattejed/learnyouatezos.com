@@ -1,6 +1,9 @@
 
   </div><!-- #content -->
   <div id="footer">
+    <% if (locals.page) { %>
+      <p>Page last updated <%= page.updatedAt %></p>
+    <% } %>
   </div>
   <script src="/static/js/scripts.js"></script>
 </body>

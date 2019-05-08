@@ -23,6 +23,8 @@ try {
   process.exit(1)
 }
 
+site.pages.sort()
+
 let ps = site.pages.map((pagePath) => {
   let page = {}
   let mdpath = path.join(site.pagesDir, pagePath)
@@ -68,10 +70,6 @@ let ps = site.pages.map((pagePath) => {
 })
 
 Promise.all(ps).then((pages) => {
-
-  pages = pages.sort((a, b) => {
-    return a.section - b.section
-  })
 
   pages.forEach((page) => {
     let outpath = path.join(site.wwwDir, page.slug)
