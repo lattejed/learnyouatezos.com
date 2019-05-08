@@ -1,4 +1,3 @@
-
 const path = require('path')
 const fs = require('fs')
 const fse = require('fs-extra')
@@ -69,19 +68,32 @@ let ps = site.pages.map((pagePath) => {
 })
 
 Promise.all(ps).then((pages) => {
+
   pages = pages.sort((a, b) => {
-    return b.timestamp - a.timestamp
+    return a.section - b.section
   })
+
   pages.forEach((page) => {
     let outpath = path.join(site.wwwDir, page.slug)
     fs.writeFileSync(outpath, page.html)
   })
-  let basepath = path.join(site.templatesDir, 'toc.ejs')
-  return ejs.renderFile(basepath, {pages: pages, site: site}, {})
+
+  let tocPath = path.join(site.templatesDir, 'toc.ejs')
+  let indexPath = path.join(site.templatesDir, 'index.ejs')
+  return Promise.all([
+    ejs.renderFile(tocPath, {pages: pages, site: site}, {}),
+    ejs.renderFile(indexPath, {pages: pages, site: site}, {})
+  ])
+
 }).then((html) => {
-  let outpath = path.join(site.wwwDir, 'toc.html')
-  fs.writeFileSync(outpath, html)
+
+  fs.writeFileSync(path.join(site.wwwDir, 'toc.html'), html[0])
+  fs.writeFileSync(path.join(site.wwwDir, 'index.html'), html[1])
+
 }).catch((err) => {
+
   console.log('[ERROR] Cannot process page ' + err)
   process.exit(1)
+
 })
+
