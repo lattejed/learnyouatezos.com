@@ -52,3 +52,19 @@ del {
   height: 80px;
   float: right;
 }
+
+.navigation {
+  display: table; 
+  width: 100%;
+}
+
+.navigation > ul {
+  display: table-row; 
+  list-style: none;
+}
+
+.navigation > ul > li {
+  display: table-cell; 
+  width: 33%;
+}
+

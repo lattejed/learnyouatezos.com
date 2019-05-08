@@ -24,8 +24,10 @@ try {
 }
 
 site.pages.sort()
+site.indexPath = 'index.html'
+site.tocPath = 'toc.html'
 
-let ps = site.pages.map((pagePath) => {
+let pages = site.pages.map((pagePath) => {
   let page = {}
   let mdpath = path.join(site.pagesDir, pagePath)
   let stats = fs.statSync(mdpath)
@@ -44,7 +46,6 @@ let ps = site.pages.map((pagePath) => {
   })
   let parsed = fm(md)
   Object.assign(page, parsed.attributes)
-  let basepath = path.join(site.templatesDir, page.template + '.ejs')
   page.content = new sd.Converter({
     extensions: [highlight]
   }).makeHtml(parsed.body)
@@ -63,6 +64,19 @@ let ps = site.pages.map((pagePath) => {
     let slug = title.toLowerCase().replace(/\W+/g, '-')
     return {slug: slug, title: title} 
   })
+  return page
+})
+
+let ps = pages.map((page, i) => {
+  if (i > 0) {
+    page.prevSlug = pages[i - 1].slug
+  }
+  if (i < pages.length - 1) {
+    page.nextSlug = pages[i + 1].slug
+  }
+  console.log(page.prevSlug)
+  console.log(page.nextSlug)
+  let basepath = path.join(site.templatesDir, page.template + '.ejs')
   return ejs.renderFile(basepath, {page: page, site: site}, {}).then((html) => {
     page.html = html
     return Promise.resolve(page)
@@ -85,8 +99,8 @@ Promise.all(ps).then((pages) => {
 
 }).then((html) => {
 
-  fs.writeFileSync(path.join(site.wwwDir, 'toc.html'), html[0])
-  fs.writeFileSync(path.join(site.wwwDir, 'index.html'), html[1])
+  fs.writeFileSync(path.join(site.wwwDir, site.tocPath), html[0])
+  fs.writeFileSync(path.join(site.wwwDir, site.indexPath), html[1])
 
 }).catch((err) => {
 

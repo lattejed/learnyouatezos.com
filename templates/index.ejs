@@ -2,10 +2,6 @@
 
 <h1><%= site.title %></h1>
 
-<h2>Table of Contents</h2>
-
-<% pages.forEach((page) => { %>
-  <p><a href="/<%= page.slug %>"><%= page.chapter %>. <%= page.title %></a></p>
-<% }); %>
+<p><a href="/<%= site.tocPath %>">Table of Contents</a></p>
 
 <%- include('footer'); -%>
