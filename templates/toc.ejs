@@ -4,15 +4,23 @@
 
 <h2>Table of Contents</h2>
 
-<ol>
-<% pages.forEach((page) => { %>
-  <li><a href="/<%= page.slug %>"><%= page.title %></a></li>
-  <ul>
-  <% page.sections.forEach((section) => { %>
-    <li><%= section.title %></li>
+<div class="toc">
+  <ol>
+    <li><a href="/">Home Page</a></li>
+
+  <% pages.forEach((page) => { %>
+
+    <li><a href="/<%= page.slug %>"><%= page.title %></a></li>
+    <ul>
+    <% page.sections.forEach((section) => { %>
+      <li><a href="/<%= page.slug %>#<%= section.slug %>"><%= section.title
+      %></a></li>
+    <% }); %>
+    </ul>
+
   <% }); %>
-  </ul>
-<% }); %>
-</ol>
+
+  </ol>
+<div id="toc">
 
 <%- include('footer'); -%>

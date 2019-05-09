@@ -65,3 +65,11 @@ del {
   width: 33%;
 }
 
+.toc > ol > li {
+  margin-bottom: 1.5em;
+}
+
+.toc > ol > ul > li {
+  margin-bottom: 1em;
+}
+
