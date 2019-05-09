@@ -67,20 +67,29 @@ let pages = site.pages.map((pagePath) => {
   return page
 })
 
+if (pages.length) {
+  site.firstPageSlug = pages[0].slug
+  site.firstPageTitle = pages[0].title
+}
+
 let ps = pages.map((page, i) => {
+
   if (i > 0) {
     page.prevSlug = pages[i - 1].slug
     page.prevTitle = pages[i - 1].title
   }
+
   if (i < pages.length - 1) {
     page.nextSlug = pages[i + 1].slug
     page.nextTitle = pages[i + 1].title
   }
+
   let basepath = path.join(site.templatesDir, page.template + '.ejs')
   return ejs.renderFile(basepath, {page: page, site: site}, {}).then((html) => {
     page.html = html
     return Promise.resolve(page)
   })
+
 })
 
 Promise.all(ps).then((pages) => {
