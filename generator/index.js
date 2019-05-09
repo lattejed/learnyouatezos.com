@@ -7,7 +7,7 @@ const ejs = require('ejs')
 const sd = require('showdown')
 const highlight = require('showdown-highlight')
 const site = require('./config')
-const sectionRe = /^###.+/
+const sectionRe = /^###[^#]+/
 
 try {
   fse.emptyDirSync(site.wwwDir)

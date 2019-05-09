@@ -73,3 +73,12 @@ del {
   margin-bottom: 1em;
 }
 
+.aside {
+  display: block;
+  border: 1px solid #497CBF;
+  border-radius: 3px;
+  background-color: #548DBF;
+  padding: 0 1.25em;
+  color: #FFFFFF;
+}
+
