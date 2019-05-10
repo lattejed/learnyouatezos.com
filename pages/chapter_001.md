@@ -23,7 +23,7 @@ If this book captures a little bit of spirit of its namesake, the author will co
 
 ###About the author
 
-Matthew Smith is a technology consultant and sometimes entrepreneur. In a previous career, he owned a PR agency. This was neither nefarious (no cover ups) nor glamorous (no Champagne and drug-fuelled breakfasts). It was mostly an exercise in dealing with a lot of serious people and learning to be concise. Hopefully both of those careers help with this book.
+Matthew Smith is a technology consultant and sometimes entrepreneur. In a previous career, he owned a PR agency. This was neither nefarious (no cover ups) nor glamorous (no Champagne and cocaine breakfasts). It was mostly an exercise in dealing with a lot of serious people and learning to be concise. Hopefully both of those careers help with this book.
 
 He also participated in the Tezos ICO, runs a private baker and is a HODLer of XTZ. Previously he was in the Ethereum ICO. He believes Tezos will deliver on a lot of the promises Tezos' predecessors (should) have made.
 
