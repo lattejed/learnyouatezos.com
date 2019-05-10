@@ -27,6 +27,10 @@ body {
   margin: 0 auto;
 }
 
+#maintitle {
+  color: #497CBF;
+}
+
 a {
   color: inherit;
 }
@@ -48,6 +52,22 @@ del {
 }
 
 #footer {
+  padding-top: 2em;
+  margin-top: 2em;
+}
+
+#footer hr {
+  border: 0;
+  height: 1px;
+  background: #A8A8A8;
+}
+
+.license {
+  color: #A8A8A8;
+}
+
+.timestamp {
+  color: #A8A8A8;
 }
 
 .navigation {
@@ -61,6 +81,23 @@ del {
 }
 
 .navigation > ul > li {
+  display: table-cell; 
+  width: 33%;
+}
+
+.startnav {
+  padding-top: 2em;
+  display: table; 
+  width: 100%;
+}
+
+.startnav > ul {
+  display: table-row; 
+  list-style: none;
+}
+
+.startnav > ul > li {
+  vertical-align: middle;
   display: table-cell; 
   width: 33%;
 }
