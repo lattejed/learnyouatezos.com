@@ -1,6 +1,12 @@
 ---
 template: page
-title: Blockchain 101
+title: Basic setup
 ---
 
-###Cryptography, P2P, Game Theory
+### Identity generation, backup
+
+### Vanity addresses
+
+### Hardware wallet setup
+
+### Fundraiser import 

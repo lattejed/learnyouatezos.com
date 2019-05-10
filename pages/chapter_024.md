@@ -1,6 +1,10 @@
 ---
 template: page
-title: Blockchain 101
+title: Real World Contracts
 ---
 
-###Cryptography, P2P, Game Theory
+###Oracles (provide a working oracle?)
+
+###Networks of contracts 
+
+###Interfacing resources (http libs, etc)

@@ -1,6 +1,16 @@
 ---
 template: page
-title: Blockchain 101
+title: RPC Interface
 ---
 
-###Cryptography, P2P, Game Theory
+###RPC setup, security
+
+###RPC basics, calling some shortcuts
+
+###RPC format for lower-level calls 
+
+###Common RPC examples 
+
+###Scripting RPC calls to do more complex calcs
+
+###Scripted RPC examples 

@@ -1,6 +1,8 @@
 ---
 template: page
-title: Blockchain 101
+title: Fundraiser wallet
 ---
 
-###Cryptography, P2P, Game Theory
+###Pre steps: Verfication, password, etc.
+
+###???

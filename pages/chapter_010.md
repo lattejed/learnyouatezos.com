@@ -1,6 +1,8 @@
 ---
 template: page
-title: Blockchain 101
+title: Wallet functions
 ---
 
-###Cryptography, P2P, Game Theory
+###Send Tezos
+
+###Hardware wallet

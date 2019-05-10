@@ -1,6 +1,8 @@
 ---
 template: page
-title: Blockchain 101
+title: Verifying New Contracts 
 ---
 
-###Cryptography, P2P, Game Theory
+###Resources / tools 
+
+###Verification process (high level)

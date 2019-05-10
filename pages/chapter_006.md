@@ -1,6 +1,10 @@
 ---
 template: page
-title: Blockchain 101
+title: How to acquire Tezos
 ---
 
-###Cryptography, P2P, Game Theory
+###Exchanges 
+
+###OTC
+
+###Price and other information 

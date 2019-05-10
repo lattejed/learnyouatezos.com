@@ -1,6 +1,16 @@
 ---
 template: page
-title: Blockchain 101
+title: Smart Contracts
 ---
 
-###Cryptography, P2P, Game Theory
+###Advantages of Tezos for smart contracts
+
+###Past: Hacks & bugs
+
+###Eliminating avenues of failure
+
+###Overview of FP, immutability, side effects 
+
+###(Should be) Necessary, but not sufficient 
+
+###(These probably shouldn't be sections, just thoughts)

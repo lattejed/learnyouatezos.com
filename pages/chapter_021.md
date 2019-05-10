@@ -1,6 +1,10 @@
 ---
 template: page
-title: Blockchain 101
+title: Sources of Contracts
 ---
 
-###Cryptography, P2P, Game Theory
+###Reusability of verified contracts 
+
+###(Planned) sources of verified contracts 
+
+###Additional resources

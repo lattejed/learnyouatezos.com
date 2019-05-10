@@ -1,6 +1,10 @@
 ---
 template: page
-title: Blockchain 101
+title: Delegating Tezos
 ---
 
-###Cryptography, P2P, Game Theory
+###Finding a baker
+
+###Delegating Tezos to a baker using wallet
+
+###Using 3rd party monitoring to watch baker

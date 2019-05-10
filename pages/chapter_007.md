@@ -1,6 +1,12 @@
 ---
 template: page
-title: Blockchain 101
+title: Installing a Tezos node
 ---
 
-###Cryptography, P2P, Game Theory
+###Installing on macOS (10.x)
+
+###Installing on Ubuntu (16.x)
+
+###Other platforms (Some generic info)
+
+###Setting up env. vars, autocompletion

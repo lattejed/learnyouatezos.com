@@ -1,6 +1,10 @@
 ---
 template: page
-title: Blockchain 101
+title: Smart Contract Development Environment
 ---
 
-###Cryptography, P2P, Game Theory
+###Alphanet vs Localnet
+
+###Setting up localnet for rapid development
+
+###(...)

@@ -1,6 +1,10 @@
 ---
 template: page
-title: Blockchain 101
+title: Baking Tezos Publicly
 ---
 
-###Cryptography, P2P, Game Theory
+###Payment tools
+
+###Estimating bond requirements (script, rules of thumb)
+
+###Managing bond; being a good Tezos citizen

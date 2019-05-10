@@ -1,6 +1,12 @@
 ---
 template: page
-title: Blockchain 101
+title: Deploying A Smart Contract
 ---
 
-###Cryptography, P2P, Game Theory
+###Deploying an actual contract to mainnet 
+
+###Interacting with actual contract 
+
+###Calculating / estimating fees 
+
+###Storage / gas costs 

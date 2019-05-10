@@ -1,6 +1,12 @@
 ---
 template: page
-title: Blockchain 101
+title: Higher level languages (Other?)
 ---
 
-###Cryptography, P2P, Game Theory
+###The ... transpiler 
+
+###The multi-sig contract revisited
+
+###Type / correctness checking again
+
+###Interacting with multi-sig contract 

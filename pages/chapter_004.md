@@ -1,6 +1,10 @@
 ---
 template: page
-title: Blockchain 101
+title: Blockchain 201
 ---
 
-###Cryptography, P2P, Game Theory
+###PKC
+
+###Networking
+
+###Byzantine Fault Tolerance (related thought experiments, algos)

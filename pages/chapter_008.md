@@ -1,6 +1,8 @@
 ---
 template: page
-title: Blockchain 101
+title: Installed Node tour
 ---
 
-###Cryptography, P2P, Game Theory
+###Where everything is
+
+###What to back up
