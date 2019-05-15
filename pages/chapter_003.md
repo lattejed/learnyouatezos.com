@@ -115,7 +115,7 @@ If a system cannot adequately recover from this uncertainty, it is said to be in
 
 In the general sense, a Byzantine fault is framed as a system failure resulting from a network state where parts of a network may be in a failure state *while appearing to be operating correctly*. That is, not only may the state of the network may be inconsistent, but knowledge of that inconsistency may be uncertain.
 
-In order to deal with this uncertainly, a network has to have a predefined set of rules for reaching *concensus* of the state of the network and its individual components.
+In order to deal with this uncertainly, a network has to have a predefined set of rules for reaching *consensus* of the state of the network and its individual components.
 
 In this new thought experiment, the number of generals deciding on a plan of attack increases from two to many (let's say 11) and the decision expands from coordinating an attack to coordinating either an attack or retreat. 
 
