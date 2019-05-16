@@ -1,83 +1,7 @@
 ---
 template: page
-title: Blockchain 101
+title: Blockchain 201
 ---
-
-###The Foundations of Blockchain
-
-Blockchains are built on three fundamental ideas or technologies:
-
-1. Cryptography
-2. Peer to Peer Networking
-3. Game Theory
-
-Like the Internet (a network of computers) and Computer Science in general, these are *relatively* new ideas (i.e., having been largely developed in the last few decades) (TODO: check this). 
-
-In blockchain, these concepts have been combined in a unique way to solve a unique problem: How do we create a cooperating network, without a central authority, where the network may be unreliable and parts of the network may be hostile towards the whole!
-
-More specifically, how do we create a public, shared resources (a ledger of transactions) that is secure from hostile actors without relying on centralization or privatization.
-
-###Whiteboard Analogy
-
-Imagine we are opening a bank.
-
-In order to keep track of everyone's credits and debits, we're going to use a white board.
-
-Because this white board represents millions or even billions of dollars, we have to ensure that no one modifies transactions they're not authorized to.
-
-If everyone's transacvtions -- and therefore bank balance -- is on a whiteboard, the addition of a single "0" could make someone a whole lot richer.
-
-####Private, Centralized Model
-
-Because our ledger is so sensitive, we're doing to do the most sane thing possible: We're going to lock it in a vault and make sure only select people have access to that vault. If our vault is secure, our whiteboard is secure.
-
-This works perfectly fine if everyone trusts the bank -- and trusts the bank not to raise fees to be unreasonable or to not deny banking to "undeseriable" people (where undesireable could mean someone who is against prevailing political opinions).
-
-But what if we want to do the same without trusting the bank?
-
-####Public, Decentralized Model
-
-Now, if keeping billions of dollars worth of transactions on a whiteboard in a vault wasn't crazy enough, let's put the whiteboard *outside, in the bank's parking lot*!
-
-Obviously this is crazy, now anyone can erase transactions, add zeros, do anything they want to anyone's account, including their own.
-
-*But this is precisely what blockchain allows us to do.* Is it magic? Kind of.
-
-It's a novel combination of our three fundamental ideas:
-
-###Cryptography
-
-Cryptography, precisely *Public Key Cryptography* is *already* the backbone of the Internet as we know it. Without Public Key Cryptography, there would be no HTTPS, no secure logins, no e-commerce, no Internet banking.
-
-In short, Public Key Cryptography allows to to create a secret number (a private key) and *derive* a non-secret number (a public key) in such a way that we can encrypt a message with a public key &mdash; and that message can only be decrypted with the private key. 
-
-(We can encrypt with a private key and decrypt with a public key, but that's usually called 'signing' and is used to prove ownership of a private key.)
-
-What's more, we can easily derive a public key from our private key, but it's computationally infeasible to derive our private key from our public key. Mathematically, it involves prime numbers and is a type of one-way or trapdoor function. 
-
-It works because it's simple to multiple numbers together, but on the other hand, it takes a *long time* to factor prime numbers, where *long time* can be billions of years.
-
-Public Key Cryptography is used extensively in blockchain, with its most fundamental use being the derivation of keypairs for crypto wallets. A public key, in essence, becomes an address that coins can be sent to and the matching private key is the secret needed to send money *out of* that address.
-
-###P2P
-
-Peer to Peer networking is another foundational element to blockchain, with the main idea being that individual computers participating with a blockchain (nodes) are equal: There is (usually) no central node or authority.
-
-Additionally, each node generally holds a complete copy of the list of transactions that the blockchain contains. 
-
-This is somewhat similar to BitTorrent, where many nodes may have a complete copy of a pirated movie, each sending a piece of it to someone requesting that movie. By many nodes having a full copy of the movie, it muddies the legal waters to the point where it's infeasible to prosecute individual participants or shut them down.
-
-(There are non-pirating reasons to use BitTorrent as well, such as increased download speeds, censorship resistance, etc. but we won't go any deeper.) 
-
-###Game Theory
-
-The fundamental limitation of Peer-to-Peer networks is exactly their strength. That is, their key benefit is that they operate without a central authority.
-
-That is also their biggest challenge. If we *don't* have a central authority (no whiteboard in a vault) how do we ensure the network isn't manipulated by nefarious actors?
-
-If anyone can update the network, how to we prevent nodes from giving themselves huge bank balances with transactions created out of thin air?
-
-This is where Game Theory comes into play. This problem is usually referred to as the Byzantine Generals Problem, which is based on a related (but simpler) problem known as the Two Generals Problem.
 
 ###Two Generals Problem
 
@@ -130,7 +54,7 @@ To maximize chaos, bad generals can vote selectively, e.g., if the vote is split
 <p>An example of a conspiring network could be a vehicle control system with faulty sensors.</p>
 </div>
 
-####Solutions
+###Practical Solutions (PoW & PoS)
 
 Solutions are complex and depend entirely on the problem at hand, but in general we find similarities along the lines of:
 
@@ -139,6 +63,14 @@ Solutions are complex and depend entirely on the problem at hand, but in general
 3. Using statistical approaches (e.g., sending messages more than once)
 
 In the blockchain space, we find a number solutions, starting with Bitcoin's PoW.
+
+Whereas BFT was originally formulated in networks where the conspiring may be de-facto and related to failure, in the case of blockchain we are primarily guarding against actual conspiracies to steal value or create chaos. 
+
+That is, we're designing systems that can deal successfully with *actual* bad actors -- nefarious crypto hackers who attempt to (and sometimes do) steal millions of dollars in crypto assets.
+
+The most frequently used protocols in blockchain today are Proof of Work (like Bitcoin) and Proof of Stake (like Tezos). While they are very different in operation, they both are designed with the same end goal: To make these networks Byzantine fault tolerant. 
+
+Where they are similar is this: They both, in essence, make it too expensive for individual participants to act in bad faith and "take over" a network.
 
 ####BFT algos in blockchain
 
@@ -165,12 +97,14 @@ There are other benefits to Tezos' particular style of Proof of Stake, which we'
 
 ###Consensus Protocols in General
 
-It's worth pointing out blockchain protocols can vary widely in their operation, but they must share the following characteristics:
+There are also a number of other Proof of X protocols, but we won't go into them as they're not very widely used.
+
+It's worth pointing out that while blockchain protocols can vary widely in their operation, but they must share the following characteristics:
 
 1. Provide a single version of truth without a central authority
 2. De-incentivize bad actors, making attacks impractical
 3. Incentivize participation of good actors
 
+This last point may be overlooked. We not only have to thwart bad actors, we need to attract *good* actors to participate in our blockchain, otherwise there won't be anything to hack!
+
 [Satoshi's original email about BFT and PoW](https://www.mail-archive.com/cryptography@metzdowd.com/msg09997.html)
-
-

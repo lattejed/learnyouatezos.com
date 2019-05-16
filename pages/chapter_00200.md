@@ -15,6 +15,7 @@ Arthur ...
 
 ###Founding team
 
+...
 
 ###Addresses what issues
 
@@ -41,6 +42,12 @@ More precisely, Tezos allows for the formal verification of its smart contracts.
 
 <p>Ethereum's response to that was a hard fork -- which was a hard turn from their positions that 'code is law'. The hard fork required (a centralized) participation from the majority of miners and created two incompatible version of the blockchain in the process.</p>
 </div>
+
+###Teh-zos or Tay-zos?
+
+You may be wondering how Tezos is pronounced. The author has heard both *Teh-zos* and *Tay-zos* and has a hard time *not* saying the former. The arguably more correct pronunciation is the latter and is the pronunciation listed in the white paper.
+
+Given the decentralized nature of Tezos, either pronunciation is acceptable. 
 
 ###Tezos resources
 
