@@ -44,6 +44,9 @@
 <li>Key backups</li>
 <li>Costs </li>
 </ol>
+<p>The signer has to <em>run</em> on Azure, or else the threat model is the same as keeping keys in software. </p>
+<p>The Azure VM is still theoretically vulernable -- a person with access could sign arbitrary tranactions.</p>
+<p>Can a password help with this? This could be included as a ENV var? Check this against the original AWS signer, which seems to use the same.</p>
 <h3 id="top-choice-azure">Top Choice: Azure</h3>
 <h4 id="settingupaccount">Setting up account</h4>
 <p>If you do not already have an account, sign up for one at <a href="https://signup.azure.com">Azure Signup</a>.</p>
@@ -100,16 +103,22 @@
 <pre><code class="hljs bash language-bash">az keyvault key create \
     --name KeyVaultTest-SignerKey \
     --vault-name KeyVaultTest-KeyVault \
-    --curve P-256K \
+    --curve P-256 \
     --kty EC-HSM \
     --ops sign \
     --protection hsm
 </code></pre>
+<p>NOTE: This has to be P-256, P-256K is incompatible</p>
 <p>List keys:</p>
 <pre><code class="hljs bash language-bash">az keyvault key list --vault-name KeyVaultTest-KeyVault
 </code></pre>
 <p>Show key:</p>
 <pre><code class="hljs bash language-bash">az keyvault key show --vault-name KeyVaultTest-KeyVault --name KeyVaultTest-SignerKey
+</code></pre>
+<pre><code class="hljs bash language-bash">tezos-client import secret key temp http://52.187.116.146:5001/tz3XTrPiQaqJW33BcRXpBBLXURPwqNiNw1no --force
+
+tezos-client list known addresses
+tezos-client list forget address temp --force 
 </code></pre>
 <hr />
 <p>Since we were just testing things out, we'll now clean this up:</p>

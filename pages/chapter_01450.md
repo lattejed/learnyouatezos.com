@@ -11,6 +11,14 @@ title: "Baking: Remote Signer"
 4. Key backups
 5. Costs 
 
+The signer has to *run* on Azure, or else the threat model is the same as keeping keys in software. 
+
+The Azure VM is still theoretically vulernable -- a person with access could sign arbitrary tranactions.
+
+Can a password help with this? This could be included as a ENV var? Check this against the original AWS signer, which seems to use the same.
+
+
+
 ###Top Choice: Azure 
 
 ####Setting up account
@@ -107,11 +115,13 @@ You'll get a lot of output, but you'll want to record the `vaultUri` property, w
 az keyvault key create \
 	--name KeyVaultTest-SignerKey \
 	--vault-name KeyVaultTest-KeyVault \
-	--curve P-256K \
+	--curve P-256 \
 	--kty EC-HSM \
 	--ops sign \
 	--protection hsm
 ```
+
+NOTE: This has to be P-256, P-256K is incompatible
 
 List keys:
 
@@ -125,6 +135,13 @@ Show key:
 az keyvault key show --vault-name KeyVaultTest-KeyVault --name KeyVaultTest-SignerKey
 ```
 
+
+```bash
+tezos-client import secret key temp http://52.187.116.146:5001/tz3XTrPiQaqJW33BcRXpBBLXURPwqNiNw1no --force
+
+tezos-client list known addresses
+tezos-client list forget address temp --force 
+```
 
 
 
