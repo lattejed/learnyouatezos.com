@@ -16,46 +16,41 @@
   <div id="background">
     <div id="content">
 
-<h1>Writing a Basic Michelson Contract</h1>
+<h1>Appendix</h1>
 
 <div class="navigation">
   <ul>
     <li style="text-align: left">
       
-        <a id="prevlink" href="/smart-contract-development-environment.html">Smart Contract Development Environment</a>
+        <a id="prevlink" href="/additional-resources.html">Additional Resources</a>
       
     </li>
     <li style="text-align: center">
       <a href="/toc.html">Table of Contents</a>
     </li>
     <li style="text-align: right">
-      
-        <a id="nextlink" href="/higher-level-languages-liquidity.html">Higher Level Languages (Liquidity?)</a>
       
     </li>
   </ul>
 </div>
 
-<h3 id="-brief-overview-of-michelson">(Brief) overview of Michelson</h3>
-<h3 id="michelson-vs-higher-level-languages">Michelson vs higher level languages</h3>
-<h3 id="the-identity-contract-example">The identity contract example</h3>
-<h3 id="interacting-with-the-contract">Interacting with the contract</h3>
-<h3 id="a-multi-sig-wallet-contract">A multi-sig wallet contract</h3>
-<h3 id="type-correctness-checking">Type / correctness checking</h3>
-<h3 id="setting-up-dummy-users-interacting-with-multi-sig">Setting up dummy users, interacting with multi-sig</h3>
+<h3 id="ubuntu-locale-fix">Ubuntu Locale Fix</h3>
+<pre><code class="hljs bash language-bash"><span class="hljs-built_in">export</span> LC_ALL=<span class="hljs-string">"en_US.UTF-8"</span> &amp;&amp; <span class="hljs-built_in">echo</span> -e <span class="hljs-string">'\nexport LC_ALL="en_US.UTF-8"'</span> &gt;&gt; ~/.bashrc
+</code></pre>
+<p>If you prefer another default locale, substitute it for en_US. </p>
+<p>Even if your locale is configured correctly, your terminal may attempt to set environment variables and corrupt the locale settings in the process. This seems to be particularly be an issue when connecting via ssh from macOS. </p>
+<p>Explicitly setting the default locale in <code>.bashrc</code> should fix this.</p>
 <div class="navigation">
   <ul>
     <li style="text-align: left">
       
-        <a id="prevlink" href="/smart-contract-development-environment.html">Smart Contract Development Environment</a>
+        <a id="prevlink" href="/additional-resources.html">Additional Resources</a>
       
     </li>
     <li style="text-align: center">
       <a href="/toc.html">Table of Contents</a>
     </li>
     <li style="text-align: right">
-      
-        <a id="nextlink" href="/higher-level-languages-liquidity.html">Higher Level Languages (Liquidity?)</a>
       
     </li>
   </ul>
@@ -65,7 +60,7 @@
         <hr>
         <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
         
-          <p class="timestamp">Page last updated Thursday, May 16, 2019</p>
+          <p class="timestamp">Page last updated Saturday, May 25, 2019</p>
         
       </div>
     </div><!-- #content -->

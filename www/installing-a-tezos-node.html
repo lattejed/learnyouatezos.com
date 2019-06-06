@@ -36,8 +36,48 @@
   </ul>
 </div>
 
+<h3 id="installing-on-ubuntu-18-x-">Installing on Ubuntu (18.x)</h3>
+<p>Fresh install 18.04.2</p>
+<pre><code class="hljs bash language-bash">sudo apt update 
+</code></pre>
+<pre><code class="hljs bash language-bash">sudo apt install -y rsync git m4 build-essential patch unzip bubblewrap wget pkg-config libgmp-dev libev-dev libhidapi-dev
+<span class="hljs-comment"># package `which` is not available</span>
+</code></pre>
+<pre><code class="hljs bash language-bash">wget https://github.com/ocaml/opam/releases/download/2.0.3/opam-2.0.3-x86_64-linux
+sudo cp opam-2.0.3-x86_64-linux /usr/<span class="hljs-built_in">local</span>/bin/opam
+sudo chmod a+x /usr/<span class="hljs-built_in">local</span>/bin/opam
+</code></pre>
+<pre><code class="hljs bash language-bash">git <span class="hljs-built_in">clone</span> https://gitlab.com/tezos/tezos.git
+<span class="hljs-built_in">cd</span> tezos
+git checkout alphanet
+git branch <span class="hljs-comment"># double check that it is `alphanet`</span>
+</code></pre>
+<pre><code class="hljs bash language-bash">opam init --bare
+&gt; Do you want opam to modify ~/.profile? [N/y/f]
+&gt; A hook can be added to opam<span class="hljs-string">'s init scripts to ensure that the shell remains in
+sync with the opam environment when they are loaded. Set that up? [y/N]
+&gt; Answer defaults N, N
+</span></code></pre>
+<pre><code class="hljs bash language-bash">make build-deps
+&gt; This can be slow
+</code></pre>
+<pre><code class="hljs bash language-bash"><span class="hljs-built_in">eval</span> $(opam env)
+make
+</code></pre>
+<pre><code class="hljs bash language-bash"><span class="hljs-built_in">echo</span> -e <span class="hljs-string">'\nexport PATH=~/tezos:$PATH\nsource ./src/bin_client/bash-completion.sh\nexport TEZOS_CLIENT_UNSAFE_DISABLE_DISCLAIMER=Y'</span> &gt;&gt; ~/.bashrc
+
+<span class="hljs-built_in">source</span> ~/.bashrc
+</code></pre>
+<blockquote>
+  <p>If bubblewrap is not available in your distribution you can also skip it and init opam with --disable-sandbox.</p>
+</blockquote>
+<pre><code class="hljs bash language-bash">tezos-node identity generate
+</code></pre>
+<pre><code class="hljs bash language-bash">tezos-node run --rpc-addr 127.0.0.1
+</code></pre>
+<p>Started syncing at 15:18 May 25 - finished sometime before 16:53</p>
+<p>There is some proof of work here (to prevent spam -- which is why it was conceived)</p>
 <h3 id="installing-on-macos-10-x-">Installing on macOS (10.x)</h3>
-<h3 id="installing-on-ubuntu-16-x-">Installing on Ubuntu (16.x)</h3>
 <h3 id="other-platforms-some-generic-info-">Other platforms (Some generic info)</h3>
 <h3 id="setting-up-env-vars-autocompletion">Setting up env. vars, autocompletion</h3>
 <div class="navigation">
@@ -62,7 +102,7 @@
         <hr>
         <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
         
-          <p class="timestamp">Page last updated Friday, May 10, 2019</p>
+          <p class="timestamp">Page last updated Saturday, May 25, 2019</p>
         
       </div>
     </div><!-- #content -->

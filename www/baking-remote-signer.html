@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Learn You a Tezos for Much Prosperity</title>
+  <link rel="shortcut icon" href="/static/img/blkstar.co.logo_128.bt.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <meta name="description" content="...">
+  <meta name="author" content="Matthew Smith">
+  <title>Latte, Jed?</title>
+  <link rel="stylesheet" href="/static/css/github.css?v=1.0">
+  <link rel="stylesheet" href="/static/css/typeset.css?v=1.0">
+  <link rel="stylesheet" href="/static/css/styles.css?v=1.0">
+</head>
+<body class="typeset">
+  <div id="background">
+    <div id="content">
+
+<h1>Baking: Remote Signer</h1>
+
+<div class="navigation">
+  <ul>
+    <li style="text-align: left">
+      
+        <a id="prevlink" href="/baking-tezos-privately.html">Baking Tezos Privately</a>
+      
+    </li>
+    <li style="text-align: center">
+      <a href="/toc.html">Table of Contents</a>
+    </li>
+    <li style="text-align: right">
+      
+        <a id="nextlink" href="/baking-tezos-publicly.html">Baking Tezos Publicly</a>
+      
+    </li>
+  </ul>
+</div>
+
+<h3 id="considerations">Considerations</h3>
+<ol>
+<li>HSM</li>
+<li>Availability</li>
+<li>Security (MITM)</li>
+<li>Key backups</li>
+<li>Costs </li>
+</ol>
+<p>The signer has to <em>run</em> on Azure, or else the threat model is the same as keeping keys in software. </p>
+<p>The Azure VM is still theoretically vulernable -- a person with access could sign arbitrary tranactions.</p>
+<p>Can a password help with this? This could be included as a ENV var? Check this against the original AWS signer, which seems to use the same.</p>
+<p>NOTE:</p>
+<p>It looks like tz3 (P-256) have been deprecated (https://github.com/murbard/pytezos/blob/master/tests/test_crypto.py <code>tezos-client sign bytes</code> does not support P256) (https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb)</p>
+<p>In Azure it looks like it's possible to use tz2 addresses (P-256K) but the client need to be updated and this needs to be tested. </p>
+<h3 id="top-choice-azure">Top Choice: Azure</h3>
+<pre><code class="hljs bash language-bash">curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node --version
+v10.15.3 <span class="hljs-comment"># Or similar </span>
+</code></pre>
+<pre><code class="hljs bash language-bash">az account show
+{
+  ...
+  <span class="hljs-string">"id"</span>: <span class="hljs-string">"600cbff5-ab52-43ca-9dd6-0a3bd4401169"</span>,
+  ...
+}
+</code></pre>
+<h4 id="settingupaccount">Setting up account</h4>
+<p>If you do not already have an account, sign up for one at <a href="https://signup.azure.com">Azure Signup</a>.</p>
+<p>You'll likely have to go through a privacy-violating ID verificaiton with a phone number <em>and</em> credit card, but given that you'll be supplying them with billing information anyway, it's a moot point.</p>
+<h4 id="installtheazurecliubuntu16046">Install the Azure CLI (Ubuntu 16.04.6)</h4>
+<p>The easiest way to install is to run the following <code>bash</code> script:</p>
+<pre><code class="hljs bash language-bash">curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+</code></pre>
+<p>Or do the installation process manually, as outlined <a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest">here</a>.</p>
+<p>Note: if you see errors or warnings about default locale go <a href="/appendix.html#ubuntu-locale-fix">here</a> to find a fix.</p>
+<p>Check the version of <code>az</code> and ensure it has some meaningful output and you don't get any errors:</p>
+<pre><code class="hljs bash language-bash">az --version
+</code></pre>
+<p>Now, login:</p>
+<pre><code class="hljs bash language-bash">az login
+</code></pre>
+<p>You should get a response that looks like:</p>
+<pre><code class="hljs bash language-bash">To sign <span class="hljs-keyword">in</span>, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXXXXXXX to authenticate.
+</code></pre>
+<p>Open that page, copy and paste the code and select the account you want to use. Wait a momemnt and you should get some json as a response to <code>az login</code>:</p>
+<pre><code class="hljs json language-json">[
+  {
+    "cloudName": "AzureCloud",
+    ...
+  }
+]
+</code></pre>
+<p>Before you get started with the cli, find a location close to you. A list of regions supporting Key Vault is <a href="https://azure.microsoft.com/en-us/global-infrastructure/services/?products=key-vault">here</a>. But this list does not contain the identifiers that the cli expects.</p>
+<p>To find these, run the following command:</p>
+<pre><code class="hljs bash language-bash">az account list-locations | grep -A 5 <span class="hljs-string">"Southeast Asia"</span>
+</code></pre>
+<p>Replace "Southeast Asia" with the region you prefer. This may be the region with the lowest latency to your current location or some other criteria. You should get a response like:</p>
+<pre><code class="hljs bash language-bash">    <span class="hljs-string">"displayName"</span>: <span class="hljs-string">"Southeast Asia"</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"/subscriptions/&lt;UUID&gt;/locations/southeastasia"</span>,
+    <span class="hljs-string">"latitude"</span>: <span class="hljs-string">"1.283"</span>,
+    <span class="hljs-string">"longitude"</span>: <span class="hljs-string">"103.833"</span>,
+    <span class="hljs-string">"name"</span>: <span class="hljs-string">"southeastasia"</span>,
+    <span class="hljs-string">"subscriptionId"</span>: null
+</code></pre>
+<p>In this case the identifier is the name field <code>southeastasia</code>. </p>
+<p>You'll first need to create a resource group:</p>
+<pre><code class="hljs bash language-bash">az group create --name <span class="hljs-string">"KeyVaultTest-ResourceGroup"</span> --location southeastasia
+</code></pre>
+<p>In the response ensure you see our new group with the property <code>provisioningState: Succeeded</code>. </p>
+<p>Now, create a Key Vault:</p>
+<pre><code class="hljs bash language-bash">az keyvault create \
+    --name <span class="hljs-string">"KeyVaultTest-KeyVault"</span> \
+    --resource-group <span class="hljs-string">"KeyVaultTest-ResourceGroup"</span> \
+    --location southeastasia \
+    --sku premium
+</code></pre>
+<p>Note: <code>--sku premium</code> is mandatory as that will allow for HSM operations.</p>
+<p>You'll get a lot of output, but you'll want to record the <code>vaultUri</code> property, which should look something like: <code>https://&lt;...&gt;.vault.azure.net/</code>.  </p>
+<p><code>EC-HSM</code> and <code>P-256K</code> should create a <code>tz2</code> key.</p>
+<pre><code class="hljs bash language-bash">az keyvault key create \
+    --name KeyVaultTest-SignerKey2 \
+    --vault-name KeyVaultTest-KeyVault \
+    --curve P-256K \
+    --kty EC-HSM \
+    --ops sign \
+    --protection hsm
+</code></pre>
+<p>NOTE: This has to be P-256, P-256K is incompatible</p>
+<p>List keys:</p>
+<pre><code class="hljs bash language-bash">az keyvault key list --vault-name KeyVaultTest-KeyVault
+</code></pre>
+<p>Show key:</p>
+<pre><code class="hljs bash language-bash">az keyvault key show --vault-name KeyVaultTest-KeyVault --name KeyVaultTest-SignerKey
+</code></pre>
+<pre><code class="hljs bash language-bash">tezos-client import secret key temp http://52.187.116.146:5001/tz3XTrPiQaqJW33BcRXpBBLXURPwqNiNw1no --force
+
+tezos-client list known addresses
+tezos-client list forget address temp --force 
+</code></pre>
+<hr />
+<p>Since we were just testing things out, we'll now clean this up:</p>
+<pre><code class="hljs bash language-bash">az keyvault delete --name KeyVaultTest-KeyVault
+az group delete --name KeyVaultTest-ResourceGroup
+</code></pre>
+<p>You'll need to answer <code>y</code> when prompted. This operation may take a while. Check that everything has been deleted:</p>
+<pre><code class="hljs bash language-bash">az keyvault list
+az group list
+</code></pre>
+<p>These should all return an empty json array <code>[]</code>. </p>
+<p>Rest API:</p>
+<pre><code class="hljs bash language-bash">PASSWORD=<span class="hljs-string">'XXXXXXXXXXXXXXXXXX'</span>
+az ad sp create-for-rbac --name KeyVaultTest-App --password <span class="hljs-variable">$PASSWORD</span>
+
+<span class="hljs-comment"># Response</span>
+{
+  <span class="hljs-string">"appId"</span>: &lt;UUID 1&gt;,
+  <span class="hljs-string">"displayName"</span>: <span class="hljs-string">"KeyVaultTest-App"</span>,
+  <span class="hljs-string">"name"</span>: <span class="hljs-string">"http://KeyVaultTest-App"</span>,
+  <span class="hljs-string">"password"</span>: <span class="hljs-string">"XXXXXXXXXXXXXXXXXX"</span>,
+  <span class="hljs-string">"tenant"</span>: &lt;UUID 2&gt;
+}
+</code></pre>
+<pre><code class="hljs bash language-bash">APP_ID = &lt;UUID 1&gt;
+TENANT_ID = &lt;UUID 2&gt;
+</code></pre>
+<pre><code class="hljs bash language-bash">curl -X POST -d <span class="hljs-string">"grant_type=client_credentials&amp;client_id=<span class="hljs-variable">$APP_ID</span>&amp;client_secret=<span class="hljs-variable">$PASSWORD</span>&amp;resource=https://management.azure.com/"</span> https://login.microsoftonline.com/<span class="hljs-variable">$TENANT_ID</span>/oauth2/token
+</code></pre>
+<pre><code class="hljs bash language-bash">{
+    <span class="hljs-string">"token_type"</span>: <span class="hljs-string">"Bearer"</span>,     
+    ...
+    <span class="hljs-string">"access_token"</span>: <span class="hljs-string">"XXXXXXXX...XXXXXXXXXXXX"</span>
+}
+</code></pre>
+<pre><code class="hljs bash language-bash">ACCESS_TOKEN=XXXXXXXX...XXXXXXXXXXXX
+<span class="hljs-built_in">unset</span> PASSWORD APP_ID TENANT_ID
+</code></pre>
+<pre><code class="hljs bash language-bash">az ad sp show --id http://KeyVaultTest-App
+az ad sp delete --id http://KeyVaultTest-App
+</code></pre>
+<p>Sign via REST API: ??</p>
+<pre><code class="hljs bash language-bash">curl -i -H <span class="hljs-string">"Authorization: Bearer <span class="hljs-variable">$ACCESS_TOKEN</span>"</span> -H <span class="hljs-string">"Content-Type: application/json"</span> -X POST -d <span class="hljs-string">"alg=ES256K&amp;value=SIGNME"</span> https://keyvaulttest-keyvault.vault.azure.net/keys/KeyVaultTest-SignerKey/768675a6df2144b4a691681ac064f92f/sign?api-version=7.0
+</code></pre>
+<pre><code class="hljs bash language-bash">curl -X GET -H <span class="hljs-string">"Authorization: Bearer <span class="hljs-variable">$ACCESS_TOKEN</span>"</span> -H <span class="hljs-string">"Content-Type: application/json"</span> https://keyvaulttest-keyvault.vault.azure.net/keys/KeyVaultTest-SignerKey/versions?api-version=7.0
+</code></pre>
+<p>Test sign with node:</p>
+<pre><code class="hljs bash language-bash">tezos-client sign bytes 0x03 <span class="hljs-keyword">for</span> temp
+</code></pre>
+<p>Signing error:</p>
+<blockquote>
+  <p>Invalid length of 'value': 1 bytes. ES256K requires 32 bytes, encoded with base64url.</p>
+  <blockquote>
+    <blockquote>
+      <blockquote>
+        <blockquote>
+          <blockquote>
+            <p>&gt;</p>
+          </blockquote>
+        </blockquote>
+      </blockquote>
+    </blockquote>
+  </blockquote>
+</blockquote>
+<p>sudo apt install python3-pip
+pip3 install base58check==1.0.2</p>
+<blockquote>
+  <blockquote>
+    <blockquote>
+      <blockquote>
+        <blockquote>
+          <blockquote>
+            <p>&gt;</p>
+            <p>&gt;</p>
+          </blockquote>
+        </blockquote>
+      </blockquote>
+    </blockquote>
+  </blockquote>
+</blockquote>
+<p>RLEeHDxakX8J5Zp7GDCjaZvSNjyBYZl3MrjKQGuOlaE=
+seCZT/jwbgynt5/wbjG6pDESjN1CA4lF2yiL5KoaUGk=</p>
+<blockquote>
+  <p>tz3YeCiKJobmUf84bVN3t5b4wnqURtzRcST5</p>
+  <blockquote>
+    <blockquote>
+      <blockquote>
+        <blockquote>
+          <blockquote>
+            <p>&gt;</p>
+          </blockquote>
+        </blockquote>
+      </blockquote>
+    </blockquote>
+  </blockquote>
+</blockquote>
+<pre><code class="hljs bash language-bash">sudo apt install libsodium-dev libsecp256k1-dev libgmp-dev
+pip3 install git+https://github.com/baking-bad/pytezos
+</code></pre>
+<hr />
+<pre><code class="hljs python language-python"><span class="hljs-comment">#!/usr/bin/env python3</span>
+
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> base64
+<span class="hljs-keyword">from</span> hashlib <span class="hljs-keyword">import</span> blake2b, sha256
+<span class="hljs-keyword">from</span> base58check <span class="hljs-keyword">import</span> b58encode
+
+parser = argparse.ArgumentParser(description=<span class="hljs-string">'TODO:'</span>)
+
+parser.add_argument(<span class="hljs-string">'-X'</span>, help=<span class="hljs-string">'EC Base64-encoded X value'</span>)
+parser.add_argument(<span class="hljs-string">'-Y'</span>, help=<span class="hljs-string">'EC Base64-encoded Y value'</span>)
+
+args = parser.parse_args()
+
+X = base64.b64decode(args.X)
+Y = base64.b64decode(args.Y)
+
+P2PK_MAGIC = bytes.fromhex(<span class="hljs-string">'03b28b7f'</span>)
+P2HASH_MAGIC = bytes.fromhex(<span class="hljs-string">'06a1a4'</span>)
+
+parity = bytes([<span class="hljs-number">2</span>])
+<span class="hljs-keyword">if</span> int.from_bytes(Y, <span class="hljs-string">'big'</span>) % <span class="hljs-number">2</span> == <span class="hljs-number">1</span>:
+    parity = bytes([<span class="hljs-number">3</span>])
+
+shabytes = sha256(sha256(P2PK_MAGIC + parity + X).digest()).digest()[:<span class="hljs-number">4</span>]
+
+public_key = b58encode(P2PK_MAGIC + parity + X + shabytes).decode()
+
+blake2bhash = blake2b(parity + X, digest_size=<span class="hljs-number">20</span>).digest()
+
+shabytes = sha256(sha256(P2HASH_MAGIC + blake2bhash).digest()).digest()[:<span class="hljs-number">4</span>]
+
+pkhash = b58encode(P2HASH_MAGIC + blake2bhash + shabytes).decode()
+
+print(pkhash)
+</code></pre>
+<pre><code class="hljs bash language-bash">ZURE_KEYVAULT_URI=<span class="hljs-string">'https://keyvaulttest-keyvault.vault.azure.net'</span> node index.js --address 0.0.0.0
+</code></pre>
+<p>Generate unencrypted keys:</p>
+<pre><code class="hljs bash language-bash">tezos-client -A xxx gen keys test_p256 --force --sig p256
+&gt; tz3bTaf8H68dnTExvYgBcfx2nFU9kfHHxXzZ
+&gt; unencrypted:p2pk68L7YPVrEe1Fp4DjbxLv9adqDRMrmmsFxspKShNj8iaozaRV5CD
+&gt; unencrypted:p2sk44FcYdThs69sEEsRmvC2nGAgHfeExoyLqaq9HjRFQkGdVwo7BP 
+</code></pre>
+<pre><code class="hljs python language-python"><span class="hljs-keyword">import</span> base58check
+base58check.b58decode(<span class="hljs-string">b'p2sk44FcYdThs69sEEsRmvC2nGAgHfeExoyLqaq9HjRFQkGdVwo7BP'</span>).hex()[<span class="hljs-number">8</span>:<span class="hljs-number">72</span>]
+&gt; e1d751bd819cec377bc223de545f0fecd0bde857c06997997b2e912c9618d3b6
+</code></pre>
+<p>Where <code>xxx</code> is a non-existent node.</p>
+<blockquote>
+  <p>http://www.ocamlpro.com/2018/11/21/an-introduction-to-tezos-rpcs-signing-operations/</p>
+</blockquote>
+<p>https://docs.microsoft.com/en-us/azure/key-vault/quick-create-cli
+https://docs.microsoft.com/en-us/cli/azure/keyvault?view=azure-cli-latest
+https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb
+https://gitlab.com/polychainlabs/key-encoder/blob/master/encoder/tezos.go
+http://www.ocamlpro.com/2018/11/21/an-introduction-to-tezos-rpcs-signing-operations/
+https://github.com/bitcoinjs/tiny-secp256k1
+https://github.com/ludios/node-blake2
+https://github.com/bitcoinjs/bs58check</p>
+<p>https://github.com/Azure/azure-sdk-for-node/issues/4603</p>
+<div class="navigation">
+  <ul>
+    <li style="text-align: left">
+      
+        <a id="prevlink" href="/baking-tezos-privately.html">Baking Tezos Privately</a>
+      
+    </li>
+    <li style="text-align: center">
+      <a href="/toc.html">Table of Contents</a>
+    </li>
+    <li style="text-align: right">
+      
+        <a id="nextlink" href="/baking-tezos-publicly.html">Baking Tezos Publicly</a>
+      
+    </li>
+  </ul>
+</div>
+
+      <div id="footer">
+        <hr>
+        <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
+        
+          <p class="timestamp">Page last updated Saturday, May 25, 2019</p>
+        
+      </div>
+    </div><!-- #content -->
+  </div><!-- #background -->
+  <script src="/static/js/scripts.js"></script>
+</body>
+</html>
