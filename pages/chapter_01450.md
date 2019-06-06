@@ -17,9 +17,29 @@ The Azure VM is still theoretically vulernable -- a person with access could sig
 
 Can a password help with this? This could be included as a ENV var? Check this against the original AWS signer, which seems to use the same.
 
+NOTE:
 
+It looks like tz3 (P-256) have been deprecated (https://github.com/murbard/pytezos/blob/master/tests/test_crypto.py `tezos-client sign bytes` does not support P256) (https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb)
+
+In Azure it looks like it's possible to use tz2 addresses (P-256K) but the client need to be updated and this needs to be tested. 
 
 ###Top Choice: Azure 
+
+```bash
+curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node --version
+v10.15.3 # Or similar 
+```
+
+```bash
+az account show
+{
+  ...
+  "id": "600cbff5-ab52-43ca-9dd6-0a3bd4401169",
+  ...
+}
+```
 
 ####Setting up account
 
@@ -111,14 +131,46 @@ Note: `--sku premium` is mandatory as that will allow for HSM operations.
 
 You'll get a lot of output, but you'll want to record the `vaultUri` property, which should look something like: `https://<...>.vault.azure.net/`.  
 
+`EC-HSM` and `P-256K` should create a `tz2` key.
+
+
+
 ```bash
 az keyvault key create \
-	--name KeyVaultTest-SignerKey \
+	--name KeyVaultTest-SignerKey2 \
 	--vault-name KeyVaultTest-KeyVault \
-	--curve P-256 \
+	--curve P-256K \
 	--kty EC-HSM \
 	--ops sign \
 	--protection hsm
+```
+
+```bash
+# tz3 addresses:
+openssl ecparam -genkey -name prime256v1 | openssl ec -aes256 -out prime256v1_sk.pem
+
+# tz2 addresses:
+openssl ecparam -genkey -name secp256k1 | openssl ec -aes256 -out secp256k1_sk.pem
+```
+
+```
+openssl ec -in encrypted_key.pem
+```
+
+```
+openssl ec -in encrypted_key.pem -pubout
+```
+
+```bash
+read -sp "Passphrase: " PASS; echo; \
+az keyvault key import \
+	--name KeyVaultTest-SignerKeyP256 \
+	--vault-name KeyVaultTest-KeyVault \
+	--ops sign \
+	--pem-file prime256v1_sk.pem \
+	--pem-password "$PASS" \
+	--protection hsm; \
+unset PASS
 ```
 
 NOTE: This has to be P-256, P-256K is incompatible
@@ -143,8 +195,12 @@ tezos-client list known addresses
 tezos-client list forget address temp --force 
 ```
 
+4444
+> blake2b 4444
+52c2d9812b24bc8bdfed1ab234270fb132d62a94493ba726107144a2eed8a178
 
-
+"4444"
+0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8
 
 *******
 
@@ -209,7 +265,7 @@ az ad sp show --id http://KeyVaultTest-App
 az ad sp delete --id http://KeyVaultTest-App
 ```
 
-Sign via REST API:
+Sign via REST API: ??
 
 ```bash
 curl -i -H "Authorization: Bearer $ACCESS_TOKEN" -H "Content-Type: application/json" -X POST -d "alg=ES256K&value=SIGNME" https://keyvaulttest-keyvault.vault.azure.net/keys/KeyVaultTest-SignerKey/768675a6df2144b4a691681ac064f92f/sign?api-version=7.0
@@ -218,6 +274,16 @@ curl -i -H "Authorization: Bearer $ACCESS_TOKEN" -H "Content-Type: application/j
 ```bash
 curl -X GET -H "Authorization: Bearer $ACCESS_TOKEN" -H "Content-Type: application/json" https://keyvaulttest-keyvault.vault.azure.net/keys/KeyVaultTest-SignerKey/versions?api-version=7.0
 ```
+
+Test sign with node:
+
+```bash
+tezos-client sign bytes 0x03 for temp
+```
+
+Signing error:
+> Invalid length of 'value': 1 bytes. ES256K requires 32 bytes, encoded with base64url.
+
 
 >>>>>>>
 
@@ -235,44 +301,17 @@ seCZT/jwbgynt5/wbjG6pDESjN1CA4lF2yiL5KoaUGk=
 
 >>>>>>>
 
+```bash
+sudo apt install libsodium-dev libsecp256k1-dev libgmp-dev
+pip3 install git+https://github.com/baking-bad/pytezos
+```
+
 *******
 
-```python
-#!/usr/bin/env python3
 
-import argparse
-import base64
-from hashlib import blake2b, sha256
-from base58check import b58encode
 
-parser = argparse.ArgumentParser(description='TODO:')
-
-parser.add_argument('-X', help='EC Base64-encoded X value')
-parser.add_argument('-Y', help='EC Base64-encoded Y value')
-
-args = parser.parse_args()
-
-X = base64.b64decode(args.X)
-Y = base64.b64decode(args.Y)
-
-P2PK_MAGIC = bytes.fromhex('03b28b7f')
-P2HASH_MAGIC = bytes.fromhex('06a1a4')
-
-parity = bytes([2])
-if int.from_bytes(Y, 'big') % 2 == 1:
-    parity = bytes([3])
-
-shabytes = sha256(sha256(P2PK_MAGIC + parity + X).digest()).digest()[:4]
-
-public_key = b58encode(P2PK_MAGIC + parity + X + shabytes).decode()
-
-blake2bhash = blake2b(parity + X, digest_size=20).digest()
-
-shabytes = sha256(sha256(P2HASH_MAGIC + blake2bhash).digest()).digest()[:4]
-
-pkhash = b58encode(P2HASH_MAGIC + blake2bhash + shabytes).decode()
-
-print(pkhash)
+```bash
+ZURE_KEYVAULT_URI='https://keyvaulttest-keyvault.vault.azure.net' node index.js --address 0.0.0.0
 ```
 
 Generate unencrypted keys:
@@ -290,6 +329,8 @@ base58check.b58decode(b'p2sk44FcYdThs69sEEsRmvC2nGAgHfeExoyLqaq9HjRFQkGdVwo7BP')
 > e1d751bd819cec377bc223de545f0fecd0bde857c06997997b2e912c9618d3b6
 ```
 
+
+
 Where `xxx` is a non-existent node.
 
 > http://www.ocamlpro.com/2018/11/21/an-introduction-to-tezos-rpcs-signing-operations/
@@ -298,3 +339,14 @@ Where `xxx` is a non-existent node.
 
 https://docs.microsoft.com/en-us/azure/key-vault/quick-create-cli
 https://docs.microsoft.com/en-us/cli/azure/keyvault?view=azure-cli-latest
+https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb
+https://gitlab.com/polychainlabs/key-encoder/blob/master/encoder/tezos.go
+http://www.ocamlpro.com/2018/11/21/an-introduction-to-tezos-rpcs-signing-operations/
+https://github.com/bitcoinjs/tiny-secp256k1
+https://github.com/ludios/node-blake2
+https://github.com/bitcoinjs/bs58check
+
+https://github.com/Azure/azure-sdk-for-node/issues/4603
+
+
+https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki#Low_S_values_in_signatures

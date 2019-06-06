@@ -47,7 +47,22 @@
 <p>The signer has to <em>run</em> on Azure, or else the threat model is the same as keeping keys in software. </p>
 <p>The Azure VM is still theoretically vulernable -- a person with access could sign arbitrary tranactions.</p>
 <p>Can a password help with this? This could be included as a ENV var? Check this against the original AWS signer, which seems to use the same.</p>
+<p>NOTE:</p>
+<p>It looks like tz3 (P-256) have been deprecated (https://github.com/murbard/pytezos/blob/master/tests/test_crypto.py <code>tezos-client sign bytes</code> does not support P256) (https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb)</p>
+<p>In Azure it looks like it's possible to use tz2 addresses (P-256K) but the client need to be updated and this needs to be tested. </p>
 <h3 id="top-choice-azure">Top Choice: Azure</h3>
+<pre><code class="hljs bash language-bash">curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node --version
+v10.15.3 <span class="hljs-comment"># Or similar </span>
+</code></pre>
+<pre><code class="hljs bash language-bash">az account show
+{
+  ...
+  <span class="hljs-string">"id"</span>: <span class="hljs-string">"600cbff5-ab52-43ca-9dd6-0a3bd4401169"</span>,
+  ...
+}
+</code></pre>
 <h4 id="settingupaccount">Setting up account</h4>
 <p>If you do not already have an account, sign up for one at <a href="https://signup.azure.com">Azure Signup</a>.</p>
 <p>You'll likely have to go through a privacy-violating ID verificaiton with a phone number <em>and</em> credit card, but given that you'll be supplying them with billing information anyway, it's a moot point.</p>
@@ -100,10 +115,11 @@
 </code></pre>
 <p>Note: <code>--sku premium</code> is mandatory as that will allow for HSM operations.</p>
 <p>You'll get a lot of output, but you'll want to record the <code>vaultUri</code> property, which should look something like: <code>https://&lt;...&gt;.vault.azure.net/</code>.  </p>
+<p><code>EC-HSM</code> and <code>P-256K</code> should create a <code>tz2</code> key.</p>
 <pre><code class="hljs bash language-bash">az keyvault key create \
-    --name KeyVaultTest-SignerKey \
+    --name KeyVaultTest-SignerKey2 \
     --vault-name KeyVaultTest-KeyVault \
-    --curve P-256 \
+    --curve P-256K \
     --kty EC-HSM \
     --ops sign \
     --protection hsm
@@ -160,12 +176,17 @@ TENANT_ID = &lt;UUID 2&gt;
 <pre><code class="hljs bash language-bash">az ad sp show --id http://KeyVaultTest-App
 az ad sp delete --id http://KeyVaultTest-App
 </code></pre>
-<p>Sign via REST API:</p>
+<p>Sign via REST API: ??</p>
 <pre><code class="hljs bash language-bash">curl -i -H <span class="hljs-string">"Authorization: Bearer <span class="hljs-variable">$ACCESS_TOKEN</span>"</span> -H <span class="hljs-string">"Content-Type: application/json"</span> -X POST -d <span class="hljs-string">"alg=ES256K&amp;value=SIGNME"</span> https://keyvaulttest-keyvault.vault.azure.net/keys/KeyVaultTest-SignerKey/768675a6df2144b4a691681ac064f92f/sign?api-version=7.0
 </code></pre>
 <pre><code class="hljs bash language-bash">curl -X GET -H <span class="hljs-string">"Authorization: Bearer <span class="hljs-variable">$ACCESS_TOKEN</span>"</span> -H <span class="hljs-string">"Content-Type: application/json"</span> https://keyvaulttest-keyvault.vault.azure.net/keys/KeyVaultTest-SignerKey/versions?api-version=7.0
 </code></pre>
+<p>Test sign with node:</p>
+<pre><code class="hljs bash language-bash">tezos-client sign bytes 0x03 <span class="hljs-keyword">for</span> temp
+</code></pre>
+<p>Signing error:</p>
 <blockquote>
+  <p>Invalid length of 'value': 1 bytes. ES256K requires 32 bytes, encoded with base64url.</p>
   <blockquote>
     <blockquote>
       <blockquote>
@@ -210,6 +231,9 @@ seCZT/jwbgynt5/wbjG6pDESjN1CA4lF2yiL5KoaUGk=</p>
     </blockquote>
   </blockquote>
 </blockquote>
+<pre><code class="hljs bash language-bash">sudo apt install libsodium-dev libsecp256k1-dev libgmp-dev
+pip3 install git+https://github.com/baking-bad/pytezos
+</code></pre>
 <hr />
 <pre><code class="hljs python language-python"><span class="hljs-comment">#!/usr/bin/env python3</span>
 
@@ -247,6 +271,8 @@ pkhash = b58encode(P2HASH_MAGIC + blake2bhash + shabytes).decode()
 
 print(pkhash)
 </code></pre>
+<pre><code class="hljs bash language-bash">ZURE_KEYVAULT_URI=<span class="hljs-string">'https://keyvaulttest-keyvault.vault.azure.net'</span> node index.js --address 0.0.0.0
+</code></pre>
 <p>Generate unencrypted keys:</p>
 <pre><code class="hljs bash language-bash">tezos-client -A xxx gen keys test_p256 --force --sig p256
 &gt; tz3bTaf8H68dnTExvYgBcfx2nFU9kfHHxXzZ
@@ -262,7 +288,14 @@ base58check.b58decode(<span class="hljs-string">b'p2sk44FcYdThs69sEEsRmvC2nGAgHf
   <p>http://www.ocamlpro.com/2018/11/21/an-introduction-to-tezos-rpcs-signing-operations/</p>
 </blockquote>
 <p>https://docs.microsoft.com/en-us/azure/key-vault/quick-create-cli
-https://docs.microsoft.com/en-us/cli/azure/keyvault?view=azure-cli-latest</p>
+https://docs.microsoft.com/en-us/cli/azure/keyvault?view=azure-cli-latest
+https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb
+https://gitlab.com/polychainlabs/key-encoder/blob/master/encoder/tezos.go
+http://www.ocamlpro.com/2018/11/21/an-introduction-to-tezos-rpcs-signing-operations/
+https://github.com/bitcoinjs/tiny-secp256k1
+https://github.com/ludios/node-blake2
+https://github.com/bitcoinjs/bs58check</p>
+<p>https://github.com/Azure/azure-sdk-for-node/issues/4603</p>
 <div class="navigation">
   <ul>
     <li style="text-align: left">
@@ -285,7 +318,7 @@ https://docs.microsoft.com/en-us/cli/azure/keyvault?view=azure-cli-latest</p>
         <hr>
         <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
         
-          <p class="timestamp">Page last updated Friday, May 17, 2019</p>
+          <p class="timestamp">Page last updated Saturday, May 25, 2019</p>
         
       </div>
     </div><!-- #content -->
