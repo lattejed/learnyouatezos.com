@@ -8,11 +8,11 @@
   <meta name="description" content="...">
   <meta name="author" content="Matthew Smith">
   <title>Latte, Jed?</title>
-  <link rel="stylesheet" href="/static/css/github.css?v=1.0">
-  <link rel="stylesheet" href="/static/css/typeset.css?v=1.0">
+  <link rel="stylesheet" href="/static/css/normalize.css?v=1.0">
+  <link rel="stylesheet" href="/static/css/dracula.css?v=1.0">
   <link rel="stylesheet" href="/static/css/styles.css?v=1.0">
 </head>
-<body class="typeset">
+<body class="">
   <div id="background">
     <div id="content">
 
@@ -36,52 +36,59 @@
   </ul>
 </div>
 
-<h3 id="considerations">Considerations</h3>
+<h2 id="remotesigners">Remote signers</h2>
+<p><highlight>[TODO: Tie this into previous discussion of security and baker topology]</highlight></p>
+<h3 id="why-an-hsm-">Why an HSM?</h3>
+<p>While baking is relatively straightforward, <em>key security</em> is not and necessitates an approach that usually means separating private keys from a baker, preferably residing in a hardware security module (HSM).</p>
+<p>An HSM's primary security feature is that signing (and other cryptographic) operations take place on a dedicated hardward chip that contains your private key and handles operations <em>without your private key leaving the device.</em> The key material is not exposed to the attached computer, meaning a compromise of that computer does not leak your private key.</p>
+<p>Low cost, consumer-grade HSMs are common in the cryptocurrency world, with Ledger Nano being probably the most common. While Tezos signing (and wallet) software is avaiable for the Ledger, it requies a physical USB connection to a computer, requiring either the signing computer or the entire baking node reside in your home or office.</p>
+<p>While this can be simple and low-cost, it does require an always-avaiable internet connection, the ability to open ports to the public network and an uninterruptible power supply. In practice it's not easy to achieve high availability with this setup. Lots of things can go wrong, especially when the setup is unattended (e.g., you're on holiday).</p>
+<p>A cloud signer with an attached HSM is a solution to this problem, but dedicated HSMs are expensive to operate, really out of the range of any but the largest baking operations. </p>
+<p>However, Google Cloud KMS and Azure Key Vault <highlight>TODO: Check names</highlight> have started to offer per-use pricing that makes HSM-backed signing operations very inexpensive, making them affordable for even very small bakers.</p>
+<h3 id="why-azure-">Why Azure?</h3>
+<p>As both Google and Microsoft's offerings are compaible with Tezos, the main consideration is whether or not private keys can be backed up. Azure allows for it and Google does not.</p>
+<p>It is <em>strongly not recommended</em> to use a cloud HSM service that does not allow for backing up of private keys. Ask yourself these questions:</p>
 <ol>
-<li>HSM</li>
-<li>Availability</li>
-<li>Security (MITM)</li>
-<li>Key backups</li>
-<li>Costs </li>
+<li>Do you trust this company to <em>never</em>, under any circumstances, lose your private key?</li>
+<li>Do you trust this company to never lock your account for any reason?</li>
 </ol>
-<p>The signer has to <em>run</em> on Azure, or else the threat model is the same as keeping keys in software. </p>
-<p>The Azure VM is still theoretically vulernable -- a person with access could sign arbitrary tranactions.</p>
-<p>Can a password help with this? This could be included as a ENV var? Check this against the original AWS signer, which seems to use the same.</p>
-<p>NOTE:</p>
-<p>It looks like tz3 (P-256) have been deprecated (https://github.com/murbard/pytezos/blob/master/tests/test_crypto.py <code>tezos-client sign bytes</code> does not support P256) (https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb)</p>
-<p>In Azure it looks like it's possible to use tz2 addresses (P-256K) but the client need to be updated and this needs to be tested. </p>
-<h3 id="top-choice-azure">Top Choice: Azure</h3>
-<pre><code class="hljs bash language-bash">curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-sudo apt-get install -y nodejs
-node --version
-v10.15.3 <span class="hljs-comment"># Or similar </span>
-</code></pre>
-<pre><code class="hljs bash language-bash">az account show
-{
-  ...
-  <span class="hljs-string">"id"</span>: <span class="hljs-string">"600cbff5-ab52-43ca-9dd6-0a3bd4401169"</span>,
-  ...
-}
-</code></pre>
-<h4 id="settingupaccount">Setting up account</h4>
-<p>If you do not already have an account, sign up for one at <a href="https://signup.azure.com">Azure Signup</a>.</p>
+<p>The answer to both of those has to be no.</p>
+<aside>
+To be precise, Azure does not allow you to back up your HSM-generated keys. The backup functionaly it has will only allow you to move your key within the same availability region. However, they do allow you to generate your own keys and import them. 
+</aside>
+<h3 id="baker-vm-signer-vm-hsm">Baker VM + Signer VM + HSM</h3>
+<p>This setup calls for a separate baker and signer VM. It is possible run the signing service on the same VM as the baker, so why not do that? </p>
+<ol>
+<li>An attacker who could gain access to your baker could sign any operation, including moving all of your Tezos to another address.</li>
+<li>Your baker <em>may</em> be known to the rest of the network, increasing the chances it is targeted for attack.</li>
+<li>Running a separate signer allows you to whitelist baking and endorsing operations and require intervention for other operations (transfers, voting, etc.)</li>
+<li>A separate signer requires that <em>two</em> VMs are compromised before signing operations could be done by a rogue actor.</li>
+</ol>
+<p>Since your signer will only be known to your baker, the baker itself would have to be accessed to discover the IP address. After that, your signer VM would also have to be compromised. </p>
+<p>To help offset this, the signing software dicussed here is very lightweight and can be run on the cheapest available VM.</p>
+<h2 id="gettingstartedwithazure">Getting started with Azure</h2>
+<h3 id="get-an-azure-account">Get an Azure account</h3>
+<p>If you don't already have one, go here <a href="https://azure.microsoft.com/en-us/free">https://azure.microsoft.com/en-us/free</a> to get a new Azure account.</p>
 <p>You'll likely have to go through a privacy-violating ID verificaiton with a phone number <em>and</em> credit card, but given that you'll be supplying them with billing information anyway, it's a moot point.</p>
-<h4 id="installtheazurecliubuntu16046">Install the Azure CLI (Ubuntu 16.04.6)</h4>
-<p>The easiest way to install is to run the following <code>bash</code> script:</p>
+<p>[TODO: Add 2FA setup]</p>
+<h3 id="install-azure-cli">Install Azure CLI</h3>
+<p>It's recommended that you install the CLI on your local machine or on a local VM. It is <em>not recommended</em> to install the cli on the remote signer you'll provision nor your baker's VM. We'll be authenticating the CLI and having those credentails on a remote machine can be a security issue. </p>
+<p>NOTE: VMs on a compromised machine <em>do not</em> protect you against keyloggers and other forms of malicious monitoring, though they offer some protection in the other direction (e.g., it's safter to browse malicious websites on a VM). If you are unsure of your local computer's security, you may want to do a clean install of your OS before continuing.</p>
 <pre><code class="hljs bash language-bash">curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 </code></pre>
-<p>Or do the installation process manually, as outlined <a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest">here</a>.</p>
-<p>Note: if you see errors or warnings about default locale go <a href="/appendix.html#ubuntu-locale-fix">here</a> to find a fix.</p>
+<p>You may want to download the script and review it before running it. Alternately, you can install manually as outlined here: <a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest">https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest</a>.</p>
+<p>Note: if you see errors or warnings about default locale go to <a href="/appendix.html#ubuntu-locale-fix">learnyouatezos.com/appendix.html#ubuntu-locale-fix</a> to find a fix.</p>
 <p>Check the version of <code>az</code> and ensure it has some meaningful output and you don't get any errors:</p>
 <pre><code class="hljs bash language-bash">az --version
 </code></pre>
+<h3 id="authenticate-and-determine-region">Authenticate and determine region</h3>
 <p>Now, login:</p>
 <pre><code class="hljs bash language-bash">az login
 </code></pre>
 <p>You should get a response that looks like:</p>
-<pre><code class="hljs bash language-bash">To sign <span class="hljs-keyword">in</span>, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXXXXXXX to authenticate.
+<pre><code class="hljs plaintext language-plaintext">To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXXXXXXX to authenticate.
 </code></pre>
-<p>Open that page, copy and paste the code and select the account you want to use. Wait a momemnt and you should get some json as a response to <code>az login</code>:</p>
+<p>Open that page, copy and paste the code and select the account you want to use. Wait a moment and you should get some json as a response to <code>az login</code>:</p>
 <pre><code class="hljs json language-json">[
   {
     "cloudName": "AzureCloud",
@@ -89,19 +96,151 @@ v10.15.3 <span class="hljs-comment"># Or similar </span>
   }
 ]
 </code></pre>
-<p>Before you get started with the cli, find a location close to you. A list of regions supporting Key Vault is <a href="https://azure.microsoft.com/en-us/global-infrastructure/services/?products=key-vault">here</a>. But this list does not contain the identifiers that the cli expects.</p>
+<p>Before you get started with the cli, decide what region to set up your signer in. You'll want to set up as close to your baker as possible.</p>
+<p>A list of regions supporting Key Vault is here <a href="https://azure.microsoft.com/en-us/global-infrastructure/services/?products=key-vault">https://azure.microsoft.com/en-us/global-infrastructure/services/?products=key-vault</a>, but this list does not contain the identifiers that the cli expects.</p>
 <p>To find these, run the following command:</p>
 <pre><code class="hljs bash language-bash">az account list-locations | grep -A 5 <span class="hljs-string">"Southeast Asia"</span>
 </code></pre>
-<p>Replace "Southeast Asia" with the region you prefer. This may be the region with the lowest latency to your current location or some other criteria. You should get a response like:</p>
-<pre><code class="hljs bash language-bash">    <span class="hljs-string">"displayName"</span>: <span class="hljs-string">"Southeast Asia"</span>,
-    <span class="hljs-string">"id"</span>: <span class="hljs-string">"/subscriptions/&lt;UUID&gt;/locations/southeastasia"</span>,
-    <span class="hljs-string">"latitude"</span>: <span class="hljs-string">"1.283"</span>,
-    <span class="hljs-string">"longitude"</span>: <span class="hljs-string">"103.833"</span>,
-    <span class="hljs-string">"name"</span>: <span class="hljs-string">"southeastasia"</span>,
-    <span class="hljs-string">"subscriptionId"</span>: null
+<p>Replace "Southeast Asia" with the region you prefer from the previous list. You should get a response like:</p>
+<pre><code class="hljs bash language-bash"><span class="hljs-string">"displayName"</span>: <span class="hljs-string">"Southeast Asia"</span>,
+<span class="hljs-string">"id"</span>: <span class="hljs-string">"/subscriptions/&lt;UUID&gt;/locations/southeastasia"</span>,
+<span class="hljs-string">"latitude"</span>: <span class="hljs-string">"1.283"</span>,
+<span class="hljs-string">"longitude"</span>: <span class="hljs-string">"103.833"</span>,
+<span class="hljs-string">"name"</span>: <span class="hljs-string">"southeastasia"</span>,
+<span class="hljs-string">"subscriptionId"</span>: null
 </code></pre>
-<p>In this case the identifier is the name field <code>southeastasia</code>. </p>
+<p>In this case the identifier is the name field <code>southeastasia</code>. Copy that down as you'll need it for the next step.</p>
+<h3 id="create-resource-group">Create resource group</h3>
+<p>Create a resource group, giving it the name of your choice and using the location we've just determined.</p>
+<pre><code class="hljs bash language-bash">az group create \
+    --name <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
+    --location southeastasia
+</code></pre>
+<p>You should get a response that looks like this:</p>
+<pre><code class="hljs bash language-bash">{
+  <span class="hljs-string">"id"</span>: <span class="hljs-string">"/subscriptions/&lt;UUID&gt;/resourceGroups/TezosSigner-ResourceGroup"</span>,
+  <span class="hljs-string">"location"</span>: <span class="hljs-string">"southeastasia"</span>,
+  <span class="hljs-string">"managedBy"</span>: null,
+  <span class="hljs-string">"name"</span>: <span class="hljs-string">"TezosSigner-ResourceGroup"</span>,
+  <span class="hljs-string">"properties"</span>: {
+    <span class="hljs-string">"provisioningState"</span>: <span class="hljs-string">"Succeeded"</span>
+  },
+  <span class="hljs-string">"tags"</span>: null,
+  <span class="hljs-string">"type"</span>: null
+}
+</code></pre>
+<p>If you need to delete the resource group, you can use the command:</p>
+<pre><code class="hljs bash language-bash">az group delete \
+    --name <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
+    --yes
+</code></pre>
+<p>WARNING: This will delete <em>everything</em> inside the resource group. Only use this command when trying things out.</p>
+<h2 id="settingupavm">Setting up a VM</h2>
+<h3 id="create-virtual-machine">Create Virtual Machine</h3>
+<pre><code class="hljs bash language-bash">az vm create \
+    --name <span class="hljs-string">"TezosSigner-VM"</span> \
+    --resource-group <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --size Standard_B1ls \
+    --storage-sku Standard_LRS \
+    --admin-username deploy \
+    --authentication-type ssh \
+    --nsg-rule ssh \
+    --ssh-key-values ~/.ssh/id_rsa.pub \
+    --assign-identity
+</code></pre>
+<p>You should get output that looks like this:</p>
+<pre><code class="hljs bash language-bash">{
+  ...
+  <span class="hljs-string">"powerState"</span>: <span class="hljs-string">"VM running"</span>,
+  <span class="hljs-string">"privateIpAddress"</span>: &lt;Private IP Address&gt;,
+  <span class="hljs-string">"publicIpAddress"</span>: &lt;Public IP Address&gt;,
+  ...
+}
+</code></pre>
+<p>You'll want to record your public IP address for future reference.</p>
+<p>Test that you can log into your VM:</p>
+<pre><code class="hljs bash language-bash">ssh deploy@&lt;Public IP Address&gt;
+</code></pre>
+<p>You should have logged in successfully.</p>
+<h3 id="secure-virtual-machine">Secure Virtual Machine</h3>
+<p>Become root user:</p>
+<pre><code class="hljs bash language-bash">sudo -i
+</code></pre>
+<p>Download and run this script to further secure your VM:</p>
+<pre><code class="hljs bash language-bash">curl -sO https://gist.githubusercontent.com/lattejed/94488cb5d0004af16c0c99b1c92fbdb6/raw/ubuntu_basic_setup_az.sh &amp;&amp; bash ubuntu_basic_setup_az.sh
+</code></pre>
+<p>Feel free to download it first and review it. It does the following:</p>
+<ol>
+<li>Sets a password for your <code>deploy</code> user</li>
+<li>Makes your sudoers file more secure</li>
+<li>Upgrades all installed packages </li>
+<li>Installs fail2ban to block machines attacking your ssh port</li>
+<li>Enables unattended security upgrades</li>
+<li>Makes your ssh settings more secure </li>
+</ol>
+<p>Exit the root user account:</p>
+<pre><code class="hljs bash language-bash"><span class="hljs-built_in">exit</span>
+</code></pre>
+<p>If you need to delete the VM while testing, use the following command:</p>
+<pre><code class="hljs bash language-bash">az vm delete \
+    --name <span class="hljs-string">"TezosSigner-VM"</span> \
+    --resource-group <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
+    --yes
+</code></pre>
+<hr />
+<p>DOES NOT WORK ON NEWER VERSIONS OF MACOS</p>
+<p>Ubuntu recommends:</p>
+<p>https://www.balena.io/etcher/</p>
+<p>Source is here: </p>
+<p>https://github.com/balena-io/etcher</p>
+<p>You'll get a message asking you to initialize or ignore the disk. Ignore it.</p>
+<p>Security settings do not allow this Mac to use an external startup disk </p>
+<p>Reboot in recovery mode (Command-R)</p>
+<p>Startup Security Utility</p>
+<p>Enter password </p>
+<p>Secure Boot &gt; No Security</p>
+<p>External Boot &gt; Allow booting from external media </p>
+<p>NOTE: If you're using a very recent Mac, you may have to plug in an external keyboard and mouse.</p>
+<hr />
+<p>WARNING: Using <code>sudo dd</code> is a destructive command. Make sure you double check the location of your USB drive as described below. Also make sure you've backed up the contents of the USB drive if they're important to you.</p>
+<pre><code class="hljs">diskutil <span class="hljs-built_in">list</span>
+</code></pre>
+<blockquote>
+  <p>/dev/disk2 (external, physical) </p>
+</blockquote>
+<p>Pull the drive out. Ensure that it's <em>missing</em> this time.</p>
+<pre><code class="hljs">diskutil <span class="hljs-built_in">list</span>
+</code></pre>
+<p>If so, that's your USB drive. </p>
+<pre><code class="hljs">diskutil unmountDisk <span class="hljs-regexp">/dev/</span>disk2
+</code></pre>
+<blockquote>
+  <p>Unmount of all volumes on disk2 was successful</p>
+</blockquote>
+<pre><code class="hljs">cd ~/Downloads #<span class="hljs-keyword">Or</span> wherever you keep ISOs
+sudo dd <span class="hljs-attribute">if</span>=ubuntu-18.04.2-server-amd64.iso <span class="hljs-attribute">of</span>=/dev/disk2 <span class="hljs-attribute">bs</span>=1m
+</code></pre>
+<p>WAIT. Nothing will happen for a while a number of minutes.</p>
+<hr />
+<pre><code class="hljs bash language-bash">az account show
+{
+  ...
+  <span class="hljs-string">"id"</span>: <span class="hljs-string">"600cbff5-ab52-43ca-9dd6-0a3bd4401169"</span>,
+  ...
+}
+</code></pre>
+<pre><code class="hljs"><span class="hljs-built_in">npm</span> audit
+</code></pre>
+<pre><code class="hljs">                       === npm audit security report ===
+
+found <span class="hljs-number">0</span> vulnerabilities
+ <span class="hljs-keyword">in</span> <span class="hljs-number">1098</span> scanned packages
+</code></pre>
+<pre><code class="hljs"><span class="hljs-built_in">npm</span> shrinkwrap
+</code></pre>
+<pre><code class="hljs">npm <span class="hljs-keyword">notice</span> package-<span class="hljs-keyword">lock</span>.json has been renamed <span class="hljs-keyword">to</span> npm-shrinkwrap.json. npm-shrinkwrap.json will be used <span class="hljs-keyword">for</span> future installations.
+</code></pre>
 <p>You'll first need to create a resource group:</p>
 <pre><code class="hljs bash language-bash">az group create --name <span class="hljs-string">"KeyVaultTest-ResourceGroup"</span> --location southeastasia
 </code></pre>
@@ -124,6 +263,42 @@ v10.15.3 <span class="hljs-comment"># Or similar </span>
     --ops sign \
     --protection hsm
 </code></pre>
+<pre><code class="hljs bash language-bash">openssl rand -base64 16 // 128 bits of entropy
+&gt; 59oER7LlKbJfNgmsPljYwg== <span class="hljs-comment"># EXAMPLE DO NOT USE</span>
+</code></pre>
+<p>Consider writing this on paper with the following format:</p>
+<pre><code class="hljs"><span class="hljs-attribute">59oER7LlKbJfNgmsPljYwg</span>== # EXAMPLE <span class="hljs-keyword">DO</span> <span class="hljs-keyword">NOT</span> USE
+NNLUUNULULULULLLULLULL
+</code></pre>
+<p>Where <code>N = number</code>, <code>L = lowercase</code> and <code>U = uppercase</code>. This will prevent confusing <code>0</code> with <code>O</code> or <code>5</code> with <code>S</code> when reading it back.</p>
+<p>Base 58 encoding helps eliminate this ambiguity but there is no base 58 software installed on Ubuntu by default.</p>
+<pre><code class="hljs bash language-bash"><span class="hljs-comment"># tz3 addresses:</span>
+openssl ecparam -genkey -name prime256v1 | openssl ec -aes256 -out prime256v1_sk.pem
+
+<span class="hljs-comment"># tz2 addresses:</span>
+openssl ecparam -genkey -name secp256k1 | openssl ec -aes256 -out secp256k1_sk.pem
+</code></pre>
+<pre><code class="hljs">openssl ec -<span class="hljs-keyword">in</span> encrypted_key<span class="hljs-selector-class">.pem</span>
+</code></pre>
+<pre><code class="hljs">openssl ec -<span class="hljs-keyword">in</span> encrypted_key<span class="hljs-selector-class">.pem</span> -pubout
+</code></pre>
+<pre><code class="hljs bash language-bash">az keyvault key import \
+    --name KeyVaultTest-SignerKeyED25519 \
+    --vault-name KeyVaultTest-KeyVault \
+    --ops sign \
+    --pem-file ed25519 \
+    --protection hsm;
+</code></pre>
+<pre><code class="hljs bash language-bash"><span class="hljs-built_in">read</span> -sp <span class="hljs-string">"Passphrase: "</span> PASS; <span class="hljs-built_in">echo</span>; \
+az keyvault key import \
+    --name KeyVaultTest-SignerKeyP256 \
+    --vault-name KeyVaultTest-KeyVault \
+    --ops sign \
+    --pem-file prime256v1_sk.pem \
+    --pem-password <span class="hljs-string">"<span class="hljs-variable">$PASS</span>"</span> \
+    --protection hsm; \
+<span class="hljs-built_in">unset</span> PASS
+</code></pre>
 <p>NOTE: This has to be P-256, P-256K is incompatible</p>
 <p>List keys:</p>
 <pre><code class="hljs bash language-bash">az keyvault key list --vault-name KeyVaultTest-KeyVault
@@ -136,6 +311,13 @@ v10.15.3 <span class="hljs-comment"># Or similar </span>
 tezos-client list known addresses
 tezos-client list forget address temp --force 
 </code></pre>
+<p>4444</p>
+<blockquote>
+  <p>blake2b 4444
+  52c2d9812b24bc8bdfed1ab234270fb132d62a94493ba726107144a2eed8a178</p>
+</blockquote>
+<p>"4444"
+0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8</p>
 <hr />
 <p>Since we were just testing things out, we'll now clean this up:</p>
 <pre><code class="hljs bash language-bash">az keyvault delete --name KeyVaultTest-KeyVault
@@ -235,42 +417,6 @@ seCZT/jwbgynt5/wbjG6pDESjN1CA4lF2yiL5KoaUGk=</p>
 pip3 install git+https://github.com/baking-bad/pytezos
 </code></pre>
 <hr />
-<pre><code class="hljs python language-python"><span class="hljs-comment">#!/usr/bin/env python3</span>
-
-<span class="hljs-keyword">import</span> argparse
-<span class="hljs-keyword">import</span> base64
-<span class="hljs-keyword">from</span> hashlib <span class="hljs-keyword">import</span> blake2b, sha256
-<span class="hljs-keyword">from</span> base58check <span class="hljs-keyword">import</span> b58encode
-
-parser = argparse.ArgumentParser(description=<span class="hljs-string">'TODO:'</span>)
-
-parser.add_argument(<span class="hljs-string">'-X'</span>, help=<span class="hljs-string">'EC Base64-encoded X value'</span>)
-parser.add_argument(<span class="hljs-string">'-Y'</span>, help=<span class="hljs-string">'EC Base64-encoded Y value'</span>)
-
-args = parser.parse_args()
-
-X = base64.b64decode(args.X)
-Y = base64.b64decode(args.Y)
-
-P2PK_MAGIC = bytes.fromhex(<span class="hljs-string">'03b28b7f'</span>)
-P2HASH_MAGIC = bytes.fromhex(<span class="hljs-string">'06a1a4'</span>)
-
-parity = bytes([<span class="hljs-number">2</span>])
-<span class="hljs-keyword">if</span> int.from_bytes(Y, <span class="hljs-string">'big'</span>) % <span class="hljs-number">2</span> == <span class="hljs-number">1</span>:
-    parity = bytes([<span class="hljs-number">3</span>])
-
-shabytes = sha256(sha256(P2PK_MAGIC + parity + X).digest()).digest()[:<span class="hljs-number">4</span>]
-
-public_key = b58encode(P2PK_MAGIC + parity + X + shabytes).decode()
-
-blake2bhash = blake2b(parity + X, digest_size=<span class="hljs-number">20</span>).digest()
-
-shabytes = sha256(sha256(P2HASH_MAGIC + blake2bhash).digest()).digest()[:<span class="hljs-number">4</span>]
-
-pkhash = b58encode(P2HASH_MAGIC + blake2bhash + shabytes).decode()
-
-print(pkhash)
-</code></pre>
 <pre><code class="hljs bash language-bash">ZURE_KEYVAULT_URI=<span class="hljs-string">'https://keyvaulttest-keyvault.vault.azure.net'</span> node index.js --address 0.0.0.0
 </code></pre>
 <p>Generate unencrypted keys:</p>
@@ -283,7 +429,15 @@ print(pkhash)
 base58check.b58decode(<span class="hljs-string">b'p2sk44FcYdThs69sEEsRmvC2nGAgHfeExoyLqaq9HjRFQkGdVwo7BP'</span>).hex()[<span class="hljs-number">8</span>:<span class="hljs-number">72</span>]
 &gt; e1d751bd819cec377bc223de545f0fecd0bde857c06997997b2e912c9618d3b6
 </code></pre>
+<p>// TODO:</p>
+<pre><code class="hljs"><span class="hljs-keyword">No</span> <span class="hljs-keyword">access</span> was given yet <span class="hljs-keyword">to</span> the <span class="hljs-string">'TezosSigner-VM'</span>, because <span class="hljs-string">'--scope'</span> was <span class="hljs-keyword">not</span> provided. You should setup <span class="hljs-keyword">by</span> creating a <span class="hljs-keyword">role</span> assignment, e.g. <span class="hljs-string">'az role assignment create --assignee &lt;principal-id&gt; --role contributor -g TezosSigner-ResourceGroup'</span> would let it <span class="hljs-keyword">access</span> the <span class="hljs-keyword">current</span> resource <span class="hljs-keyword">group</span>. <span class="hljs-keyword">To</span> <span class="hljs-keyword">get</span> the pricipal id, run <span class="hljs-string">'az vm show -g TezosSigner-ResourceGroup -n TezosSigner-VM --query "identity.principalId" -otsv'</span>
+</code></pre>
 <p>Where <code>xxx</code> is a non-existent node.</p>
+<pre><code class="hljs bash language-bash">curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node --version
+v10.15.3 <span class="hljs-comment"># Or similar </span>
+</code></pre>
 <blockquote>
   <p>http://www.ocamlpro.com/2018/11/21/an-introduction-to-tezos-rpcs-signing-operations/</p>
 </blockquote>
@@ -296,6 +450,8 @@ https://github.com/bitcoinjs/tiny-secp256k1
 https://github.com/ludios/node-blake2
 https://github.com/bitcoinjs/bs58check</p>
 <p>https://github.com/Azure/azure-sdk-for-node/issues/4603</p>
+<p>https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki#Low<em>S</em>values<em>in</em>signatures</p>
+<p>It looks like tz3 (P-256) have been deprecated (https://github.com/murbard/pytezos/blob/master/tests/test_crypto.py <code>tezos-client sign bytes</code> does not support P256) (https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb)</p>
 <div class="navigation">
   <ul>
     <li style="text-align: left">
@@ -318,7 +474,7 @@ https://github.com/bitcoinjs/bs58check</p>
         <hr>
         <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
         
-          <p class="timestamp">Page last updated Saturday, May 25, 2019</p>
+          <p class="timestamp">Page last updated Tuesday, Jun 11, 2019</p>
         
       </div>
     </div><!-- #content -->

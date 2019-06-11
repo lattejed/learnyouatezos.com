@@ -85,34 +85,34 @@ del {
 }
 
 .navigation {
-  display: table; 
+  display: table;
   width: 100%;
 }
 
 .navigation > ul {
-  display: table-row; 
+  display: table-row;
   list-style: none;
 }
 
 .navigation > ul > li {
-  display: table-cell; 
+  display: table-cell;
   width: 33%;
 }
 
 .startnav {
   padding-top: 2em;
-  display: table; 
+  display: table;
   width: 100%;
 }
 
 .startnav > ul {
-  display: table-row; 
+  display: table-row;
   list-style: none;
 }
 
 .startnav > ul > li {
   vertical-align: middle;
-  display: table-cell; 
+  display: table-cell;
   width: 33%;
 }
 
@@ -124,12 +124,17 @@ del {
   margin-bottom: 1em;
 }
 
-.aside {
+aside {
+  line-height: 1.4;
   display: block;
   border: 1px solid #497CBF;
   border-radius: 3px;
   background-color: #548DBF;
-  padding: 0 1.25em;
+  padding: 0.75em;
   color: #FFFFFF;
 }
 
+highlight {
+  display: inline-block;
+  background-color: #FFFF00;
+}
