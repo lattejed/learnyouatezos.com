@@ -64,7 +64,7 @@ You'll likely have to go through a privacy-violating ID verificaiton with a phon
 It's recommended that you install the CLI on your local machine or on a local VM. It is *not recommended* to install the cli on the remote signer you'll provision nor your baker's VM. We'll be authenticating the CLI and having those credentails on a remote machine can be a security issue. 
 
 <note>
-VMs on a compromised machine *do not* protect you against keyloggers and other forms of malicious monitoring, though they offer some protection in the other direction (e.g., it's safter to browse malicious websites on a VM). If you are unsure of your local computer's security, you may want to do a clean install of your OS before continuing.
+VMs on a compromised machine *do not* protect you against keyloggers and other forms of malicious monitoring, though they offer some protection in the other direction (e.g., it's safter to browse malicious websites on a VM). If you are unsure of your local computer's security, you should at least do a clean install of your OS before continuing.
 </note>
 
 
@@ -315,7 +315,7 @@ diskutil list
 
 If it's missing, that's your USB drive.
 
-Now ensure that it is unmounted:
+Plug it back in, then unmount it:
 
 ```
 diskutil unmountDisk /dev/disk2
@@ -323,15 +323,15 @@ diskutil unmountDisk /dev/disk2
 
 Then write the ISO to the drive:
 
+<warning>
+Using `sudo dd` is a destructive command. Make sure you double check the location of your USB drive as described above. Also make sure you've backed up the contents of the USB drive if they're important to you.
+</warning>
+
 ```
 sudo dd if=~/<path>/ubuntu-18.04.2-desktop-amd64.iso of=/dev/disk2 bs=1m
 ```
 
 This will take a while. Eventually the command will exit and your drive will be usable.
-
-<warning>
-Using `sudo dd` is a destructive command. Make sure you double check the location of your USB drive as described above. Also make sure you've backed up the contents of the USB drive if they're important to you.
-</warning>
 
 ###Run on an air-gapped machine
 
@@ -341,6 +341,10 @@ What is an air-gapped machine? That means our machine does not have the ability 
 2. *Do not* connect wifi after booting from the USB drive
 
 After booting up, you should open a web browser and ensure the internet is *not* accessible.
+
+<warning>
+For this purpose, it is *not* enough to unplug a machine with an already installed OS. We want a fresh OS *and* no network connection for this procedure.
+</warning>
 
 <note>
 If you're using Mac hardware, you may need to plug in a wired keyboard and mouse as Ubuntu does not support all Mac hardware.
@@ -370,7 +374,7 @@ Creating a passphrase 16 bytes long will give us 128 bits of entropy, which shou
 Carefull copy your passphrase to a piece of paper that you can store securely. 
 
 <warning>
-*Do not* take a photograph of your passphrase or store it in a password manager. These open up more avenues of attack than storing a physical copy.
+*Do not* take a photograph of your passphrase, print it out or store it in a password manager. These open up more avenues of attack than storing a physical copy.
 </warning>
 
 Consider writing this on paper with e.g., the following format:
@@ -446,12 +450,83 @@ This operation will take a long time, depending on the size of your device.
 
 ##Azure key import
 
-Now that we've securely generated our key and passphrase, we can import our key into the Azure Key Vault. This is also a highly sensitive procedure.
+Now that we've securely generated our key and passphrase, we can import our key into the Azure Key Vault. We're going to follow a procedure very similar to the one we used for generating our keys, except this time we will not be able to air-gap this computer as it needs to talk to Azure.
 
+<warning>
+Azure Key Vault does not offer a way to import keys encrypted with an Azure public key, which would be more secure than this method. That means your private key (and passphrase) will exist, in unencrypted form, in your machine's RAM until your computer is rebooted. As this procedure will run on a fresh Ubuntu install and the live CD (USB) will be wiped immediately aftewards, the author believes this is adequately secure for this purpose. If you are dealing with non-trivial amounts of XTZ, you should hire a security consultant.
+</warning>
 
+This time, we will:
 
+1. Create a fresh installation of Ubuntu 18.04 on a USB drive
+2. Run that on a computer with a network connection
+3. Install the Azure CLI
+4. Authenticate the CLI
+5. Import our key to Azure
+6. Delete our UBS key
 
+<note>
+Ubuntu tends to be picky about WiFi adaptors. If possible, use a machine with a wired ethernet connection.
+</note>
 
+###Get Azure running (again)
+
+As above, install the CLI and then log in:
+
+```bash
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+az login
+```
+
+```plaintext
+To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXXXXXXX to authenticate.
+```
+
+Open a browser to the url that is returned and enter the code given.
+
+###Import your key
+
+Use the following commands, adding in your desired key name, the name of the vault you've already created and the path to the encrypted `pem` file you've backed up on USB.
+
+```bash
+KEY_NAME='<A name for your key>'; \
+VAULT_NAME='<The name of your Key Vault>'; \
+PEM_FILE='<The path to your pem file>'; \
+read -sp "Passphrase: " PASS; echo; \
+az keyvault key import \
+	--name "$KEY_NAME" \
+	--vault-name "$VAULT_NAME" \
+	--ops sign \
+	--pem-file "$PEM_FILE".pem \
+	--pem-password "$PASS" \
+	--protection hsm; \
+unset PASS
+```
+
+<warn>
+Do not copy and paste your passphrase from somewhere. Type it in by hand from the piece of paper you've written it on, which is the only place it should exist.
+</warn>
+
+After the command has finished, verify that the key imported:
+
+```bash
+az keyvault key list \ 
+	--vault-name YourKeyVaultName
+```
+
+You should see output like this:
+
+```json
+{
+	...
+}
+```
+
+If you see it, remote your USB drive(s) and reboot your computer.
+
+###Clean up
+
+<highlight>TODO:</highlight>
 
 
 ```bash

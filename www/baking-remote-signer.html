@@ -74,7 +74,7 @@ To be precise, Azure does not allow you to back up your HSM-generated keys. The 
 <h3 id="install-azure-cli">Install Azure CLI</h3>
 <p>It's recommended that you install the CLI on your local machine or on a local VM. It is <em>not recommended</em> to install the cli on the remote signer you'll provision nor your baker's VM. We'll be authenticating the CLI and having those credentails on a remote machine can be a security issue. </p>
 <p><note>
-VMs on a compromised machine <em>do not</em> protect you against keyloggers and other forms of malicious monitoring, though they offer some protection in the other direction (e.g., it's safter to browse malicious websites on a VM). If you are unsure of your local computer's security, you may want to do a clean install of your OS before continuing.
+VMs on a compromised machine <em>do not</em> protect you against keyloggers and other forms of malicious monitoring, though they offer some protection in the other direction (e.g., it's safter to browse malicious websites on a VM). If you are unsure of your local computer's security, you should at least do a clean install of your OS before continuing.
 </note></p>
 <pre><code class="hljs bash language-bash">curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 </code></pre>
@@ -234,16 +234,16 @@ If your local machine doesn't have <code>sha256sum</code> installed, you can use
 <pre><code class="hljs">diskutil <span class="hljs-built_in">list</span>
 </code></pre>
 <p>If it's missing, that's your USB drive.</p>
-<p>Now ensure that it is unmounted:</p>
+<p>Plug it back in, then unmount it:</p>
 <pre><code class="hljs">diskutil unmountDisk <span class="hljs-regexp">/dev/</span>disk2
 </code></pre>
 <p>Then write the ISO to the drive:</p>
-<pre><code class="hljs">sudo dd <span class="hljs-attribute">if</span>=~/&lt;path&gt;/ubuntu-18.04.2-desktop-amd64.iso <span class="hljs-attribute">of</span>=/dev/disk2 <span class="hljs-attribute">bs</span>=1m
-</code></pre>
-<p>This will take a while. Eventually the command will exit and your drive will be usable.</p>
 <p><warning>
 Using <code>sudo dd</code> is a destructive command. Make sure you double check the location of your USB drive as described above. Also make sure you've backed up the contents of the USB drive if they're important to you.
 </warning></p>
+<pre><code class="hljs">sudo dd <span class="hljs-attribute">if</span>=~/&lt;path&gt;/ubuntu-18.04.2-desktop-amd64.iso <span class="hljs-attribute">of</span>=/dev/disk2 <span class="hljs-attribute">bs</span>=1m
+</code></pre>
+<p>This will take a while. Eventually the command will exit and your drive will be usable.</p>
 <h3 id="run-on-an-air-gapped-machine">Run on an air-gapped machine</h3>
 <p>What is an air-gapped machine? That means our machine does not have the ability to connect to the internet or other networks. In this case, it should be sufficient to do two things:</p>
 <ol>
@@ -251,6 +251,9 @@ Using <code>sudo dd</code> is a destructive command. Make sure you double check 
 <li><em>Do not</em> connect wifi after booting from the USB drive</li>
 </ol>
 <p>After booting up, you should open a web browser and ensure the internet is <em>not</em> accessible.</p>
+<p><warning>
+For this purpose, it is <em>not</em> enough to unplug a machine with an already installed OS. We want a fresh OS <em>and</em> no network connection for this procedure.
+</warning></p>
 <p><note>
 If you're using Mac hardware, you may need to plug in a wired keyboard and mouse as Ubuntu does not support all Mac hardware.
 </note></p>
@@ -269,7 +272,7 @@ If you're using a new Mac with a T2 security chip, you may have to disable Secur
 </warning></p>
 <p>Carefull copy your passphrase to a piece of paper that you can store securely. </p>
 <p><warning>
-<em>Do not</em> take a photograph of your passphrase or store it in a password manager. These open up more avenues of attack than storing a physical copy.
+<em>Do not</em> take a photograph of your passphrase, print it out or store it in a password manager. These open up more avenues of attack than storing a physical copy.
 </warning></p>
 <p>Consider writing this on paper with e.g., the following format:</p>
 <pre><code class="hljs"><span class="hljs-attribute">59oER7LlKbJfNgmsPljYwg</span>== # EXAMPLE <span class="hljs-keyword">DO</span> <span class="hljs-keyword">NOT</span> USE
@@ -311,7 +314,60 @@ If someone were to find your key and passphrase, they would have full access to 
 <p>Again, <em>double check</em> that this is the correct drive using the procedure above. This is a destructive procedure.</p>
 <p>This operation will take a long time, depending on the size of your device.</p>
 <h2 id="azurekeyimport">Azure key import</h2>
-<p>Now that we've securely generated our key and passphrase, we can import our key into the Azure Key Vault. This is also a highly sensitive procedure.</p>
+<p>Now that we've securely generated our key and passphrase, we can import our key into the Azure Key Vault. We're going to follow a procedure very similar to the one we used for generating our keys, except this time we will not be able to air-gap this computer as it needs to talk to Azure.</p>
+<p><warning>
+Azure Key Vault does not offer a way to import keys encrypted with an Azure public key, which would be more secure than this method. That means your private key (and passphrase) will exist, in unencrypted form, in your machine's RAM until your computer is rebooted. As this procedure will run on a fresh Ubuntu install and the live CD (USB) will be wiped immediately aftewards, the author believes this is adequately secure for this purpose. If you are dealing with non-trivial amounts of XTZ, you should hire a security consultant.
+</warning></p>
+<p>This time, we will:</p>
+<ol>
+<li>Create a fresh installation of Ubuntu 18.04 on a USB drive</li>
+<li>Run that on a computer with a network connection</li>
+<li>Install the Azure CLI</li>
+<li>Authenticate the CLI</li>
+<li>Import our key to Azure</li>
+<li>Delete our UBS key</li>
+</ol>
+<p><note>
+Ubuntu tends to be picky about WiFi adaptors. If possible, use a machine with a wired ethernet connection.
+</note></p>
+<h3 id="get-azure-running-again-">Get Azure running (again)</h3>
+<p>As above, install the CLI and then log in:</p>
+<pre><code class="hljs bash language-bash">curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+az login
+</code></pre>
+<pre><code class="hljs plaintext language-plaintext">To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXXXXXXX to authenticate.
+</code></pre>
+<p>Open a browser to the url that is returned and enter the code given.</p>
+<h3 id="import-your-key">Import your key</h3>
+<p>Use the following commands, adding in your desired key name, the name of the vault you've already created and the path to the encrypted <code>pem</code> file you've backed up on USB.</p>
+<pre><code class="hljs bash language-bash">KEY_NAME=<span class="hljs-string">'&lt;A name for your key&gt;'</span>; \
+VAULT_NAME=<span class="hljs-string">'&lt;The name of your Key Vault&gt;'</span>; \
+PEM_FILE=<span class="hljs-string">'&lt;The path to your pem file&gt;'</span>; \
+<span class="hljs-built_in">read</span> -sp <span class="hljs-string">"Passphrase: "</span> PASS; <span class="hljs-built_in">echo</span>; \
+az keyvault key import \
+    --name <span class="hljs-string">"<span class="hljs-variable">$KEY_NAME</span>"</span> \
+    --vault-name <span class="hljs-string">"<span class="hljs-variable">$VAULT_NAME</span>"</span> \
+    --ops sign \
+    --pem-file <span class="hljs-string">"<span class="hljs-variable">$PEM_FILE</span>"</span>.pem \
+    --pem-password <span class="hljs-string">"<span class="hljs-variable">$PASS</span>"</span> \
+    --protection hsm; \
+<span class="hljs-built_in">unset</span> PASS
+</code></pre>
+<p><warn>
+Do not copy and paste your passphrase from somewhere. Type it in by hand from the piece of paper you've written it on, which is the only place it should exist.
+</warn></p>
+<p>After the command has finished, verify that the key imported:</p>
+<pre><code class="hljs bash language-bash">az keyvault key list \ 
+    --vault-name YourKeyVaultName
+</code></pre>
+<p>You should see output like this:</p>
+<pre><code class="hljs json language-json">{
+    ...
+}
+</code></pre>
+<p>If you see it, remote your USB drive(s) and reboot your computer.</p>
+<h3 id="clean-up">Clean up</h3>
+<p><highlight>TODO:</highlight></p>
 <pre><code class="hljs bash language-bash">az account show
 {
   ...
