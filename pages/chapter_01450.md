@@ -32,18 +32,18 @@ It is *strongly not recommended* to use a cloud HSM service that does not allow 
 
 The answer to both of those has to be no.
 
-<aside>
+<note>
 To be precise, Azure does not allow you to back up your HSM-generated keys. The backup functionaly it has will only allow you to move your key within the same availability region. However, they do allow you to generate your own keys and import them. 
-</aside>
+</note>
 
-###Baker VM + Signer VM + HSM
+###Baker VM + signer VM + HSM
 
 This setup calls for a separate baker and signer VM. It is possible run the signing service on the same VM as the baker, so why not do that? 
 
-1. An attacker who could gain access to your baker could sign any operation, including moving all of your Tezos to another address.
-2. Your baker *may* be known to the rest of the network, increasing the chances it is targeted for attack.
+1. An attacker who could gain access to your baker could sign any operation, including moving all of your Tezos to another address
+2. Your baker *may* be known to the rest of the network, increasing the chances it is targeted for attack
 3. Running a separate signer allows you to whitelist baking and endorsing operations and require intervention for other operations (transfers, voting, etc.)
-4. A separate signer requires that *two* VMs are compromised before signing operations could be done by a rogue actor.
+4. A separate signer requires that *two* VMs are compromised before signing operations could be done by a rogue actor
 
 Since your signer will only be known to your baker, the baker itself would have to be accessed to discover the IP address. After that, your signer VM would also have to be compromised. 
 
@@ -63,7 +63,10 @@ You'll likely have to go through a privacy-violating ID verificaiton with a phon
 
 It's recommended that you install the CLI on your local machine or on a local VM. It is *not recommended* to install the cli on the remote signer you'll provision nor your baker's VM. We'll be authenticating the CLI and having those credentails on a remote machine can be a security issue. 
 
-NOTE: VMs on a compromised machine *do not* protect you against keyloggers and other forms of malicious monitoring, though they offer some protection in the other direction (e.g., it's safter to browse malicious websites on a VM). If you are unsure of your local computer's security, you may want to do a clean install of your OS before continuing.
+<note>
+VMs on a compromised machine *do not* protect you against keyloggers and other forms of malicious monitoring, though they offer some protection in the other direction (e.g., it's safter to browse malicious websites on a VM). If you are unsure of your local computer's security, you may want to do a clean install of your OS before continuing.
+</note>
+
 
 ```bash
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
@@ -127,7 +130,7 @@ Replace "Southeast Asia" with the region you prefer from the previous list. You 
 
 In this case the identifier is the name field `southeastasia`. Copy that down as you'll need it for the next step.
 
-###Create resource group
+###Create a resource group
 
 Create a resource group, giving it the name of your choice and using the location we've just determined.
 
@@ -155,17 +158,21 @@ You should get a response that looks like this:
 
 If you need to delete the resource group, you can use the command:
 
+<warning>
+This will delete *everything* inside the resource group. Only use this command when trying things out.
+</warning>
+
 ```bash
 az group delete \
 	--name "TezosSigner-ResourceGroup" \
 	--yes
 ```
 
-WARNING: This will delete *everything* inside the resource group. Only use this command when trying things out.
-
 ##Setting up a VM
 
-###Create Virtual Machine
+###Create a virtual machine
+
+Next let's create the VM we'll be running out signer in. We use the `az vm create` command for this.
 
 ```bash
 az vm create \
@@ -241,67 +248,211 @@ az vm delete \
 	--yes
 ```
 
-----------------------------------------------
+##Generating private keys
 
-DOES NOT WORK ON NEWER VERSIONS OF MACOS
+<warning>
+Key security is a very big topic. The guidelines here offer one possible way to securely create and backup keys. They are not bulletproof and only represent an acceptable level of security for the author, for the author's own needs. It is strongly recommended that you research best practices on your own. If your private keys are controlling non-trivial amounts of Tezos, you should consider hiring a security consultant.
+</warning>
 
-Ubuntu recommends:
+To generate and back up keys securely, we're going to use the following procedure:
 
-https://www.balena.io/etcher/
+1. Download and create a fresh installation of Ubuntu 18.04 on a USB drive
+2. Run that on an air-gapped computer
+3. Create strong passphrases using `openssl` to encrypt our keys
+4. Create our keys using `openssl`
+5. Back up our keys and passphrases in separate locations
+5. Delete our UBS key
 
-Source is here: 
+This procedure is not flawless, but it is what the author considers acceptable and uses for his own keys. 
 
-https://github.com/balena-io/etcher
+###Download Ubuntu 18.04
 
-You'll get a message asking you to initialize or ignore the disk. Ignore it.
+We're going to first download Ubuntun 18.04 *desktop* edition. It has to be the desktop edeition in order to run it as a live CD (UBS). 
 
+<note>
+If you do have a CD burner creating an actual live CD offers better sercurity, providedd it is a write-once CD. Since CD burners are less common these days, the instructions here are for a UBS drive.
+</node>
 
-Security settings do not allow this Mac to use an external startup disk 
+Search for "Ubuntu download". A link is not provided here as that opens up an avenue for attack. Ensure that the link you follow is on `https://ubunutu.com` and that your browser indicates that it is a secure connection. The actual download should be labeled "Ubuntu 18.04.2 LTS". 
 
-Reboot in recovery mode (Command-R)
+On that page should be instructions for verifying the download once it is complete. It will look something like:
 
-Startup Security Utility
+On Linux:
 
-Enter password 
+```bash
+echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX *ubuntu-18.04.2-desktop-amd64.iso" | sha256sum --check
+```
 
-Secure Boot > No Security
+<note>
+If your local machine doesn't have `sha256sum` installed, you can use `shasum` in its place. The latter should be available on many Linux distros and macOS.
+</note>
 
-External Boot > Allow booting from external media 
+Make sure you get a result like:
 
-NOTE: If you're using a very recent Mac, you may have to plug in an external keyboard and mouse.
+```bash
+ubuntu-18.04.2-desktop-amd64.iso: OK
+```
 
--------------------------------------------
+###Creating a USB drive 
 
+You'll need a USB drive that will fit the ISO you downloaded. Plug that into your computer and run the following command:
 
+```bash
+diskutil list
+```
 
-WARNING: Using `sudo dd` is a destructive command. Make sure you double check the location of your USB drive as described below. Also make sure you've backed up the contents of the USB drive if they're important to you.
+You'll get a lot of output, look for something like:
+
+```bash
+/dev/disk2 (external, physical) 
+```
+
+Pull the drive out. Ensure that it's *missing* this time:
 
 ```
 diskutil list
 ```
-> /dev/disk2 (external, physical) 
 
-Pull the drive out. Ensure that it's *missing* this time.
+If it's missing, that's your USB drive.
 
-```
-diskutil list
-```
-If so, that's your USB drive. 
+Now ensure that it is unmounted:
 
 ```
 diskutil unmountDisk /dev/disk2
 ```
 
-> Unmount of all volumes on disk2 was successful
+Then write the ISO to the drive:
 
 ```
-cd ~/Downloads #Or wherever you keep ISOs
-sudo dd if=ubuntu-18.04.2-server-amd64.iso of=/dev/disk2 bs=1m
+sudo dd if=~/<path>/ubuntu-18.04.2-desktop-amd64.iso of=/dev/disk2 bs=1m
 ```
 
-WAIT. Nothing will happen for a while a number of minutes.
+This will take a while. Eventually the command will exit and your drive will be usable.
 
-----------------------------------------------
+<warning>
+Using `sudo dd` is a destructive command. Make sure you double check the location of your USB drive as described above. Also make sure you've backed up the contents of the USB drive if they're important to you.
+</warning>
+
+###Run on an air-gapped machine
+
+What is an air-gapped machine? That means our machine does not have the ability to connect to the internet or other networks. In this case, it should be sufficient to do two things:
+
+1. Unplug any LAN or other networking cables
+2. *Do not* connect wifi after booting from the USB drive
+
+After booting up, you should open a web browser and ensure the internet is *not* accessible.
+
+<note>
+If you're using Mac hardware, you may need to plug in a wired keyboard and mouse as Ubuntu does not support all Mac hardware.
+</note>
+
+<note>
+If you're using a new Mac with a T2 security chip, you may have to disable Secure Boot in order to boot from a USB drive. More information can be found <highlight>TODO:</highlight>
+</nope>
+
+Plug it in and boot it up!
+
+###Generating a passphrase
+
+We're going to use `openssl` to generate a passphrase that we'll use to encrypt our private key. 
+
+```bash
+openssl rand -base64 16
+> 59oER7LlKbJfNgmsPljYwg== # EXAMPLE DO NOT USE
+```
+
+Creating a passphrase 16 bytes long will give us 128 bits of entropy, which should be impossible to brute force if your private keys are ever stolen. 
+
+<warning>
+*Do not* use a normal password to encrypt your private key. Using a normal password opens your key up to brute force decryption. Using 16 random *bytes* is not the same as using a password that is 16 characters long.
+</warning>
+
+Carefull copy your passphrase to a piece of paper that you can store securely. 
+
+<warning>
+*Do not* take a photograph of your passphrase or store it in a password manager. These open up more avenues of attack than storing a physical copy.
+</warning>
+
+Consider writing this on paper with e.g., the following format:
+
+```
+59oER7LlKbJfNgmsPljYwg== # EXAMPLE DO NOT USE
+NNLUUNULULULULLLULLULL
+```
+
+Where `N = number`, `L = lowercase` and `U = uppercase`. This will prevent confusing `0` with `O` or `5` with `S` when reading it back.
+
+<note>
+Base 58 encoding helps eliminate this ambiguity but there is no base 58 software installed on Ubuntu by default.
+</note>
+
+###Generating your key
+
+You'll need to decide if you want to generate a `tz2` or `tz3` address for your baking operation. There is currently no practial difference between the two and Azure has support for both. Azure does not support `tz1` addresses.
+
+To generate a `tz2` address:
+
+```bash
+openssl ecparam -genkey -name secp256k1 | openssl ec -aes256 -out secp256k1_sk.pem
+```
+
+To generate a `tz3` address:
+
+```bash
+openssl ecparam -genkey -name prime256v1 | openssl ec -aes256 -out prime256v1_sk.pem
+```
+
+You'll be prompted to enter your passphrase that was generated in the previous step.
+
+###Testing your passphrase
+
+Before you use your copy your key to a USB drive, you should test that your passphrase was recorded correctly. 
+
+```bash
+openssl ec -check -noout -in <keyname>.pem
+```
+
+After entering your passphrase, the response should be:
+
+```bash
+EC Key valid.
+```
+
+If it is not, start over from the beginning.
+
+###Securing your key
+
+It's strongly recommended that you back up your key redundantly (e.g., mutliple USB drives in multiple secure locations). Your passphrase should also be backed up in a separate secure location.
+
+<warning>
+If you lose your key *or* your passphrase the associated `tz` address can *never be* recovered. If you have any XTZ in that address, it will be lost forever. It is not possible, by design, to recover a passphrase or a key using any method.
+</warning>
+
+<warning>
+If someone were to find your key and passphrase, they would have full access to the associated `tz` address. 
+</warning>
+
+###Clean up
+
+You should delete the contents of the USB drive containing Ubuntu.
+
+```bash
+sudo dd if=/dev/urandom of=/dev/disk2 bs=10M
+```
+
+Again, *double check* that this is the correct drive using the procedure above. This is a destructive procedure.
+
+This operation will take a long time, depending on the size of your device.
+
+##Azure key import
+
+Now that we've securely generated our key and passphrase, we can import our key into the Azure Key Vault. This is also a highly sensitive procedure.
+
+
+
+
+
+
 
 ```bash
 az account show
@@ -351,7 +502,9 @@ az keyvault create \
 	--sku premium
 ```
 
-Note: `--sku premium` is mandatory as that will allow for HSM operations.
+<note>
+`--sku premium` is mandatory as that will allow for HSM operations.
+</node>
 
 You'll get a lot of output, but you'll want to record the `vaultUri` property, which should look something like: `https://<...>.vault.azure.net/`.  
 
@@ -386,22 +539,6 @@ Base 58 encoding helps eliminate this ambiguity but there is no base 58 software
 
 
 ```bash
-# tz3 addresses:
-openssl ecparam -genkey -name prime256v1 | openssl ec -aes256 -out prime256v1_sk.pem
-
-# tz2 addresses:
-openssl ecparam -genkey -name secp256k1 | openssl ec -aes256 -out secp256k1_sk.pem
-```
-
-```
-openssl ec -in encrypted_key.pem
-```
-
-```
-openssl ec -in encrypted_key.pem -pubout
-```
-
-```bash
 az keyvault key import \
 	--name KeyVaultTest-SignerKeyED25519 \
 	--vault-name KeyVaultTest-KeyVault \
@@ -421,8 +558,6 @@ az keyvault key import \
 	--protection hsm; \
 unset PASS
 ```
-
-NOTE: This has to be P-256, P-256K is incompatible
 
 List keys:
 
@@ -444,139 +579,20 @@ tezos-client list known addresses
 tezos-client list forget address temp --force 
 ```
 
-4444
-> blake2b 4444
-52c2d9812b24bc8bdfed1ab234270fb132d62a94493ba726107144a2eed8a178
-
-"4444"
-0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8
-
-*******
-
-Since we were just testing things out, we'll now clean this up:
-
-```bash
-az keyvault delete --name KeyVaultTest-KeyVault
-az group delete --name KeyVaultTest-ResourceGroup
-```
-
-You'll need to answer `y` when prompted. This operation may take a while. Check that everything has been deleted:
-
-```bash
-az keyvault list
-az group list
-```
-
-These should all return an empty json array `[]`. 
 
 
 
-Rest API:
-
-```bash
-PASSWORD='XXXXXXXXXXXXXXXXXX'
-az ad sp create-for-rbac --name KeyVaultTest-App --password $PASSWORD
-
-# Response
-{
-  "appId": <UUID 1>,
-  "displayName": "KeyVaultTest-App",
-  "name": "http://KeyVaultTest-App",
-  "password": "XXXXXXXXXXXXXXXXXX",
-  "tenant": <UUID 2>
-}
-```
-
-```bash
-APP_ID = <UUID 1>
-TENANT_ID = <UUID 2>
-```
-
-```bash
-curl -X POST -d "grant_type=client_credentials&client_id=$APP_ID&client_secret=$PASSWORD&resource=https://management.azure.com/" https://login.microsoftonline.com/$TENANT_ID/oauth2/token
-```
-
-```bash
-{
-	"token_type": "Bearer", 	
-	...
-	"access_token": "XXXXXXXX...XXXXXXXXXXXX"
-}
-```
-
-```bash
-ACCESS_TOKEN=XXXXXXXX...XXXXXXXXXXXX
-unset PASSWORD APP_ID TENANT_ID
-```
-
-```bash
-az ad sp show --id http://KeyVaultTest-App
-az ad sp delete --id http://KeyVaultTest-App
-```
-
-Sign via REST API: ??
-
-```bash
-curl -i -H "Authorization: Bearer $ACCESS_TOKEN" -H "Content-Type: application/json" -X POST -d "alg=ES256K&value=SIGNME" https://keyvaulttest-keyvault.vault.azure.net/keys/KeyVaultTest-SignerKey/768675a6df2144b4a691681ac064f92f/sign?api-version=7.0
-```
-
-```bash
-curl -X GET -H "Authorization: Bearer $ACCESS_TOKEN" -H "Content-Type: application/json" https://keyvaulttest-keyvault.vault.azure.net/keys/KeyVaultTest-SignerKey/versions?api-version=7.0
-```
-
-Test sign with node:
-
-```bash
-tezos-client sign bytes 0x03 for temp
-```
-
-Signing error:
-> Invalid length of 'value': 1 bytes. ES256K requires 32 bytes, encoded with base64url.
-
-
->>>>>>>
-
-sudo apt install python3-pip
-pip3 install base58check==1.0.2
-
->>>>>>>
-
->>>>>>>
-
-RLEeHDxakX8J5Zp7GDCjaZvSNjyBYZl3MrjKQGuOlaE=
-seCZT/jwbgynt5/wbjG6pDESjN1CA4lF2yiL5KoaUGk=
-
-> tz3YeCiKJobmUf84bVN3t5b4wnqURtzRcST5
-
->>>>>>>
-
-```bash
-sudo apt install libsodium-dev libsecp256k1-dev libgmp-dev
-pip3 install git+https://github.com/baking-bad/pytezos
-```
-
-*******
 
 
 
-```bash
-ZURE_KEYVAULT_URI='https://keyvaulttest-keyvault.vault.azure.net' node index.js --address 0.0.0.0
-```
 
-Generate unencrypted keys:
 
-```bash
-tezos-client -A xxx gen keys test_p256 --force --sig p256
-> tz3bTaf8H68dnTExvYgBcfx2nFU9kfHHxXzZ
-> unencrypted:p2pk68L7YPVrEe1Fp4DjbxLv9adqDRMrmmsFxspKShNj8iaozaRV5CD
-> unencrypted:p2sk44FcYdThs69sEEsRmvC2nGAgHfeExoyLqaq9HjRFQkGdVwo7BP 
-```
 
-```python
-import base58check
-base58check.b58decode(b'p2sk44FcYdThs69sEEsRmvC2nGAgHfeExoyLqaq9HjRFQkGdVwo7BP').hex()[8:72]
-> e1d751bd819cec377bc223de545f0fecd0bde857c06997997b2e912c9618d3b6
-```
+
+
+
+
+
 
 // TODO:
 ```

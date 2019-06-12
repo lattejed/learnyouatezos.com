@@ -10,10 +10,15 @@ html, body {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  /*font-family: -apple-system, BlinkMacSystemFont, sans-serif;*/
+  font-family: Tahoma, Arial, sans-serif;
   color: rgb(29, 31, 33);
   line-height: 1.5em;
   background: url(/static/img/background.png);
+}
+
+h1, h2, h3, h4, h5 {
+  margin-top: 2em;
 }
 
 #background {
@@ -124,14 +129,30 @@ del {
   margin-bottom: 1em;
 }
 
-aside {
-  line-height: 1.4;
+pre {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+  white-space: pre-wrap;
+  word-break: keep-all;
+}
+
+note, warning {
   display: block;
-  border: 1px solid #497CBF;
+  line-height: 1.4;
   border-radius: 3px;
+  color: #FFFFFF;
+}
+
+note {
+  border: 1px solid #497CBF;
   background-color: #548DBF;
   padding: 0.75em;
-  color: #FFFFFF;
+}
+
+warning {
+  border: 1px solid #FF2323;
+  background-color: #FF5656;
+  padding: 0.75em;
 }
 
 highlight {

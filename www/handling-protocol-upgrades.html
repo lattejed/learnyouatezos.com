@@ -40,6 +40,9 @@
 <p>We're only going to handle the case of an active baker?</p>
 <p>History &amp; verifying snapshots:
 https://blog.nomadic-labs.com/release-of-mainnet-may.html</p>
+<pre><code class="hljs">tezos-<span class="hljs-keyword">node</span> <span class="hljs-title">snapshot</span> export alphanet-$(<span class="hljs-keyword">date</span> +%F).full
+tezos-<span class="hljs-keyword">node</span> <span class="hljs-title">snapshot</span> export alphanet-$(<span class="hljs-keyword">date</span> +%F).experimental-rolling --rolling
+</code></pre>
 <p>Upgrade:</p>
 <pre><code class="hljs">sudo systemctl <span class="hljs-literal">stop</span> tezos-<span class="hljs-keyword">node</span>.<span class="hljs-title">service</span>
 sudo systemctl status tezos-<span class="hljs-keyword">node</span>.<span class="hljs-title">service</span>
@@ -140,7 +143,7 @@ https://blog.nomadic-labs.com/release-of-mainnet-may.html</p>
         <hr>
         <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
         
-          <p class="timestamp">Page last updated Tuesday, May 28, 2019</p>
+          <p class="timestamp">Page last updated Tuesday, Jun 11, 2019</p>
         
       </div>
     </div><!-- #content -->

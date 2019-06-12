@@ -53,16 +53,16 @@
 <li>Do you trust this company to never lock your account for any reason?</li>
 </ol>
 <p>The answer to both of those has to be no.</p>
-<aside>
+<p><note>
 To be precise, Azure does not allow you to back up your HSM-generated keys. The backup functionaly it has will only allow you to move your key within the same availability region. However, they do allow you to generate your own keys and import them. 
-</aside>
-<h3 id="baker-vm-signer-vm-hsm">Baker VM + Signer VM + HSM</h3>
+</note></p>
+<h3 id="baker-vm-signer-vm-hsm">Baker VM + signer VM + HSM</h3>
 <p>This setup calls for a separate baker and signer VM. It is possible run the signing service on the same VM as the baker, so why not do that? </p>
 <ol>
-<li>An attacker who could gain access to your baker could sign any operation, including moving all of your Tezos to another address.</li>
-<li>Your baker <em>may</em> be known to the rest of the network, increasing the chances it is targeted for attack.</li>
+<li>An attacker who could gain access to your baker could sign any operation, including moving all of your Tezos to another address</li>
+<li>Your baker <em>may</em> be known to the rest of the network, increasing the chances it is targeted for attack</li>
 <li>Running a separate signer allows you to whitelist baking and endorsing operations and require intervention for other operations (transfers, voting, etc.)</li>
-<li>A separate signer requires that <em>two</em> VMs are compromised before signing operations could be done by a rogue actor.</li>
+<li>A separate signer requires that <em>two</em> VMs are compromised before signing operations could be done by a rogue actor</li>
 </ol>
 <p>Since your signer will only be known to your baker, the baker itself would have to be accessed to discover the IP address. After that, your signer VM would also have to be compromised. </p>
 <p>To help offset this, the signing software dicussed here is very lightweight and can be run on the cheapest available VM.</p>
@@ -73,7 +73,9 @@ To be precise, Azure does not allow you to back up your HSM-generated keys. The 
 <p>[TODO: Add 2FA setup]</p>
 <h3 id="install-azure-cli">Install Azure CLI</h3>
 <p>It's recommended that you install the CLI on your local machine or on a local VM. It is <em>not recommended</em> to install the cli on the remote signer you'll provision nor your baker's VM. We'll be authenticating the CLI and having those credentails on a remote machine can be a security issue. </p>
-<p>NOTE: VMs on a compromised machine <em>do not</em> protect you against keyloggers and other forms of malicious monitoring, though they offer some protection in the other direction (e.g., it's safter to browse malicious websites on a VM). If you are unsure of your local computer's security, you may want to do a clean install of your OS before continuing.</p>
+<p><note>
+VMs on a compromised machine <em>do not</em> protect you against keyloggers and other forms of malicious monitoring, though they offer some protection in the other direction (e.g., it's safter to browse malicious websites on a VM). If you are unsure of your local computer's security, you may want to do a clean install of your OS before continuing.
+</note></p>
 <pre><code class="hljs bash language-bash">curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 </code></pre>
 <p>You may want to download the script and review it before running it. Alternately, you can install manually as outlined here: <a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest">https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest</a>.</p>
@@ -110,7 +112,7 @@ To be precise, Azure does not allow you to back up your HSM-generated keys. The 
 <span class="hljs-string">"subscriptionId"</span>: null
 </code></pre>
 <p>In this case the identifier is the name field <code>southeastasia</code>. Copy that down as you'll need it for the next step.</p>
-<h3 id="create-resource-group">Create resource group</h3>
+<h3 id="create-a-resource-group">Create a resource group</h3>
 <p>Create a resource group, giving it the name of your choice and using the location we've just determined.</p>
 <pre><code class="hljs bash language-bash">az group create \
     --name <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
@@ -130,13 +132,16 @@ To be precise, Azure does not allow you to back up your HSM-generated keys. The 
 }
 </code></pre>
 <p>If you need to delete the resource group, you can use the command:</p>
+<p><warning>
+This will delete <em>everything</em> inside the resource group. Only use this command when trying things out.
+</warning></p>
 <pre><code class="hljs bash language-bash">az group delete \
     --name <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
     --yes
 </code></pre>
-<p>WARNING: This will delete <em>everything</em> inside the resource group. Only use this command when trying things out.</p>
 <h2 id="settingupavm">Setting up a VM</h2>
-<h3 id="create-virtual-machine">Create Virtual Machine</h3>
+<h3 id="create-a-virtual-machine">Create a virtual machine</h3>
+<p>Next let's create the VM we'll be running out signer in. We use the <code>az vm create</code> command for this.</p>
 <pre><code class="hljs bash language-bash">az vm create \
     --name <span class="hljs-string">"TezosSigner-VM"</span> \
     --resource-group <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
@@ -188,41 +193,125 @@ To be precise, Azure does not allow you to back up your HSM-generated keys. The 
     --resource-group <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
     --yes
 </code></pre>
-<hr />
-<p>DOES NOT WORK ON NEWER VERSIONS OF MACOS</p>
-<p>Ubuntu recommends:</p>
-<p>https://www.balena.io/etcher/</p>
-<p>Source is here: </p>
-<p>https://github.com/balena-io/etcher</p>
-<p>You'll get a message asking you to initialize or ignore the disk. Ignore it.</p>
-<p>Security settings do not allow this Mac to use an external startup disk </p>
-<p>Reboot in recovery mode (Command-R)</p>
-<p>Startup Security Utility</p>
-<p>Enter password </p>
-<p>Secure Boot &gt; No Security</p>
-<p>External Boot &gt; Allow booting from external media </p>
-<p>NOTE: If you're using a very recent Mac, you may have to plug in an external keyboard and mouse.</p>
-<hr />
-<p>WARNING: Using <code>sudo dd</code> is a destructive command. Make sure you double check the location of your USB drive as described below. Also make sure you've backed up the contents of the USB drive if they're important to you.</p>
+<h2 id="generatingprivatekeys">Generating private keys</h2>
+<p><warning>
+Key security is a very big topic. The guidelines here offer one possible way to securely create and backup keys. They are not bulletproof and only represent an acceptable level of security for the author, for the author's own needs. It is strongly recommended that you research best practices on your own. If your private keys are controlling non-trivial amounts of Tezos, you should consider hiring a security consultant.
+</warning></p>
+<p>To generate and back up keys securely, we're going to use the following procedure:</p>
+<ol>
+<li>Download and create a fresh installation of Ubuntu 18.04 on a USB drive</li>
+<li>Run that on an air-gapped computer</li>
+<li>Create strong passphrases using <code>openssl</code> to encrypt our keys</li>
+<li>Create our keys using <code>openssl</code></li>
+<li>Back up our keys and passphrases in separate locations</li>
+<li>Delete our UBS key</li>
+</ol>
+<p>This procedure is not flawless, but it is what the author considers acceptable and uses for his own keys. </p>
+<h3 id="download-ubuntu-18-04">Download Ubuntu 18.04</h3>
+<p>We're going to first download Ubuntun 18.04 <em>desktop</em> edition. It has to be the desktop edeition in order to run it as a live CD (UBS). </p>
+<p><note>
+If you do have a CD burner creating an actual live CD offers better sercurity, providedd it is a write-once CD. Since CD burners are less common these days, the instructions here are for a UBS drive.
+</node></p>
+<p>Search for "Ubuntu download". A link is not provided here as that opens up an avenue for attack. Ensure that the link you follow is on <code>https://ubunutu.com</code> and that your browser indicates that it is a secure connection. The actual download should be labeled "Ubuntu 18.04.2 LTS". </p>
+<p>On that page should be instructions for verifying the download once it is complete. It will look something like:</p>
+<p>On Linux:</p>
+<pre><code class="hljs bash language-bash"><span class="hljs-built_in">echo</span> <span class="hljs-string">"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX *ubuntu-18.04.2-desktop-amd64.iso"</span> | sha256sum --check
+</code></pre>
+<p><note>
+If your local machine doesn't have <code>sha256sum</code> installed, you can use <code>shasum</code> in its place. The latter should be available on many Linux distros and macOS.
+</note></p>
+<p>Make sure you get a result like:</p>
+<pre><code class="hljs bash language-bash">ubuntu-18.04.2-desktop-amd64.iso: OK
+</code></pre>
+<h3 id="creating-a-usb-drive">Creating a USB drive</h3>
+<p>You'll need a USB drive that will fit the ISO you downloaded. Plug that into your computer and run the following command:</p>
+<pre><code class="hljs bash language-bash">diskutil list
+</code></pre>
+<p>You'll get a lot of output, look for something like:</p>
+<pre><code class="hljs bash language-bash">/dev/disk2 (external, physical) 
+</code></pre>
+<p>Pull the drive out. Ensure that it's <em>missing</em> this time:</p>
 <pre><code class="hljs">diskutil <span class="hljs-built_in">list</span>
 </code></pre>
-<blockquote>
-  <p>/dev/disk2 (external, physical) </p>
-</blockquote>
-<p>Pull the drive out. Ensure that it's <em>missing</em> this time.</p>
-<pre><code class="hljs">diskutil <span class="hljs-built_in">list</span>
-</code></pre>
-<p>If so, that's your USB drive. </p>
+<p>If it's missing, that's your USB drive.</p>
+<p>Now ensure that it is unmounted:</p>
 <pre><code class="hljs">diskutil unmountDisk <span class="hljs-regexp">/dev/</span>disk2
 </code></pre>
-<blockquote>
-  <p>Unmount of all volumes on disk2 was successful</p>
-</blockquote>
-<pre><code class="hljs">cd ~/Downloads #<span class="hljs-keyword">Or</span> wherever you keep ISOs
-sudo dd <span class="hljs-attribute">if</span>=ubuntu-18.04.2-server-amd64.iso <span class="hljs-attribute">of</span>=/dev/disk2 <span class="hljs-attribute">bs</span>=1m
+<p>Then write the ISO to the drive:</p>
+<pre><code class="hljs">sudo dd <span class="hljs-attribute">if</span>=~/&lt;path&gt;/ubuntu-18.04.2-desktop-amd64.iso <span class="hljs-attribute">of</span>=/dev/disk2 <span class="hljs-attribute">bs</span>=1m
 </code></pre>
-<p>WAIT. Nothing will happen for a while a number of minutes.</p>
-<hr />
+<p>This will take a while. Eventually the command will exit and your drive will be usable.</p>
+<p><warning>
+Using <code>sudo dd</code> is a destructive command. Make sure you double check the location of your USB drive as described above. Also make sure you've backed up the contents of the USB drive if they're important to you.
+</warning></p>
+<h3 id="run-on-an-air-gapped-machine">Run on an air-gapped machine</h3>
+<p>What is an air-gapped machine? That means our machine does not have the ability to connect to the internet or other networks. In this case, it should be sufficient to do two things:</p>
+<ol>
+<li>Unplug any LAN or other networking cables</li>
+<li><em>Do not</em> connect wifi after booting from the USB drive</li>
+</ol>
+<p>After booting up, you should open a web browser and ensure the internet is <em>not</em> accessible.</p>
+<p><note>
+If you're using Mac hardware, you may need to plug in a wired keyboard and mouse as Ubuntu does not support all Mac hardware.
+</note></p>
+<p><note>
+If you're using a new Mac with a T2 security chip, you may have to disable Secure Boot in order to boot from a USB drive. More information can be found <highlight>TODO:</highlight>
+</nope></p>
+<p>Plug it in and boot it up!</p>
+<h3 id="generating-a-passphrase">Generating a passphrase</h3>
+<p>We're going to use <code>openssl</code> to generate a passphrase that we'll use to encrypt our private key. </p>
+<pre><code class="hljs bash language-bash">openssl rand -base64 16
+&gt; 59oER7LlKbJfNgmsPljYwg== <span class="hljs-comment"># EXAMPLE DO NOT USE</span>
+</code></pre>
+<p>Creating a passphrase 16 bytes long will give us 128 bits of entropy, which should be impossible to brute force if your private keys are ever stolen. </p>
+<p><warning>
+<em>Do not</em> use a normal password to encrypt your private key. Using a normal password opens your key up to brute force decryption. Using 16 random <em>bytes</em> is not the same as using a password that is 16 characters long.
+</warning></p>
+<p>Carefull copy your passphrase to a piece of paper that you can store securely. </p>
+<p><warning>
+<em>Do not</em> take a photograph of your passphrase or store it in a password manager. These open up more avenues of attack than storing a physical copy.
+</warning></p>
+<p>Consider writing this on paper with e.g., the following format:</p>
+<pre><code class="hljs"><span class="hljs-attribute">59oER7LlKbJfNgmsPljYwg</span>== # EXAMPLE <span class="hljs-keyword">DO</span> <span class="hljs-keyword">NOT</span> USE
+NNLUUNULULULULLLULLULL
+</code></pre>
+<p>Where <code>N = number</code>, <code>L = lowercase</code> and <code>U = uppercase</code>. This will prevent confusing <code>0</code> with <code>O</code> or <code>5</code> with <code>S</code> when reading it back.</p>
+<p><note>
+Base 58 encoding helps eliminate this ambiguity but there is no base 58 software installed on Ubuntu by default.
+</note></p>
+<h3 id="generating-your-key">Generating your key</h3>
+<p>You'll need to decide if you want to generate a <code>tz2</code> or <code>tz3</code> address for your baking operation. There is currently no practial difference between the two and Azure has support for both. Azure does not support <code>tz1</code> addresses.</p>
+<p>To generate a <code>tz2</code> address:</p>
+<pre><code class="hljs bash language-bash">openssl ecparam -genkey -name secp256k1 | openssl ec -aes256 -out secp256k1_sk.pem
+</code></pre>
+<p>To generate a <code>tz3</code> address:</p>
+<pre><code class="hljs bash language-bash">openssl ecparam -genkey -name prime256v1 | openssl ec -aes256 -out prime256v1_sk.pem
+</code></pre>
+<p>You'll be prompted to enter your passphrase that was generated in the previous step.</p>
+<h3 id="testing-your-passphrase">Testing your passphrase</h3>
+<p>Before you use your copy your key to a USB drive, you should test that your passphrase was recorded correctly. </p>
+<pre><code class="hljs bash language-bash">openssl ec -check -noout -<span class="hljs-keyword">in</span> &lt;keyname&gt;.pem
+</code></pre>
+<p>After entering your passphrase, the response should be:</p>
+<pre><code class="hljs bash language-bash">EC Key valid.
+</code></pre>
+<p>If it is not, start over from the beginning.</p>
+<h3 id="securing-your-key">Securing your key</h3>
+<p>It's strongly recommended that you back up your key redundantly (e.g., mutliple USB drives in multiple secure locations). Your passphrase should also be backed up in a separate secure location.</p>
+<p><warning>
+If you lose your key <em>or</em> your passphrase the associated <code>tz</code> address can <em>never be</em> recovered. If you have any XTZ in that address, it will be lost forever. It is not possible, by design, to recover a passphrase or a key using any method.
+</warning></p>
+<p><warning>
+If someone were to find your key and passphrase, they would have full access to the associated <code>tz</code> address. 
+</warning></p>
+<h3 id="clean-up">Clean up</h3>
+<p>You should delete the contents of the USB drive containing Ubuntu.</p>
+<pre><code class="hljs bash language-bash">sudo dd <span class="hljs-keyword">if</span>=/dev/urandom of=/dev/disk2 bs=10M
+</code></pre>
+<p>Again, <em>double check</em> that this is the correct drive using the procedure above. This is a destructive procedure.</p>
+<p>This operation will take a long time, depending on the size of your device.</p>
+<h2 id="azurekeyimport">Azure key import</h2>
+<p>Now that we've securely generated our key and passphrase, we can import our key into the Azure Key Vault. This is also a highly sensitive procedure.</p>
 <pre><code class="hljs bash language-bash">az account show
 {
   ...
@@ -252,7 +341,9 @@ found <span class="hljs-number">0</span> vulnerabilities
     --location southeastasia \
     --sku premium
 </code></pre>
-<p>Note: <code>--sku premium</code> is mandatory as that will allow for HSM operations.</p>
+<p><note>
+<code>--sku premium</code> is mandatory as that will allow for HSM operations.
+</node></p>
 <p>You'll get a lot of output, but you'll want to record the <code>vaultUri</code> property, which should look something like: <code>https://&lt;...&gt;.vault.azure.net/</code>.  </p>
 <p><code>EC-HSM</code> and <code>P-256K</code> should create a <code>tz2</code> key.</p>
 <pre><code class="hljs bash language-bash">az keyvault key create \
@@ -272,16 +363,6 @@ NNLUUNULULULULLLULLULL
 </code></pre>
 <p>Where <code>N = number</code>, <code>L = lowercase</code> and <code>U = uppercase</code>. This will prevent confusing <code>0</code> with <code>O</code> or <code>5</code> with <code>S</code> when reading it back.</p>
 <p>Base 58 encoding helps eliminate this ambiguity but there is no base 58 software installed on Ubuntu by default.</p>
-<pre><code class="hljs bash language-bash"><span class="hljs-comment"># tz3 addresses:</span>
-openssl ecparam -genkey -name prime256v1 | openssl ec -aes256 -out prime256v1_sk.pem
-
-<span class="hljs-comment"># tz2 addresses:</span>
-openssl ecparam -genkey -name secp256k1 | openssl ec -aes256 -out secp256k1_sk.pem
-</code></pre>
-<pre><code class="hljs">openssl ec -<span class="hljs-keyword">in</span> encrypted_key<span class="hljs-selector-class">.pem</span>
-</code></pre>
-<pre><code class="hljs">openssl ec -<span class="hljs-keyword">in</span> encrypted_key<span class="hljs-selector-class">.pem</span> -pubout
-</code></pre>
 <pre><code class="hljs bash language-bash">az keyvault key import \
     --name KeyVaultTest-SignerKeyED25519 \
     --vault-name KeyVaultTest-KeyVault \
@@ -299,7 +380,6 @@ az keyvault key import \
     --protection hsm; \
 <span class="hljs-built_in">unset</span> PASS
 </code></pre>
-<p>NOTE: This has to be P-256, P-256K is incompatible</p>
 <p>List keys:</p>
 <pre><code class="hljs bash language-bash">az keyvault key list --vault-name KeyVaultTest-KeyVault
 </code></pre>
@@ -310,124 +390,6 @@ az keyvault key import \
 
 tezos-client list known addresses
 tezos-client list forget address temp --force 
-</code></pre>
-<p>4444</p>
-<blockquote>
-  <p>blake2b 4444
-  52c2d9812b24bc8bdfed1ab234270fb132d62a94493ba726107144a2eed8a178</p>
-</blockquote>
-<p>"4444"
-0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8</p>
-<hr />
-<p>Since we were just testing things out, we'll now clean this up:</p>
-<pre><code class="hljs bash language-bash">az keyvault delete --name KeyVaultTest-KeyVault
-az group delete --name KeyVaultTest-ResourceGroup
-</code></pre>
-<p>You'll need to answer <code>y</code> when prompted. This operation may take a while. Check that everything has been deleted:</p>
-<pre><code class="hljs bash language-bash">az keyvault list
-az group list
-</code></pre>
-<p>These should all return an empty json array <code>[]</code>. </p>
-<p>Rest API:</p>
-<pre><code class="hljs bash language-bash">PASSWORD=<span class="hljs-string">'XXXXXXXXXXXXXXXXXX'</span>
-az ad sp create-for-rbac --name KeyVaultTest-App --password <span class="hljs-variable">$PASSWORD</span>
-
-<span class="hljs-comment"># Response</span>
-{
-  <span class="hljs-string">"appId"</span>: &lt;UUID 1&gt;,
-  <span class="hljs-string">"displayName"</span>: <span class="hljs-string">"KeyVaultTest-App"</span>,
-  <span class="hljs-string">"name"</span>: <span class="hljs-string">"http://KeyVaultTest-App"</span>,
-  <span class="hljs-string">"password"</span>: <span class="hljs-string">"XXXXXXXXXXXXXXXXXX"</span>,
-  <span class="hljs-string">"tenant"</span>: &lt;UUID 2&gt;
-}
-</code></pre>
-<pre><code class="hljs bash language-bash">APP_ID = &lt;UUID 1&gt;
-TENANT_ID = &lt;UUID 2&gt;
-</code></pre>
-<pre><code class="hljs bash language-bash">curl -X POST -d <span class="hljs-string">"grant_type=client_credentials&amp;client_id=<span class="hljs-variable">$APP_ID</span>&amp;client_secret=<span class="hljs-variable">$PASSWORD</span>&amp;resource=https://management.azure.com/"</span> https://login.microsoftonline.com/<span class="hljs-variable">$TENANT_ID</span>/oauth2/token
-</code></pre>
-<pre><code class="hljs bash language-bash">{
-    <span class="hljs-string">"token_type"</span>: <span class="hljs-string">"Bearer"</span>,     
-    ...
-    <span class="hljs-string">"access_token"</span>: <span class="hljs-string">"XXXXXXXX...XXXXXXXXXXXX"</span>
-}
-</code></pre>
-<pre><code class="hljs bash language-bash">ACCESS_TOKEN=XXXXXXXX...XXXXXXXXXXXX
-<span class="hljs-built_in">unset</span> PASSWORD APP_ID TENANT_ID
-</code></pre>
-<pre><code class="hljs bash language-bash">az ad sp show --id http://KeyVaultTest-App
-az ad sp delete --id http://KeyVaultTest-App
-</code></pre>
-<p>Sign via REST API: ??</p>
-<pre><code class="hljs bash language-bash">curl -i -H <span class="hljs-string">"Authorization: Bearer <span class="hljs-variable">$ACCESS_TOKEN</span>"</span> -H <span class="hljs-string">"Content-Type: application/json"</span> -X POST -d <span class="hljs-string">"alg=ES256K&amp;value=SIGNME"</span> https://keyvaulttest-keyvault.vault.azure.net/keys/KeyVaultTest-SignerKey/768675a6df2144b4a691681ac064f92f/sign?api-version=7.0
-</code></pre>
-<pre><code class="hljs bash language-bash">curl -X GET -H <span class="hljs-string">"Authorization: Bearer <span class="hljs-variable">$ACCESS_TOKEN</span>"</span> -H <span class="hljs-string">"Content-Type: application/json"</span> https://keyvaulttest-keyvault.vault.azure.net/keys/KeyVaultTest-SignerKey/versions?api-version=7.0
-</code></pre>
-<p>Test sign with node:</p>
-<pre><code class="hljs bash language-bash">tezos-client sign bytes 0x03 <span class="hljs-keyword">for</span> temp
-</code></pre>
-<p>Signing error:</p>
-<blockquote>
-  <p>Invalid length of 'value': 1 bytes. ES256K requires 32 bytes, encoded with base64url.</p>
-  <blockquote>
-    <blockquote>
-      <blockquote>
-        <blockquote>
-          <blockquote>
-            <p>&gt;</p>
-          </blockquote>
-        </blockquote>
-      </blockquote>
-    </blockquote>
-  </blockquote>
-</blockquote>
-<p>sudo apt install python3-pip
-pip3 install base58check==1.0.2</p>
-<blockquote>
-  <blockquote>
-    <blockquote>
-      <blockquote>
-        <blockquote>
-          <blockquote>
-            <p>&gt;</p>
-            <p>&gt;</p>
-          </blockquote>
-        </blockquote>
-      </blockquote>
-    </blockquote>
-  </blockquote>
-</blockquote>
-<p>RLEeHDxakX8J5Zp7GDCjaZvSNjyBYZl3MrjKQGuOlaE=
-seCZT/jwbgynt5/wbjG6pDESjN1CA4lF2yiL5KoaUGk=</p>
-<blockquote>
-  <p>tz3YeCiKJobmUf84bVN3t5b4wnqURtzRcST5</p>
-  <blockquote>
-    <blockquote>
-      <blockquote>
-        <blockquote>
-          <blockquote>
-            <p>&gt;</p>
-          </blockquote>
-        </blockquote>
-      </blockquote>
-    </blockquote>
-  </blockquote>
-</blockquote>
-<pre><code class="hljs bash language-bash">sudo apt install libsodium-dev libsecp256k1-dev libgmp-dev
-pip3 install git+https://github.com/baking-bad/pytezos
-</code></pre>
-<hr />
-<pre><code class="hljs bash language-bash">ZURE_KEYVAULT_URI=<span class="hljs-string">'https://keyvaulttest-keyvault.vault.azure.net'</span> node index.js --address 0.0.0.0
-</code></pre>
-<p>Generate unencrypted keys:</p>
-<pre><code class="hljs bash language-bash">tezos-client -A xxx gen keys test_p256 --force --sig p256
-&gt; tz3bTaf8H68dnTExvYgBcfx2nFU9kfHHxXzZ
-&gt; unencrypted:p2pk68L7YPVrEe1Fp4DjbxLv9adqDRMrmmsFxspKShNj8iaozaRV5CD
-&gt; unencrypted:p2sk44FcYdThs69sEEsRmvC2nGAgHfeExoyLqaq9HjRFQkGdVwo7BP 
-</code></pre>
-<pre><code class="hljs python language-python"><span class="hljs-keyword">import</span> base58check
-base58check.b58decode(<span class="hljs-string">b'p2sk44FcYdThs69sEEsRmvC2nGAgHfeExoyLqaq9HjRFQkGdVwo7BP'</span>).hex()[<span class="hljs-number">8</span>:<span class="hljs-number">72</span>]
-&gt; e1d751bd819cec377bc223de545f0fecd0bde857c06997997b2e912c9618d3b6
 </code></pre>
 <p>// TODO:</p>
 <pre><code class="hljs"><span class="hljs-keyword">No</span> <span class="hljs-keyword">access</span> was given yet <span class="hljs-keyword">to</span> the <span class="hljs-string">'TezosSigner-VM'</span>, because <span class="hljs-string">'--scope'</span> was <span class="hljs-keyword">not</span> provided. You should setup <span class="hljs-keyword">by</span> creating a <span class="hljs-keyword">role</span> assignment, e.g. <span class="hljs-string">'az role assignment create --assignee &lt;principal-id&gt; --role contributor -g TezosSigner-ResourceGroup'</span> would let it <span class="hljs-keyword">access</span> the <span class="hljs-keyword">current</span> resource <span class="hljs-keyword">group</span>. <span class="hljs-keyword">To</span> <span class="hljs-keyword">get</span> the pricipal id, run <span class="hljs-string">'az vm show -g TezosSigner-ResourceGroup -n TezosSigner-VM --query "identity.principalId" -otsv'</span>
@@ -474,7 +436,7 @@ https://github.com/bitcoinjs/bs58check</p>
         <hr>
         <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
         
-          <p class="timestamp">Page last updated Tuesday, Jun 11, 2019</p>
+          <p class="timestamp">Page last updated Wednesday, Jun 12, 2019</p>
         
       </div>
     </div><!-- #content -->
