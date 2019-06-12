@@ -381,10 +381,10 @@ Consider writing this on paper with e.g., the following format:
 
 ```
 59oER7LlKbJfNgmsPljYwg== # EXAMPLE DO NOT USE
-NNLUUNULULULULLLULLULL
+NNLUUNULULULULLLULLULLPP
 ```
 
-Where `N = number`, `L = lowercase` and `U = uppercase`. This will prevent confusing `0` with `O` or `5` with `S` when reading it back.
+Where `N = number`, `L = lowercase`, `U = uppercase` and `P = punctuation`. This will prevent confusing, e.g., `0` with `O` or `5` with `S` when reading it back.
 
 <note>
 Base 58 encoding helps eliminate this ambiguity but there is no base 58 software installed on Ubuntu by default.
@@ -392,7 +392,7 @@ Base 58 encoding helps eliminate this ambiguity but there is no base 58 software
 
 ###Generating your key
 
-You'll need to decide if you want to generate a `tz2` or `tz3` address for your baking operation. There is currently no practial difference between the two and Azure has support for both. Azure does not support `tz1` addresses.
+You'll need to decide if you want to generate a `tz2` or `tz3` address for your baking operation. There is currently no practical difference between the two and Azure has support for both. Azure does not support `tz1` addresses.
 
 To generate a `tz2` address:
 
