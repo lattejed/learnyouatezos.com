@@ -276,14 +276,14 @@ If you're using a new Mac with a T2 security chip, you may have to disable Secur
 </warning></p>
 <p>Consider writing this on paper with e.g., the following format:</p>
 <pre><code class="hljs"><span class="hljs-attribute">59oER7LlKbJfNgmsPljYwg</span>== # EXAMPLE <span class="hljs-keyword">DO</span> <span class="hljs-keyword">NOT</span> USE
-NNLUUNULULULULLLULLULL
+NNLUUNULULULULLLULLULLPP
 </code></pre>
-<p>Where <code>N = number</code>, <code>L = lowercase</code> and <code>U = uppercase</code>. This will prevent confusing <code>0</code> with <code>O</code> or <code>5</code> with <code>S</code> when reading it back.</p>
+<p>Where <code>N = number</code>, <code>L = lowercase</code>, <code>U = uppercase</code> and <code>P = punctuation</code>. This will prevent confusing, e.g., <code>0</code> with <code>O</code> or <code>5</code> with <code>S</code> when reading it back.</p>
 <p><note>
 Base 58 encoding helps eliminate this ambiguity but there is no base 58 software installed on Ubuntu by default.
 </note></p>
 <h3 id="generating-your-key">Generating your key</h3>
-<p>You'll need to decide if you want to generate a <code>tz2</code> or <code>tz3</code> address for your baking operation. There is currently no practial difference between the two and Azure has support for both. Azure does not support <code>tz1</code> addresses.</p>
+<p>You'll need to decide if you want to generate a <code>tz2</code> or <code>tz3</code> address for your baking operation. There is currently no practical difference between the two and Azure has support for both. Azure does not support <code>tz1</code> addresses.</p>
 <p>To generate a <code>tz2</code> address:</p>
 <pre><code class="hljs bash language-bash">openssl ecparam -genkey -name secp256k1 | openssl ec -aes256 -out secp256k1_sk.pem
 </code></pre>
