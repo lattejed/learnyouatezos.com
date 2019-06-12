@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Learn You a Tezos for Much Prosperity</title>
+  <link rel="shortcut icon" href="/static/img/blkstar.co.logo_128.bt.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <meta name="description" content="...">
+  <meta name="author" content="Matthew Smith">
+  <title>Latte, Jed?</title>
+  <link rel="stylesheet" href="/static/css/normalize.css?v=1.0">
+  <link rel="stylesheet" href="/static/css/dracula.css?v=1.0">
+  <link rel="stylesheet" href="/static/css/styles.css?v=1.0">
+</head>
+<body class="">
+  <div id="background">
+    <div id="content">
+
+<h1>Handling Protocol Upgrades</h1>
+
+<div class="navigation">
+  <ul>
+    <li style="text-align: left">
+      
+        <a id="prevlink" href="/baking-tezos-publicly.html">Baking Tezos Publicly</a>
+      
+    </li>
+    <li style="text-align: center">
+      <a href="/toc.html">Table of Contents</a>
+    </li>
+    <li style="text-align: right">
+      
+        <a id="nextlink" href="/smart-contracts.html">Smart Contracts</a>
+      
+    </li>
+  </ul>
+</div>
+
+<h3 id="handling-protocol-upgrades">Handling Protocol Upgrades</h3>
+<p>We're only going to handle the case of an active baker?</p>
+<p>History &amp; verifying snapshots:
+https://blog.nomadic-labs.com/release-of-mainnet-may.html</p>
+<pre><code class="hljs">tezos-<span class="hljs-keyword">node</span> <span class="hljs-title">snapshot</span> export alphanet-$(<span class="hljs-keyword">date</span> +%F).full
+tezos-<span class="hljs-keyword">node</span> <span class="hljs-title">snapshot</span> export alphanet-$(<span class="hljs-keyword">date</span> +%F).experimental-rolling --rolling
+</code></pre>
+<p>Upgrade:</p>
+<pre><code class="hljs">sudo systemctl <span class="hljs-literal">stop</span> tezos-<span class="hljs-keyword">node</span>.<span class="hljs-title">service</span>
+sudo systemctl status tezos-<span class="hljs-keyword">node</span>.<span class="hljs-title">service</span>
+&gt; Active: inactive (dead) ...
+</code></pre>
+<pre><code class="hljs">eval $(opam env)
+make clean
+make build-deps <span class="hljs-comment"># Answer Y at prompt &lt;~~ Some (minor) errors here, but overall success?</span>
+make &lt;~~ ended <span class="hljs-keyword">with</span> <span class="hljs-keyword">a</span> warning, seemed <span class="hljs-built_in">to</span> work ok
+</code></pre>
+<pre><code class="hljs"><span class="hljs-attr">sudo</span> <span class="hljs-string">apt install liblz4-tool -y</span>
+<span class="hljs-attr">wget</span> <span class="hljs-string">http://quicksync.tzdutch.com/mainnet-BLBkkYEhhPUk36marQSdYY3G6Aexi5YGGFFBoRNzriw6eTJw1da.full.tar.lz4</span>
+<span class="hljs-attr">lz4</span> <span class="hljs-string">-d mainnet-BLBkkYEhhPUk36marQSdYY3G6Aexi5YGGFFBoRNzriw6eTJw1da.full.tar.lz4 | tar xf -</span>
+<span class="hljs-comment">
+# cleanup</span>
+</code></pre>
+<pre><code class="hljs">cd <span class="hljs-selector-class">.tezos-node</span>
+rm -rf context/ protocol/ store/
+rm peers<span class="hljs-selector-class">.json</span> version<span class="hljs-selector-class">.json</span>
+cd -
+</code></pre>
+<p>NOTE: DO NOT delete <code>identity.json</code> unless you know what you're doing </p>
+<pre><code class="hljs">tezos-<span class="hljs-keyword">node</span> <span class="hljs-title">snapshot</span> import mainnet-BLBkkYEhhPUk36marQSdYY3G6Aexi5YGGFFBoRNzriw6eTJw1da.full
+</code></pre>
+<pre><code class="hljs">May <span class="hljs-number">28</span> <span class="hljs-number">09</span>:<span class="hljs-number">05</span>:<span class="hljs-number">15</span> - shell.snapshots: Importing data <span class="hljs-keyword">from</span> snapshot file mainnet-BLBkkYEhhPUk36marQSdYY3G6Aexi5YGGFFBoRNzriw6eTJw1da.full
+May <span class="hljs-number">28</span> <span class="hljs-number">09</span>:<span class="hljs-number">05</span>:<span class="hljs-number">15</span> - shell.snapshots: You may consider using the --block &lt;block_hash&gt; argument to verify that the block imported <span class="hljs-keyword">is</span> the one you expect
+May <span class="hljs-number">28</span> <span class="hljs-number">09</span>:<span class="hljs-number">05</span>:<span class="hljs-number">15</span> - shell.snapshots: Retrieving <span class="hljs-keyword">and</span> validating data. This can take a <span class="hljs-keyword">while</span>, please bear with us
+Context: <span class="hljs-number">1518</span>K elements, <span class="hljs-number">119</span>MiB read
+</code></pre>
+<pre><code class="hljs">May <span class="hljs-number">28</span> <span class="hljs-number">09</span>:<span class="hljs-number">14</span>:<span class="hljs-number">04</span> - shell.snapshots: Setting current head to block BLBkkYEhhPUk
+May <span class="hljs-number">28</span> <span class="hljs-number">09</span>:<span class="hljs-number">14</span>:<span class="hljs-number">05</span> - shell.snapshots: Setting history-mode to full
+May <span class="hljs-number">28</span> <span class="hljs-number">09</span>:<span class="hljs-number">14</span>:<span class="hljs-number">06</span> - shell.snapshots: Successful <span class="hljs-keyword">import</span> <span class="hljs-keyword">from</span> file mainnet-BLBkkYEhhPUk36marQSdYY3G6Aexi5YGGFFBoRNzriw6eTJw1da.full
+</code></pre>
+<pre><code class="hljs">rm BLBkkYEhhPUk<span class="hljs-number">36</span>marQSdYY<span class="hljs-number">3</span><span class="hljs-name">G6</span>Aexi<span class="hljs-number">5</span>YGGFFBoR<span class="hljs-symbol">Nzriw6</span>eTJw<span class="hljs-number">1</span>da.full
+</code></pre>
+<pre><code class="hljs">cd /etc/systemd/system/
+sudo mv tezos-accuser<span class="hljs-selector-class">.service</span> tezos-accuser-<span class="hljs-number">003</span><span class="hljs-selector-class">.service</span>
+sudo mv tezos-baker<span class="hljs-selector-class">.service</span> tezos-baker-<span class="hljs-number">003</span><span class="hljs-selector-class">.service</span>
+sudo mv tezos-endorser<span class="hljs-selector-class">.service</span> tezos-endorser-<span class="hljs-number">003</span><span class="hljs-selector-class">.service</span>
+
+sudo rm -r tezos-*<span class="hljs-selector-class">.service</span><span class="hljs-selector-class">.requires</span>
+
+sudo cp tezos-accuser-<span class="hljs-number">003</span><span class="hljs-selector-class">.service</span> tezos-accuser-<span class="hljs-number">004</span><span class="hljs-selector-class">.service</span>
+sudo cp tezos-baker-<span class="hljs-number">003</span><span class="hljs-selector-class">.service</span> tezos-baker-<span class="hljs-number">004</span><span class="hljs-selector-class">.service</span>
+sudo cp tezos-endorser-<span class="hljs-number">003</span><span class="hljs-selector-class">.service</span> tezos-ensorser-<span class="hljs-number">004</span><span class="hljs-selector-class">.service</span>
+</code></pre>
+<pre><code class="hljs">- ExecStart = /home/deploy/tezos/tezos-node run --rpc-addr <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>
++ ExecStart = /home/deploy/tezos/tezos-node run --rpc-addr <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span> --history-mode full
+- RequiredBy = tezos-baker<span class="hljs-selector-class">.service</span> tezos-endorser<span class="hljs-selector-class">.service</span> tezos-accuser<span class="hljs-selector-class">.service</span>
++ RequiredBy = tezos-baker-<span class="hljs-number">003</span><span class="hljs-selector-class">.service</span> tezos-endorser-<span class="hljs-number">003</span><span class="hljs-selector-class">.service</span> tezos-accuser-<span class="hljs-number">003</span><span class="hljs-selector-class">.service</span> tezos-baker-<span class="hljs-number">004</span><span class="hljs-selector-class">.service</span> tezos-endorser-<span class="hljs-number">004</span><span class="hljs-selector-class">.service</span> tezos-accuser-<span class="hljs-number">004</span><span class="hljs-selector-class">.service</span>
+</code></pre>
+<pre><code class="hljs">- ExecStart = /<span class="hljs-built_in">home</span>/deploy/tezos/tezos-accuser<span class="hljs-number">-003</span>-PsddFKi3 <span class="hljs-built_in">run</span>
++ ExecStart = /<span class="hljs-built_in">home</span>/deploy/tezos/tezos-accuser<span class="hljs-number">-004</span>-Pt24m4xi <span class="hljs-built_in">run</span>
+</code></pre>
+<pre><code class="hljs">- ExecStart = /home/deploy/tezos/tezos-baker-<span class="hljs-number">003</span>-PsddFKi3 run with local <span class="hljs-keyword">node</span> <span class="hljs-title">/home</span>/deploy/.tezos-<span class="hljs-keyword">node</span> <span class="hljs-title">baked_ledger</span>
++ ExecStart = /home/deploy/tezos/tezos-baker-<span class="hljs-number">004</span>-Pt24m4xi run with local <span class="hljs-keyword">node</span> <span class="hljs-title">/home</span>/deploy/.tezos-<span class="hljs-keyword">node</span> <span class="hljs-title">baked_ledger</span>
+</code></pre>
+<pre><code class="hljs">- ExecStart = /<span class="hljs-built_in">home</span>/deploy/tezos/tezos-endorser<span class="hljs-number">-003</span>-PsddFKi3 <span class="hljs-built_in">run</span> baked_ledger
++ ExecStart = /<span class="hljs-built_in">home</span>/deploy/tezos/tezos-endorser<span class="hljs-number">-004</span>-Pt24m4xi <span class="hljs-built_in">run</span> baked_ledger
+</code></pre>
+<pre><code class="hljs">sudo systemctl <span class="hljs-builtin-name">enable</span> tezos-node.service
+sudo systemctl <span class="hljs-builtin-name">enable</span> tezos-*-003.service
+sudo systemctl <span class="hljs-builtin-name">enable</span> tezos-*-004.service
+sudo systemctl daemon-reload
+</code></pre>
+<p>Other terminal:</p>
+<pre><code class="hljs">sudo tail -f /<span class="hljs-built_in">var</span>/<span class="hljs-built_in">log</span>/syslog 
+</code></pre>
+<pre><code class="hljs">sudo systemctl start tezos-node<span class="hljs-selector-class">.service</span>
+sudo systemctl start --all tezos-*-<span class="hljs-number">003</span><span class="hljs-selector-class">.service</span>
+sudo systemctl start --all tezos-*-<span class="hljs-number">004</span><span class="hljs-selector-class">.service</span>
+
+sudo systemctl status tezos-*<span class="hljs-selector-class">.service</span>
+</code></pre>
+<p>https://blog.nomadic-labs.com/introducing-snapshots-and-history-modes-for-the-tezos-node.html
+http://tezos.gitlab.io/master/releases/may-2019.html#activation-of-athens
+https://www.tzdutch.com/quicksync/#1542893582358-8174186e-15de
+https://blog.nomadic-labs.com/release-of-mainnet-may.html</p>
+<div class="navigation">
+  <ul>
+    <li style="text-align: left">
+      
+        <a id="prevlink" href="/baking-tezos-publicly.html">Baking Tezos Publicly</a>
+      
+    </li>
+    <li style="text-align: center">
+      <a href="/toc.html">Table of Contents</a>
+    </li>
+    <li style="text-align: right">
+      
+        <a id="nextlink" href="/smart-contracts.html">Smart Contracts</a>
+      
+    </li>
+  </ul>
+</div>
+
+      <div id="footer">
+        <hr>
+        <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
+        
+          <p class="timestamp">Page last updated Tuesday, Jun 11, 2019</p>
+        
+      </div>
+    </div><!-- #content -->
+  </div><!-- #background -->
+  <script src="/static/js/scripts.js"></script>
+</body>
+</html>

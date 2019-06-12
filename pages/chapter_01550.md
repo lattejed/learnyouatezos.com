@@ -10,6 +10,10 @@ We're only going to handle the case of an active baker?
 History & verifying snapshots:
 https://blog.nomadic-labs.com/release-of-mainnet-may.html
 
+```
+tezos-node snapshot export alphanet-$(date +%F).full
+tezos-node snapshot export alphanet-$(date +%F).experimental-rolling --rolling
+```
 
 Upgrade:
 
