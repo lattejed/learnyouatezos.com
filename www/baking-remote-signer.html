@@ -39,14 +39,14 @@
 <h2 id="remotesigners">Remote signers</h2>
 <p><highlight>[TODO: Tie this into previous discussion of security and baker topology]</highlight></p>
 <h3 id="why-an-hsm-">Why an HSM?</h3>
-<p>While baking is relatively straightforward, <em>key security</em> is not and necessitates an approach that usually means separating private keys from a baker, preferably residing in a hardware security module (HSM).</p>
+<p>While baking is relatively straightforward, <em>key security</em> is not and necessitates an approach that usually means separating private keys from a baker, ideally residing in a hardware security module (HSM).</p>
 <p>An HSM's primary security feature is that signing (and other cryptographic) operations take place on a dedicated hardward chip that contains your private key and handles operations <em>without your private key leaving the device.</em> The key material is not exposed to the attached computer, meaning a compromise of that computer does not leak your private key.</p>
 <p>Low cost, consumer-grade HSMs are common in the cryptocurrency world, with Ledger Nano being probably the most common. While Tezos signing (and wallet) software is avaiable for the Ledger, it requies a physical USB connection to a computer, requiring either the signing computer or the entire baking node reside in your home or office.</p>
-<p>While this can be simple and low-cost, it does require an always-avaiable internet connection, the ability to open ports to the public network and an uninterruptible power supply. In practice it's not easy to achieve high availability with this setup. Lots of things can go wrong, especially when the setup is unattended (e.g., you're on holiday).</p>
-<p>A cloud signer with an attached HSM is a solution to this problem, but dedicated HSMs are expensive to operate, really out of the range of any but the largest baking operations. </p>
-<p>However, Google Cloud KMS and Azure Key Vault <highlight>TODO: Check names</highlight> have started to offer per-use pricing that makes HSM-backed signing operations very inexpensive, making them affordable for even very small bakers.</p>
+<p>While this can be simple and low-cost, it does require an always-available internet connection, the ability to open ports to the public network and an uninterruptible power supply. In practice it's not easy to achieve high availability with this setup. Lots of things can go wrong, especially when the setup is unattended (e.g., you're on holiday).</p>
+<p>A cloud signer with an attached HSM is a solution to this problem, but dedicated HSMs are expensive to operate, out of the price range of any but the largest baking operations. </p>
+<p>However, Google Cloud KMS and Azure Key Vault have started to offer per-use pricing that makes HSM-backed signing operations very inexpensive, making them affordable for even very small bakers.</p>
 <h3 id="why-azure-">Why Azure?</h3>
-<p>As both Google and Microsoft's offerings are compaible with Tezos, the main consideration is whether or not private keys can be backed up. Azure allows for it and Google does not.</p>
+<p>As both Google and Microsoft's offerings are compatible with Tezos, the main consideration is whether or not private keys can be backed up. Azure allows for it and Google does not.</p>
 <p>It is <em>strongly not recommended</em> to use a cloud HSM service that does not allow for backing up of private keys. Ask yourself these questions:</p>
 <ol>
 <li>Do you trust this company to <em>never</em>, under any circumstances, lose your private key?</li>
@@ -54,32 +54,35 @@
 </ol>
 <p>The answer to both of those has to be no.</p>
 <p><note>
-To be precise, Azure does not allow you to back up your HSM-generated keys. The backup functionaly it has will only allow you to move your key within the same availability region. However, they do allow you to generate your own keys and import them. 
+To be precise, Azure does not allow you to back up your HSM-generated keys. The backup functionality will only allow you to move your key within the same availability region. However, they do allow you to generate your own keys and import them, which is what we're going to do.
 </note></p>
-<h3 id="baker-vm-signer-vm-hsm">Baker VM + signer VM + HSM</h3>
-<p>This setup calls for a separate baker and signer VM. It is possible run the signing service on the same VM as the baker, so why not do that? </p>
+<h3 id="two-vms-and-an-hsm-">Two VMs and an HSM?</h3>
+<p>This setup calls for a separate baker and signer VM. It is possible run the signing service on the same VM as the baker, so why not do that? The answer is it's less secure.</p>
 <ol>
-<li>An attacker who could gain access to your baker could sign any operation, including moving all of your Tezos to another address</li>
+<li>An attacker who could gain access to your baker could sign any operation, including moving all of your XTZ to another address</li>
 <li>Your baker <em>may</em> be known to the rest of the network, increasing the chances it is targeted for attack</li>
 <li>Running a separate signer allows you to whitelist baking and endorsing operations and require intervention for other operations (transfers, voting, etc.)</li>
 <li>A separate signer requires that <em>two</em> VMs are compromised before signing operations could be done by a rogue actor</li>
 </ol>
 <p>Since your signer will only be known to your baker, the baker itself would have to be accessed to discover the IP address. After that, your signer VM would also have to be compromised. </p>
-<p>To help offset this, the signing software dicussed here is very lightweight and can be run on the cheapest available VM.</p>
+<p>To help offset this, the signing software provided here is very lightweight and can be run on the cheapest available VM.</p>
+<p>This also allows for the entire signer to reside on Azure (which simplifies authentication for the signer and makes it more secure) while allowing you to run your baker node on another service, as the author does.</p>
 <h2 id="gettingstartedwithazure">Getting started with Azure</h2>
 <h3 id="get-an-azure-account">Get an Azure account</h3>
 <p>If you don't already have one, go here <a href="https://azure.microsoft.com/en-us/free">https://azure.microsoft.com/en-us/free</a> to get a new Azure account.</p>
-<p>You'll likely have to go through a privacy-violating ID verificaiton with a phone number <em>and</em> credit card, but given that you'll be supplying them with billing information anyway, it's a moot point.</p>
-<p>[TODO: Add 2FA setup]</p>
+<p>You'll likely have to go through a privacy-violating ID verification with a phone number <em>and</em> credit card, but given that you'll be supplying them with billing information anyway, it's a moot point.</p>
+<p>It is <em>strongly recommended</em> that you set up two-factor authentication (2FA) for the Microsoft account you use to access Azure. Someone gaining acess to you Azure account could change your security settings and allow access to your signer from a rogue computer. More info <a href="https://support.microsoft.com/en-us/help/12408/microsoft-account-how-to-use-two-step-verification">here</a>.</p>
 <h3 id="install-azure-cli">Install Azure CLI</h3>
-<p>It's recommended that you install the CLI on your local machine or on a local VM. It is <em>not recommended</em> to install the cli on the remote signer you'll provision nor your baker's VM. We'll be authenticating the CLI and having those credentails on a remote machine can be a security issue. </p>
+<p>It's recommended that you install the CLI on your local machine or on a local VM. It is <em>not recommended</em> to install the cli on the remote signer you'll provision nor your baker's VM. We'll be authenticating the CLI and having those credentials on a remote machine can be a security issue. </p>
 <p><note>
-VMs on a compromised machine <em>do not</em> protect you against keyloggers and other forms of malicious monitoring, though they offer some protection in the other direction (e.g., it's safter to browse malicious websites on a VM). If you are unsure of your local computer's security, you should at least do a clean install of your OS before continuing.
+Running a VM on your local computer <em>do not</em> protect you against key loggers and other forms of malicious monitoring. If you are unsure of your local computer's security, you should at least do a clean install of your OS before continuing.
 </note></p>
 <pre><code class="hljs bash language-bash">curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 </code></pre>
 <p>You may want to download the script and review it before running it. Alternately, you can install manually as outlined here: <a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest">https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest</a>.</p>
-<p>Note: if you see errors or warnings about default locale go to <a href="/appendix.html#ubuntu-locale-fix">learnyouatezos.com/appendix.html#ubuntu-locale-fix</a> to find a fix.</p>
+<p><note>
+If you see errors or warnings about default locale go to <a href="/appendix.html#ubuntu-locale-fix">learnyouatezos.com/appendix.html#ubuntu-locale-fix</a> to find a fix.
+</note></p>
 <p>Check the version of <code>az</code> and ensure it has some meaningful output and you don't get any errors:</p>
 <pre><code class="hljs bash language-bash">az --version
 </code></pre>
@@ -98,7 +101,7 @@ VMs on a compromised machine <em>do not</em> protect you against keyloggers and 
   }
 ]
 </code></pre>
-<p>Before you get started with the cli, decide what region to set up your signer in. You'll want to set up as close to your baker as possible.</p>
+<p>Before you get started with the cli, decide what region to set up your signer in. Usually, you'll want to set up as close to your baker as possible.</p>
 <p>A list of regions supporting Key Vault is here <a href="https://azure.microsoft.com/en-us/global-infrastructure/services/?products=key-vault">https://azure.microsoft.com/en-us/global-infrastructure/services/?products=key-vault</a>, but this list does not contain the identifiers that the cli expects.</p>
 <p>To find these, run the following command:</p>
 <pre><code class="hljs bash language-bash">az account list-locations | grep -A 5 <span class="hljs-string">"Southeast Asia"</span>
@@ -115,7 +118,7 @@ VMs on a compromised machine <em>do not</em> protect you against keyloggers and 
 <h3 id="create-a-resource-group">Create a resource group</h3>
 <p>Create a resource group, giving it the name of your choice and using the location we've just determined.</p>
 <pre><code class="hljs bash language-bash">az group create \
-    --name <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
+    --name TezosSigner-ResourceGroup \
     --location southeastasia
 </code></pre>
 <p>You should get a response that looks like this:</p>
@@ -127,8 +130,7 @@ VMs on a compromised machine <em>do not</em> protect you against keyloggers and 
   <span class="hljs-string">"properties"</span>: {
     <span class="hljs-string">"provisioningState"</span>: <span class="hljs-string">"Succeeded"</span>
   },
-  <span class="hljs-string">"tags"</span>: null,
-  <span class="hljs-string">"type"</span>: null
+  ...
 }
 </code></pre>
 <p>If you need to delete the resource group, you can use the command:</p>
@@ -139,12 +141,12 @@ This will delete <em>everything</em> inside the resource group. Only use this co
     --name <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
     --yes
 </code></pre>
-<h2 id="settingupavm">Setting up a VM</h2>
+<h2 id="settingupasignervm">Setting up a signer VM</h2>
 <h3 id="create-a-virtual-machine">Create a virtual machine</h3>
-<p>Next let's create the VM we'll be running out signer in. We use the <code>az vm create</code> command for this.</p>
+<p>Next let's create the VM we'll be running our signer in. We use the <code>az vm create</code> command for this. We won't do anything with this until later, but we'll need to get its public IP so we can set up the firewall of our Key Vault.</p>
 <pre><code class="hljs bash language-bash">az vm create \
-    --name <span class="hljs-string">"TezosSigner-VM"</span> \
-    --resource-group <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
+    --name TezosSigner-VM \
+    --resource-group TezosSigner-ResourceGroup \
     --image Canonical:UbuntuServer:18.04-LTS:latest \
     --size Standard_B1ls \
     --storage-sku Standard_LRS \
@@ -154,21 +156,29 @@ This will delete <em>everything</em> inside the resource group. Only use this co
     --ssh-key-values ~/.ssh/id_rsa.pub \
     --assign-identity
 </code></pre>
+<p><note>
+If you do not have a keypair set up for ssh (i.e., you don't have an <code>id_rsa.pub</code> present, run <code>ssh-keygen</code> first to create one.
+</note></p>
 <p>You should get output that looks like this:</p>
 <pre><code class="hljs bash language-bash">{
   ...
   <span class="hljs-string">"powerState"</span>: <span class="hljs-string">"VM running"</span>,
-  <span class="hljs-string">"privateIpAddress"</span>: &lt;Private IP Address&gt;,
-  <span class="hljs-string">"publicIpAddress"</span>: &lt;Public IP Address&gt;,
+  <span class="hljs-string">"privateIpAddress"</span>: &lt;private IP address&gt;,
+  <span class="hljs-string">"publicIpAddress"</span>: &lt;public IP address&gt;,
   ...
 }
 </code></pre>
 <p>You'll want to record your public IP address for future reference.</p>
+<p>You can also get the IP address with the following command:</p>
+<pre><code class="hljs bash language-bash">az vm list-ip-addresses \
+    --name TezosSigner-VM \
+    --resource-group TezosSigner-ResourceGroup
+</code></pre>
 <p>Test that you can log into your VM:</p>
-<pre><code class="hljs bash language-bash">ssh deploy@&lt;Public IP Address&gt;
+<pre><code class="hljs bash language-bash">ssh deploy@&lt;public IP address&gt;
 </code></pre>
 <p>You should have logged in successfully.</p>
-<h3 id="secure-virtual-machine">Secure Virtual Machine</h3>
+<h3 id="secure-your-vm">Secure your VM</h3>
 <p>Become root user:</p>
 <pre><code class="hljs bash language-bash">sudo -i
 </code></pre>
@@ -193,25 +203,121 @@ This will delete <em>everything</em> inside the resource group. Only use this co
     --resource-group <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
     --yes
 </code></pre>
+<h2 id="settingupyourkeyvaults">Setting up your Key Vaults</h2>
+<h3 id="create-a-key-vault">Create a Key Vault</h3>
+<p>Next, create a Key Vault that will contain your imported keys.</p>
+<pre><code class="hljs bash language-bash">az keyvault create \
+    --name TezosSigner-KeyVault \
+    --resource-group TezosSigner-ResourceGroup \
+    --location southeastasia \
+    --sku premium
+</code></pre>
+<p><note>
+<code>--sku premium</code> is mandatory as that will allow for HSM operations.
+</node></p>
+<p>You should get output that looks like this:</p>
+<pre><code class="hljs json language-json">{
+  ...
+  "properties": {
+    ...
+    "vaultUri": "https://tezossigner-keyvault.vault.azure.net/"
+  },
+  ...
+}
+</code></pre>
+<p>Record your vault URI.</p>
+<p><note>
+Make sure you copy down your vault URI as you'll need it to run your signer.
+</note></p>
+<p>If you need to delete the key vault, you can use the command:</p>
+<pre><code class="hljs bash language-bash">az keyvault delete \
+    --name TezosSigner-KeyVault
+</code></pre>
+<h3 id="set-up-key-vault-firewall">Set up Key Vault firewall</h3>
+<p>This is a multi-step process, but is <em>strongly recommended</em> as it will secure the connection between your signer VM and your Key Vault.</p>
+<p>First, get a list of virtual networks in your resource group:</p>
+<pre><code class="hljs bash language-bash">az network vnet list \
+    --resource-group TezosSigner-ResourceGroup
+</code></pre>
+<p>Your output will look like this:</p>
+<pre><code class="hljs json language-json">[
+  {
+    ...
+    "name": "TezosSigner-VMVNET",
+    ...
+    "subnets": [
+      {
+        ...
+        "name": "TezosSigner-VMSubnet",
+        ...
+      }
+    ],
+    ...
+  }
+]
+</code></pre>
+<p>We want to record the virtual network name as well as the subnet name.</p>
+<p>Next, we need to add a Key Vault service endpoint to our subnet. Use the following command, filling in your values as necessary:</p>
+<pre><code class="hljs bash language-bash">az network vnet subnet update \
+    --resource-group TezosSigner-ResourceGroup \
+    --vnet-name TezosSigner-VMVNET \
+    --name TezosSigner-VMSubnet \
+    --service-endpoints <span class="hljs-string">"Microsoft.KeyVault"</span>
+</code></pre>
+<p>Next, add the subnet to your Key Vault's firewall:</p>
+<pre><code class="hljs bash language-bash">az keyvault network-rule add \
+    --name TezosSigner-KeyVault \
+    --vnet-name TezosSigner-VMVNET \
+    --subnet TezosSigner-VMSubnet
+</code></pre>
+<p>Then add the public IP address of your signer VM:</p>
+<pre><code class="hljs bash language-bash">az keyvault network-rule add \
+    --name TezosSigner-KeyVault \
+    --ip-address &lt;public IP address of signer VM&gt;
+</code></pre>
+<p>To activate the firewall, set the default action to <code>Deny</code>:</p>
+<pre><code class="hljs bash language-bash">az keyvault update \
+    --name TezosSigner-KeyVault \
+    --default-action Deny
+</code></pre>
+<p>To ensure your firewall is active, run the following command:</p>
+<pre><code class="hljs bash language-bash">az keyvault network-rule list \
+    --name TezosSigner-KeyVault
+</code></pre>
+<p>Your output should look like this:</p>
+<pre><code class="hljs json language-json">{
+  "bypass": "AzureServices",
+  "defaultAction": "Deny",
+  "ipRules": [
+    {
+      "value": "&lt;public IP address of VM&gt;"
+    }
+  ],
+  "virtualNetworkRules": [
+    {
+      "id": "/&lt;path&gt;/tezossigner-vmvnet/subnets/tezossigner-vmsubnet",
+      ...
+    }
+  ]
+}
+</code></pre>
+<p>Ensure that the default action is <code>Deny</code> and that your subnet and signer's IP address are listed.</p>
 <h2 id="generatingprivatekeys">Generating private keys</h2>
 <p><warning>
-Key security is a very big topic. The guidelines here offer one possible way to securely create and backup keys. They are not bulletproof and only represent an acceptable level of security for the author, for the author's own needs. It is strongly recommended that you research best practices on your own. If your private keys are controlling non-trivial amounts of Tezos, you should consider hiring a security consultant.
+Key security is a very big topic. The guidelines here offer one possible way to securely create and backup keys. They are not bulletproof and only represent an acceptable level of security for the author, for the author's own needs. It is strongly recommended that you research best practices on your own. If your private keys are controlling non-trivial amounts of XTZ, you should consider hiring a security consultant.
 </warning></p>
 <p>To generate and back up keys securely, we're going to use the following procedure:</p>
 <ol>
 <li>Download and create a fresh installation of Ubuntu 18.04 on a USB drive</li>
 <li>Run that on an air-gapped computer</li>
-<li>Create strong passphrases using <code>openssl</code> to encrypt our keys</li>
-<li>Create our keys using <code>openssl</code></li>
-<li>Back up our keys and passphrases in separate locations</li>
-<li>Delete our UBS key</li>
+<li>Create strong passphrase using <code>openssl</code> to encrypt our key</li>
+<li>Create our key using <code>openssl</code></li>
+<li>Back up our key and passphrase in separate locations</li>
+<li>Wipe our USB key</li>
 </ol>
 <p>This procedure is not flawless, but it is what the author considers acceptable and uses for his own keys. </p>
 <h3 id="download-ubuntu-18-04">Download Ubuntu 18.04</h3>
-<p>We're going to first download Ubuntun 18.04 <em>desktop</em> edition. It has to be the desktop edeition in order to run it as a live CD (UBS). </p>
-<p><note>
-If you do have a CD burner creating an actual live CD offers better sercurity, providedd it is a write-once CD. Since CD burners are less common these days, the instructions here are for a UBS drive.
-</node></p>
+<p>We're going to first download Ubuntu 18.04 <em>desktop</em> edition. It has to be the desktop edition in order to run it as a live CD (USB).</p>
 <p>Search for "Ubuntu download". A link is not provided here as that opens up an avenue for attack. Ensure that the link you follow is on <code>https://ubunutu.com</code> and that your browser indicates that it is a secure connection. The actual download should be labeled "Ubuntu 18.04.2 LTS". </p>
 <p>On that page should be instructions for verifying the download once it is complete. It will look something like:</p>
 <p>On Linux:</p>
@@ -225,6 +331,9 @@ If your local machine doesn't have <code>sha256sum</code> installed, you can use
 </code></pre>
 <h3 id="creating-a-usb-drive">Creating a USB drive</h3>
 <p>You'll need a USB drive that will fit the ISO you downloaded. Plug that into your computer and run the following command:</p>
+<p><note>
+The <code>diskutil</code> command is macOS-specific. If you are on Linux, use <code>sudo fdisk -l</code> instead.
+</note></p>
 <pre><code class="hljs bash language-bash">diskutil list
 </code></pre>
 <p>You'll get a lot of output, look for something like:</p>
@@ -266,24 +375,24 @@ If you're using a new Mac with a T2 security chip, you may have to disable Secur
 <pre><code class="hljs bash language-bash">openssl rand -base64 16
 &gt; 59oER7LlKbJfNgmsPljYwg== <span class="hljs-comment"># EXAMPLE DO NOT USE</span>
 </code></pre>
-<p>Creating a passphrase 16 bytes long will give us 128 bits of entropy, which should be impossible to brute force if your private keys are ever stolen. </p>
+<p>Creating a passphrase of 16 random bytes will give us 128 bits of entropy, which should be impossible to brute force if your private keys are ever stolen. </p>
 <p><warning>
 <em>Do not</em> use a normal password to encrypt your private key. Using a normal password opens your key up to brute force decryption. Using 16 random <em>bytes</em> is not the same as using a password that is 16 characters long.
 </warning></p>
 <p>Carefull copy your passphrase to a piece of paper that you can store securely. </p>
 <p><warning>
-<em>Do not</em> take a photograph of your passphrase, print it out or store it in a password manager. These open up more avenues of attack than storing a physical copy.
+<em>Do not</em> take a photograph of your passphrase, print it out or store it in a password manager. These open up more avenues of attack than storing a hand written copy.
 </warning></p>
 <p>Consider writing this on paper with e.g., the following format:</p>
-<pre><code class="hljs"><span class="hljs-attribute">59oER7LlKbJfNgmsPljYwg</span>== # EXAMPLE <span class="hljs-keyword">DO</span> <span class="hljs-keyword">NOT</span> USE
+<pre><code class="hljs bash language-bash">59oER7LlKbJfNgmsPljYwg== <span class="hljs-comment"># EXAMPLE DO NOT USE</span>
 NNLUUNULULULULLLULLULLPP
 </code></pre>
-<p>Where <code>N = number</code>, <code>L = lowercase</code>, <code>U = uppercase</code> and <code>P = punctuation</code>. This will prevent confusing, e.g., <code>0</code> with <code>O</code> or <code>5</code> with <code>S</code> when reading it back.</p>
+<p>Where <code>N = number</code>, <code>L = lowercase</code>, <code>U = uppercase</code> and <code>P = punctuation</code>. This will prevent confusing <code>0</code> with <code>O</code> or <code>5</code> with <code>S</code> when reading it back.</p>
 <p><note>
 Base 58 encoding helps eliminate this ambiguity but there is no base 58 software installed on Ubuntu by default.
 </note></p>
 <h3 id="generating-your-key">Generating your key</h3>
-<p>You'll need to decide if you want to generate a <code>tz2</code> or <code>tz3</code> address for your baking operation. There is currently no practical difference between the two and Azure has support for both. Azure does not support <code>tz1</code> addresses.</p>
+<p>You'll need to decide if you want to generate a <code>tz2</code> or <code>tz3</code> address for your baking operation. There is currently no practial difference between the two and Azure has support for both. Azure does not support <code>tz1</code> addresses.</p>
 <p>To generate a <code>tz2</code> address:</p>
 <pre><code class="hljs bash language-bash">openssl ecparam -genkey -name secp256k1 | openssl ec -aes256 -out secp256k1_sk.pem
 </code></pre>
@@ -292,40 +401,42 @@ Base 58 encoding helps eliminate this ambiguity but there is no base 58 software
 </code></pre>
 <p>You'll be prompted to enter your passphrase that was generated in the previous step.</p>
 <h3 id="testing-your-passphrase">Testing your passphrase</h3>
-<p>Before you use your copy your key to a USB drive, you should test that your passphrase was recorded correctly. </p>
-<pre><code class="hljs bash language-bash">openssl ec -check -noout -<span class="hljs-keyword">in</span> &lt;keyname&gt;.pem
+<p>Before you copy your key to a USB drive, you should test that your passphrase was recorded correctly. </p>
+<p><warning>
+<em>Do not</em> copy and paste the passphrase for this step. You want to ensure that your phyiscal backup has been recorded correctly. Read it from your backup and type it in by hand.
+</warning></p>
+<pre><code class="hljs plaintext language-plaintext">openssl ec -check -noout -in &lt;key file&gt;.pem
 </code></pre>
 <p>After entering your passphrase, the response should be:</p>
-<pre><code class="hljs bash language-bash">EC Key valid.
+<pre><code class="hljs plaintext language-plaintext">EC Key valid.
 </code></pre>
 <p>If it is not, start over from the beginning.</p>
 <h3 id="securing-your-key">Securing your key</h3>
-<p>It's strongly recommended that you back up your key redundantly (e.g., mutliple USB drives in multiple secure locations). Your passphrase should also be backed up in a separate secure location.</p>
+<p>It's strongly recommended that you back up your key redundantly (e.g., mutliple USB drives in multiple secure locations). Your passphrase should also be backed up in a <em>separate</em> secure location.</p>
 <p><warning>
-If you lose your key <em>or</em> your passphrase the associated <code>tz</code> address can <em>never be</em> recovered. If you have any XTZ in that address, it will be lost forever. It is not possible, by design, to recover a passphrase or a key using any method.
+If you lose your key <em>or</em> your passphrase the associated <code>tz</code> address can <em>never be</em> recovered. If you have any XTZ in that address, it will be lost forever.
 </warning></p>
 <p><warning>
 If someone were to find your key and passphrase, they would have full access to the associated <code>tz</code> address. 
 </warning></p>
 <h3 id="clean-up">Clean up</h3>
-<p>You should delete the contents of the USB drive containing Ubuntu.</p>
-<pre><code class="hljs bash language-bash">sudo dd <span class="hljs-keyword">if</span>=/dev/urandom of=/dev/disk2 bs=10M
+<p>You should wipe the contents of the USB drive containing Ubuntu.</p>
+<pre><code class="hljs bash language-bash">sudo dd <span class="hljs-keyword">if</span>=/dev/urandom of=/dev/disk2 bs=10m
 </code></pre>
 <p>Again, <em>double check</em> that this is the correct drive using the procedure above. This is a destructive procedure.</p>
 <p>This operation will take a long time, depending on the size of your device.</p>
 <h2 id="azurekeyimport">Azure key import</h2>
 <p>Now that we've securely generated our key and passphrase, we can import our key into the Azure Key Vault. We're going to follow a procedure very similar to the one we used for generating our keys, except this time we will not be able to air-gap this computer as it needs to talk to Azure.</p>
 <p><warning>
-Azure Key Vault does not offer a way to import keys encrypted with an Azure public key, which would be more secure than this method. That means your private key (and passphrase) will exist, in unencrypted form, in your machine's RAM until your computer is rebooted. As this procedure will run on a fresh Ubuntu install and the live CD (USB) will be wiped immediately aftewards, the author believes this is adequately secure for this purpose. If you are dealing with non-trivial amounts of XTZ, you should hire a security consultant.
+Azure Key Vault does not offer a way to import keys with a key pair, which would be more secure than this method. That means your private key (and passphrase) will exist, in unencrypted form, in your machine's RAM until your computer is rebooted. If you are dealing with non-trivial amounts of XTZ, you should hire a security consultant.
 </warning></p>
 <p>This time, we will:</p>
 <ol>
 <li>Create a fresh installation of Ubuntu 18.04 on a USB drive</li>
 <li>Run that on a computer with a network connection</li>
-<li>Install the Azure CLI</li>
-<li>Authenticate the CLI</li>
+<li>Install and authenticate the Azure CLI</li>
 <li>Import our key to Azure</li>
-<li>Delete our UBS key</li>
+<li>Wipe our USB key</li>
 </ol>
 <p><note>
 Ubuntu tends to be picky about WiFi adaptors. If possible, use a machine with a wired ethernet connection.
@@ -340,66 +451,117 @@ az login
 <p>Open a browser to the url that is returned and enter the code given.</p>
 <h3 id="import-your-key">Import your key</h3>
 <p>Use the following commands, adding in your desired key name, the name of the vault you've already created and the path to the encrypted <code>pem</code> file you've backed up on USB.</p>
-<pre><code class="hljs bash language-bash">KEY_NAME=<span class="hljs-string">'&lt;A name for your key&gt;'</span>; \
-VAULT_NAME=<span class="hljs-string">'&lt;The name of your Key Vault&gt;'</span>; \
-PEM_FILE=<span class="hljs-string">'&lt;The path to your pem file&gt;'</span>; \
-<span class="hljs-built_in">read</span> -sp <span class="hljs-string">"Passphrase: "</span> PASS; <span class="hljs-built_in">echo</span>; \
+<p>If you're creating a <code>tz2</code> address, you could use the following:</p>
+<pre><code class="hljs bash language-bash"><span class="hljs-built_in">read</span> -sp <span class="hljs-string">"Passphrase: "</span> PASS; <span class="hljs-built_in">echo</span>; \
 az keyvault key import \
-    --name <span class="hljs-string">"<span class="hljs-variable">$KEY_NAME</span>"</span> \
-    --vault-name <span class="hljs-string">"<span class="hljs-variable">$VAULT_NAME</span>"</span> \
+    --name TezosSigner-KeyP256K \
+    --vault-name TezosSigner-KeyVault \
     --ops sign \
-    --pem-file <span class="hljs-string">"<span class="hljs-variable">$PEM_FILE</span>"</span>.pem \
+    --pem-file secp256k1_sk.pem \
     --pem-password <span class="hljs-string">"<span class="hljs-variable">$PASS</span>"</span> \
     --protection hsm; \
 <span class="hljs-built_in">unset</span> PASS
 </code></pre>
-<p><warn>
+<p>If you're creating a <code>tz3</code> address:</p>
+<pre><code class="hljs bash language-bash"><span class="hljs-built_in">read</span> -sp <span class="hljs-string">"Passphrase: "</span> PASS; <span class="hljs-built_in">echo</span>; \
+az keyvault key import \
+    --name TezosSigner-KeyP256 \
+    --vault-name TezosSigner-KeyVault \
+    --ops sign \
+    --pem-file prime256v1_sk.pem \
+    --pem-password <span class="hljs-string">"<span class="hljs-variable">$PASS</span>"</span> \
+    --protection hsm; \
+<span class="hljs-built_in">unset</span> PASS
+</code></pre>
+<p><warning>
 Do not copy and paste your passphrase from somewhere. Type it in by hand from the piece of paper you've written it on, which is the only place it should exist.
-</warn></p>
-<p>After the command has finished, verify that the key imported:</p>
-<pre><code class="hljs bash language-bash">az keyvault key list \ 
-    --vault-name YourKeyVaultName
-</code></pre>
-<p>You should see output like this:</p>
-<pre><code class="hljs json language-json">{
+</warning></p>
+<p>You should get output that looks like:</p>
+<pre><code class="hljs bash language-bash">{
+  ...
+  <span class="hljs-string">"key"</span>: {
+    <span class="hljs-string">"crv"</span>: <span class="hljs-string">"P-256"</span>,
     ...
+    <span class="hljs-string">"keyOps"</span>: [
+      <span class="hljs-string">"sign"</span>
+    ],
+    <span class="hljs-string">"kid"</span>: <span class="hljs-string">"https://&lt;URI&gt;/keys/TezosSigner-KeyP256/&lt;ID&gt;"</span>,
+    <span class="hljs-string">"kty"</span>: <span class="hljs-string">"EC-HSM"</span>,
+    ...
+  },
+  ...
 }
 </code></pre>
-<p>If you see it, remote your USB drive(s) and reboot your computer.</p>
+<p>Note the <code>crv</code> value, which should be <code>SECP256K1</code> for a <code>tz2</code> key and <code>P-256</code> for a <code>tz3</code> key.</p>
+<p>Also take note of the <code>kty</code> property. Make sure that it is <code>EC-HSM</code> which means an elliptic curve key with HSM storage.</p>
+<p>If you need to delete a key and start over, use e.g.:</p>
+<pre><code class="hljs bash language-bash">az keyvault key delete \
+    --name TezosSigner-KeyP256K \
+    --vault-name TezosSigner-KeyVault
+</code></pre>
+<p>To list keys:</p>
+<pre><code class="hljs bash language-bash">az keyvault key list \
+    --vault-name TezosSigner-KeyVault
+</code></pre>
+<p>Now, remove your USB drive(s) and reboot your computer.</p>
 <h3 id="clean-up">Clean up</h3>
-<p><highlight>TODO:</highlight></p>
-<pre><code class="hljs bash language-bash">az account show
-{
-  ...
-  <span class="hljs-string">"id"</span>: <span class="hljs-string">"600cbff5-ab52-43ca-9dd6-0a3bd4401169"</span>,
-  ...
-}
+<p>It is <em>strongly recommended</em> that you wipe the contents of the USB drive 
+containing Ubuntu.</p>
+<pre><code class="hljs bash language-bash">sudo dd <span class="hljs-keyword">if</span>=/dev/urandom of=/dev/disk2 bs=10m
 </code></pre>
-<pre><code class="hljs"><span class="hljs-built_in">npm</span> audit
+<p>Again, <em>double check</em> that this is the correct drive using the procedure above. This is a destructive procedure.</p>
+<p>This operation will take a long time, depending on the size of your device.</p>
+<h2 id="settingupsigningsoftware">Setting up signing software</h2>
+<p>The author has created signing software for this application with the following features:</p>
+<ol>
+<li>Supports <code>tz2</code> and <code>tz3</code> addresses</li>
+<li>Allows whitelisting operations (e.g., baking and endorsing)</li>
+<li>Checks high-water marks to ensure that it doesn't double-bake or double-endorse</li>
+<li>Has a built in client to authorize other operations (transfers, voting, etc.)</li>
+<li>The default settings are the most secure</li>
+</ol>
+<p>Non-features:</p>
+<ol>
+<li>Does not support high-availabilty setups where more than one baker or signer may be operating at the same time.</li>
+</ol>
+<h3 id="why-node-js-">Why Node.js?</h3>
+<p>A number of existing signers use the Python scripting language, so why use JavaScript instead? In short, Node has a more user-friendly system for handling versioning and package management. Installing Node and NPM-based software is hassle free in general.</p>
+<h3 id="node-js-security-">Node.js security?</h3>
+<p>There have been a couple of recent cases of popular packages having malicious code added to them to target cryptocurrency private keys. The reasons the author still considers Node acceptable for this purpose:</p>
+<ol>
+<li>These exploits targeted popular wallets and <em>private keys</em>. This signer <em>does not</em> have access to your private keys</li>
+<li>The group behind the NPM package manager maintains security audits of popular packages, updated regularly</li>
+<li>Using <code>npm shinkwrap</code> ensures that the signer is installed with known safe versions of its dependencies</li>
+</ol>
+<p>You can run npm audit yourself:</p>
+<pre><code class="hljs bash language-bash">npm audit
 </code></pre>
-<pre><code class="hljs">                       === npm audit security report ===
-
-found <span class="hljs-number">0</span> vulnerabilities
- <span class="hljs-keyword">in</span> <span class="hljs-number">1098</span> scanned packages
+<p>The output should look like:</p>
+<pre><code class="hljs bash language-bash">...
+found 0 vulnerabilities
+ <span class="hljs-keyword">in</span> 1098 scanned packages
 </code></pre>
-<pre><code class="hljs"><span class="hljs-built_in">npm</span> shrinkwrap
+<h3 id="installing-node-js">Installing Node.js</h3>
+<p>We're going to install Node version 10. We first need to add the repository and then install.</p>
+<pre><code class="hljs bash language-bash">curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt-get install -y nodejs
 </code></pre>
-<pre><code class="hljs">npm <span class="hljs-keyword">notice</span> package-<span class="hljs-keyword">lock</span>.json has been renamed <span class="hljs-keyword">to</span> npm-shrinkwrap.json. npm-shrinkwrap.json will be used <span class="hljs-keyword">for</span> future installations.
+<p>If you have objections to piping installation scripts to bash, you can find instructions for manually installing here: <a href="https://github.com/nodesource/distributions/blob/master/README.md">https://github.com/nodesource/distributions/blob/master/README.md</a>.</p>
+<p>Confirm installation:</p>
+<pre><code class="hljs bash language-bash">node --version <span class="hljs-comment"># </span>
+npm --version <span class="hljs-comment">#</span>
 </code></pre>
-<p>You'll first need to create a resource group:</p>
-<pre><code class="hljs bash language-bash">az group create --name <span class="hljs-string">"KeyVaultTest-ResourceGroup"</span> --location southeastasia
+<h3 id="installing-the-signer">Installing the signer</h3>
+<p>SSH into your signer VM, if you haven't already:</p>
+<pre><code class="hljs bash language-bash">ssh deploy@&lt;signer IP address&gt;
 </code></pre>
-<p>In the response ensure you see our new group with the property <code>provisioningState: Succeeded</code>. </p>
-<p>Now, create a Key Vault:</p>
-<pre><code class="hljs bash language-bash">az keyvault create \
-    --name <span class="hljs-string">"KeyVaultTest-KeyVault"</span> \
-    --resource-group <span class="hljs-string">"KeyVaultTest-ResourceGroup"</span> \
-    --location southeastasia \
-    --sku premium
+<pre><code class="hljs bash language-bash">git <span class="hljs-built_in">clone</span> https://github.com/lattejed/tezos-azure-hsm-signer.git
+<span class="hljs-built_in">cd</span> tezos-azure-hsm-signer
+npm install
 </code></pre>
-<p><note>
-<code>--sku premium</code> is mandatory as that will allow for HSM operations.
-</node></p>
+<p>We're first going to test out operation. You'll need the Azure Key Vault URI from when we setup our Key Vault above. It should look like <code>https://&lt;...&gt;.vault.azure.net/</code>.</p>
+<pre><code class="hljs bash language-bash">AZURE_KEYVAULT_URI=<span class="hljs-string">'https://my-keyvault.azure.com'</span> node server.js
+</code></pre>
 <p>You'll get a lot of output, but you'll want to record the <code>vaultUri</code> property, which should look something like: <code>https://&lt;...&gt;.vault.azure.net/</code>.  </p>
 <p><code>EC-HSM</code> and <code>P-256K</code> should create a <code>tz2</code> key.</p>
 <pre><code class="hljs bash language-bash">az keyvault key create \
@@ -492,7 +654,7 @@ https://github.com/bitcoinjs/bs58check</p>
         <hr>
         <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
         
-          <p class="timestamp">Page last updated Wednesday, Jun 12, 2019</p>
+          <p class="timestamp">Page last updated Thursday, Jun 13, 2019</p>
         
       </div>
     </div><!-- #content -->
