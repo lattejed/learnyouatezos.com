@@ -4,7 +4,6 @@
 }
 
 html, body {
-  width: 100%;
   margin: 0;
   padding: 0;
 }
@@ -13,17 +12,17 @@ body {
   font-family: Tahoma, Arial, sans-serif;
   color: rgb(29, 31, 33);
   line-height: 1.5em;
+}
+
+#color-strip {
+  min-width: 800px;
+  height: 20px;
   background: url(/static/img/background.png);
 }
 
 h1, h2, h3, h4, h5 {
   margin-top: 2em;
   line-height: 1em;
-}
-
-#background {
-  background: #FFFFFF;
-  margin: 20px 0;
 }
 
 #content {
