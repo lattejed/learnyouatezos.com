@@ -3,14 +3,14 @@ template: page
 title: Installing a Tezos node
 ---
 
-###Installing on Ubuntu (18.x)
+## Installing on Ubuntu (18.x)
 
 Fresh install 18.04.2 (ON DO)
 
 
 
 
-Lock down Ubuntu 
+Lock down Ubuntu
 ```bash
 ssh root@<ip address>
 curl -sO https://gist.githubusercontent.com/lattejed/5047d9f85896b8946c7d/raw/ubuntu_basic_setup_do.sh && bash ubuntu_basic_setup_do.sh
@@ -50,7 +50,7 @@ curl -s https://gist.githubusercontent.com/lattejed/60ebc7ef7d82b8323e3ad9b562bb
 ```
 
 ```bash
-sudo apt update 
+sudo apt update
 ```
 
 ```bash
@@ -58,7 +58,7 @@ sudo apt install -y rsync git m4 build-essential patch unzip bubblewrap wget pkg
 ```
 
 
-> If bubblewrap is not available in your distribution you can also skip it and init opam with --disable-sandbox. 
+> If bubblewrap is not available in your distribution you can also skip it and init opam with --disable-sandbox.
 > `which` may not show up as a package but it's also most likely already installed
 
 ```bash
@@ -121,7 +121,7 @@ TODO: History modes:
 
 1. Appropriateness
 2. Sync speed
-3. 
+3.
 
 Locally:
 Started syncing at 15:18 May 25 - finished sometime before 16:53 <~~ failed to resync the second time for a very long time
@@ -132,7 +132,7 @@ Syncing may appear to start slowly, with `BLockGenesis` as current head for a lo
 
 
 Remote:
-19:16 27 May - 
+19:16 27 May -
 
 ```bash
 tezos-client bootstrapped
@@ -142,7 +142,7 @@ tezos-client bootstrapped
 NOTE: If CPU is maxed out, the bootstrap command can return successful even if it's not
 
 ```bash
-tezos-client gen keys local --sig secp256k1 --force 
+tezos-client gen keys local --sig secp256k1 --force
 tezos-client list known addresses
 ```
 
@@ -167,7 +167,7 @@ Copy wallet JSON to file `faucet_wallet.json`
 ```bash
 tezos-client activate account my_faucet_2 with "faucet_wallet_2.json"
 > This will wait on alphanet
-> 
+>
 > Operation successfully injected in the node.
 > Operation hash is 'op7mihw1uoybFBBRyeEjzEsYYtX1gLptpWkZu8PThDcCdV8vbpq'
 > Waiting for the operation to be included...
@@ -186,8 +186,8 @@ Unix.Unix_error(Unix.EAGAIN, "launch_thread", "")
 
 >> Unix.EAGAIN <-- may be 100% mem or CPU usage
 >> 2GB / 1 CPU is too small, hitting both CPU and MEM limits
->> Trying 4GB / 2 CPU 
->> 
+>> Trying 4GB / 2 CPU
+>>
 
 // not enough in one account:
 tezos-client transfer 35096.918915 from secondary to primary --dry-run
@@ -199,7 +199,7 @@ tezos-client transfer 35096.918915 from secondary to primary --dry-run
 Fatal error:
   The operation will burn 0.257 which is higher than the configured burn cap ( 0).
    Use `--burn-cap 0.257` to emit this operation.
-   
+
 tezos-client set delegate for azure_tz3 to azure_tz3
 
 ```bash
@@ -225,14 +225,14 @@ Error:
         "Error while applying operation ooukGv44JRkeYXG48JKW9RjhaEQf2rqYvNni4aUN7tyHH6eUSPi:\nrefused (Error:\n           Invalid activation. The public key tz1aiRi3UMWAcq4qg9oPfD2xAZisavD8A1QS does not match any commitment.\n)" }
 ```
 
-Copy the operation hash 
+Copy the operation hash
 https://alphanet.tzscan.io/op7mihw1uoybFBBRyeEjzEsYYtX1gLptpWkZu8PThDcCdV8vbpq
 
 ```bash
-tezos-client get balance for faucet 
+tezos-client get balance for faucet
 ```
 
-View address (before activation) 
+View address (before activation)
 https://alphanet.tzscan.io/tz1aiRi3UMWAcq4qg9oPfD2xAZisavD8A1QS
 
 Balance is 0
@@ -250,11 +250,11 @@ Balance is 0
 ```
 
 
-###Installing on macOS (10.x)
+## Installing on macOS (10.x)
 
-###Other platforms (Some generic info)
+## Other platforms (Some generic info)
 
-###Setting up env. vars, autocompletion
+## Setting up env. vars, autocompletion
 
 
 
@@ -263,4 +263,3 @@ Balance is 0
 #ZERONET NOTES
 
 Upgrade step -- if you get prompted about service restarts (pink screen) select 'yes'
-

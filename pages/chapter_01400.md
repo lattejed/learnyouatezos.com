@@ -3,18 +3,18 @@ template: page
 title: Baking Tezos Privately
 ---
 
-###Requirements
+## Requirements
 
-###Minimal security
+## Minimal security
 
-###HSM, local signer, local node?
+## HSM, local signer, local node?
 
-###Advanced security
+## Advanced security
 
-###Operating at scale (no info given) 
+## Operating at scale (no info given)
 
-###Adding a baker to a node 
+## Adding a baker to a node
 
-###Using systemd (or equivalent)
+## Using systemd (or equivalent)
 
-###Monitoring
+## Monitoring

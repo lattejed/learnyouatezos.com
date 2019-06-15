@@ -3,10 +3,10 @@ template: page
 title: Deploying A Smart Contract
 ---
 
-###Deploying an actual contract to mainnet 
+## Deploying an actual contract to mainnet
 
-###Interacting with actual contract 
+## Interacting with actual contract
 
-###Calculating / estimating fees 
+## Calculating / estimating fees
 
-###Storage / gas costs 
+## Storage / gas costs

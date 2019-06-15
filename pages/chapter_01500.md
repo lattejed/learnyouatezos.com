@@ -3,8 +3,8 @@ template: page
 title: Baking Tezos Publicly
 ---
 
-###Payment tools
+## Payment tools
 
-###Estimating bond requirements (script, rules of thumb)
+## Estimating bond requirements (script, rules of thumb)
 
-###Managing bond; being a good Tezos citizen
+## Managing bond; being a good Tezos citizen

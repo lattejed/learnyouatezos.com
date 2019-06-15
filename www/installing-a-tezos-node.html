@@ -36,9 +36,9 @@
   </ul>
 </div>
 
-<h3 id="installingonubuntu18x">Installing on Ubuntu (18.x)</h3>
+<h3 id="-installing-on-ubuntu-18-x-"> Installing on Ubuntu (18.x)</h3>
 <p>Fresh install 18.04.2 (ON DO)</p>
-<p>Lock down Ubuntu </p>
+<p>Lock down Ubuntu</p>
 <pre><code class="hljs bash language-bash">ssh root@&lt;ip address&gt;
 curl -sO https://gist.githubusercontent.com/lattejed/5047d9f85896b8946c7d/raw/ubuntu_basic_setup_do.sh &amp;&amp; bash ubuntu_basic_setup_do.sh
 </code></pre>
@@ -59,12 +59,12 @@ ssh <em>deploy</em><ip address></p>
 sudo ufw allow 60000:61000/udp
 curl -s https://gist.githubusercontent.com/lattejed/60ebc7ef7d82b8323e3ad9b562bb036f/raw/vimrc_basic &gt; ~/.vimrc
 </code></pre>
-<pre><code class="hljs bash language-bash">sudo apt update 
+<pre><code class="hljs bash language-bash">sudo apt update
 </code></pre>
 <pre><code class="hljs bash language-bash">sudo apt install -y rsync git m4 build-essential patch unzip bubblewrap wget pkg-config libgmp-dev libev-dev libhidapi-dev
 </code></pre>
 <blockquote>
-  <p>If bubblewrap is not available in your distribution you can also skip it and init opam with --disable-sandbox. 
+  <p>If bubblewrap is not available in your distribution you can also skip it and init opam with --disable-sandbox.
   <code>which</code> may not show up as a package but it's also most likely already installed</p>
 </blockquote>
 <pre><code class="hljs bash language-bash">wget https://github.com/ocaml/opam/releases/download/2.0.3/opam-2.0.3-x86_64-linux
@@ -103,20 +103,20 @@ make
 <p>TODO: History modes:</p>
 <ol>
 <li>Appropriateness</li>
-<li>Sync speed</li>
-3. 
+<li>Sync speed
+3.</li>
 </ol>
 <p>Locally:
 Started syncing at 15:18 May 25 - finished sometime before 16:53 &lt;~~ failed to resync the second time for a very long time
 &lt;~~ THis is probably not correct, syncing takes a long time with alphanet</p>
 <p>Syncing may appear to start slowly, with <code>BLockGenesis</code> as current head for a long time.</p>
 <p>Remote:
-19:16 27 May - </p>
+19:16 27 May -</p>
 <pre><code class="hljs bash language-bash">tezos-client bootstrapped
 </code></pre>
 <p>^This will wait (on alphanet)
 NOTE: If CPU is maxed out, the bootstrap command can return successful even if it's not</p>
-<pre><code class="hljs bash language-bash">tezos-client gen keys <span class="hljs-built_in">local</span> --sig secp256k1 --force 
+<pre><code class="hljs bash language-bash">tezos-client gen keys <span class="hljs-built_in">local</span> --sig secp256k1 --force
 tezos-client list known addresses
 </code></pre>
 <pre><code class="hljs bash language-bash">tezos-client import secret key remote http://52.187.116.146:6732/tz2KVjptLTqUH5tUk6cTHsTGi7pSHL4Xe1mZ --force
@@ -130,7 +130,7 @@ tezos-client list known addresses
 <p>Copy wallet JSON to file <code>faucet_wallet.json</code></p>
 <pre><code class="hljs bash language-bash">tezos-client activate account my_faucet_2 with <span class="hljs-string">"faucet_wallet_2.json"</span>
 &gt; This will <span class="hljs-built_in">wait</span> on alphanet
-&gt; 
+&gt;
 &gt; Operation successfully injected <span class="hljs-keyword">in</span> the node.
 &gt; Operation <span class="hljs-built_in">hash</span> is <span class="hljs-string">'op7mihw1uoybFBBRyeEjzEsYYtX1gLptpWkZu8PThDcCdV8vbpq'</span>
 &gt; Waiting <span class="hljs-keyword">for</span> the operation to be included...
@@ -148,7 +148,7 @@ Unix.Unix_error(Unix.EAGAIN, <span class="hljs-string">"launch_thread"</span>, <
   <blockquote>
     <p>Unix.EAGAIN &lt;-- may be 100% mem or CPU usage
     2GB / 1 CPU is too small, hitting both CPU and MEM limits
-    Trying 4GB / 2 CPU </p>
+    Trying 4GB / 2 CPU</p>
   </blockquote>
 </blockquote>
 <p>// not enough in one account:
@@ -174,11 +174,11 @@ Fatal error:
       <span class="hljs-string">"error"</span>:
         <span class="hljs-string">"Error while applying operation ooukGv44JRkeYXG48JKW9RjhaEQf2rqYvNni4aUN7tyHH6eUSPi:\nrefused (Error:\n           Invalid activation. The public key tz1aiRi3UMWAcq4qg9oPfD2xAZisavD8A1QS does not match any commitment.\n)"</span> }
 </code></pre>
-<p>Copy the operation hash 
+<p>Copy the operation hash
 https://alphanet.tzscan.io/op7mihw1uoybFBBRyeEjzEsYYtX1gLptpWkZu8PThDcCdV8vbpq</p>
-<pre><code class="hljs bash language-bash">tezos-client get balance <span class="hljs-keyword">for</span> faucet 
+<pre><code class="hljs bash language-bash">tezos-client get balance <span class="hljs-keyword">for</span> faucet
 </code></pre>
-<p>View address (before activation) 
+<p>View address (before activation)
 https://alphanet.tzscan.io/tz1aiRi3UMWAcq4qg9oPfD2xAZisavD8A1QS</p>
 <p>Balance is 0</p>
 <pre><code class="hljs">{
@@ -190,9 +190,9 @@ https://alphanet.tzscan.io/tz1aiRi3UMWAcq4qg9oPfD2xAZisavD8A1QS</p>
   }
 }
 </code></pre>
-<h3 id="installingonmacos10x">Installing on macOS (10.x)</h3>
-<h3 id="otherplatformssomegenericinfo">Other platforms (Some generic info)</h3>
-<h3 id="settingupenvvarsautocompletion">Setting up env. vars, autocompletion</h3>
+<h3 id="-installing-on-macos-10-x-"> Installing on macOS (10.x)</h3>
+<h3 id="-other-platforms-some-generic-info-"> Other platforms (Some generic info)</h3>
+<h3 id="-setting-up-env-vars-autocompletion"> Setting up env. vars, autocompletion</h3>
 <h1 id="zeronetnotes">ZERONET NOTES</h1>
 <p>Upgrade step -- if you get prompted about service restarts (pink screen) select 'yes'</p>
 <div class="navigation navigation-bottom">

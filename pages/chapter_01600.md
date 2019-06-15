@@ -3,14 +3,14 @@ template: page
 title: Smart Contracts
 ---
 
-###Advantages of Tezos for smart contracts
+## Advantages of Tezos for smart contracts
 
-###Past: Hacks & bugs
+## Past: Hacks & bugs
 
-###Eliminating avenues of failure
+## Eliminating avenues of failure
 
-###Overview of FP, immutability, side effects 
+## Overview of FP, immutability, side effects
 
-###(Should be) Necessary, but not sufficient 
+## (Should be) Necessary, but not sufficient
 
-###(These probably shouldn't be sections, just thoughts)
+## (These probably shouldn't be sections, just thoughts)

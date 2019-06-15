@@ -1,8 +1,8 @@
 ---
 template: page
-title: Verifying New Contracts 
+title: Verifying New Contracts
 ---
 
-###Resources / tools 
+## Resources / tools
 
-###Verification process (high level)
+## Verification process (high level)

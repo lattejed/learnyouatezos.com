@@ -3,6 +3,6 @@ template: page
 title: Wallet functions
 ---
 
-###Send Tezos
+## Send Tezos
 
-###Hardware wallet
+## Hardware wallet

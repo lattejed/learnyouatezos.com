@@ -3,8 +3,8 @@ template: page
 title: How to acquire Tezos
 ---
 
-###Exchanges 
+## Exchanges
 
-###OTC
+## OTC
 
-###Price and other information 
+## Price and other information

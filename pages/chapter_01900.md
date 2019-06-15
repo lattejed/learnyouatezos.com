@@ -3,10 +3,10 @@ template: page
 title: Higher Level Languages (Liquidity?)
 ---
 
-###The liquidity transpiler
+## The liquidity transpiler
 
-###The multi-sig contract revisited
+## The multi-sig contract revisited
 
-###Type / correctness checking again
+## Type / correctness checking again
 
-###Interacting with multi-sig contract 
+## Interacting with multi-sig contract

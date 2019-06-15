@@ -3,10 +3,10 @@ template: page
 title: Basic setup
 ---
 
-### Identity generation, backup
+## Identity generation, backup
 
-### Vanity addresses
+## Vanity addresses
 
-### Hardware wallet setup
+## Hardware wallet setup
 
-### Fundraiser import 
+## Fundraiser import

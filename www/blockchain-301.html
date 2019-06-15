@@ -36,35 +36,35 @@
   </ul>
 </div>
 
-<h3 id="economicsofblockchain">Economics of Blockchain</h3>
+<h3 id="-economics-of-blockchain"> Economics of Blockchain</h3>
 <p>The last point we made was that we not only have to make attacking our blockchain impractical, we also need to encourage people to participate at all. In fact, the number of participants in our blockchain network is one of the most basic measures of the health of the blockchain. A blockchain with participants is more vulnerable to attack.</p>
-<h3 id="proofofworkmining">Proof of Work Mining</h3>
+<h3 id="-proof-of-work-mining"> Proof of Work Mining</h3>
 <p>Bitcoin's Proof of Work protocol, in which miners process billions of disposable cryptographic hashing operations in a race to be selected to generate the next block, has a built in incentive: The winning miner gets newly minted [TODO: Check this] Bitcoin as a reward.</p>
 <p>Losing miners get no rewards, but over time should win the number of blocks relative to their hashing power vs the network. That is, if a mining operating represents 10% of the total hashing power of the network, they should win 10% of the blocks over a larger timeframe.</p>
 <p>These rewards offset the CAPEX and OPEX of the mining operations.</p>
 <p>[TODO: Profitabilty vs price]
 [TOOD: Difficulty adjustments, upcoming issues]</p>
-<h3 id="proofofstakebaking">Proof of Stake Baking</h3>
-<p>Although "baking" isn't the universally accepted term for Proof of Stake "mining" it is what Tezos uses and is the term that will be used here. </p>
+<h3 id="-proof-of-stake-baking"> Proof of Stake Baking</h3>
+<p>Although "baking" isn't the universally accepted term for Proof of Stake "mining" it is what Tezos uses and is the term that will be used here.</p>
 <p>Baking fills the same role as mining: The creation of new blocks to encapsulate transactions and extend the blockchain. The economic incentive is the same as well: Successfully baking the next block includes rewards.</p>
 <p>Tezos has a slightly different model:</p>
 <p>While baking (and endorsing) <em>bonds</em> are captured by the network in order to de-incentivize [TODO: dis?] bad actors. These bonds can be forfeit if the node acts maliciously. On the other side of it, when these bonds are returned to the baker (unfrozen), they will have a reward added.</p>
 <p>Current this reward is X% and this number will move towards zero as time goes on. The idea behind this <em>decrease</em> in rewards is that over time transaction fees will increase (due to increasing number of transactions in the network) and replace them. To incdentive early participation, baking includes a reward of newly created XTZ.</p>
-<h3 id="networkinflation">Network Inflation</h3>
+<h3 id="-network-inflation"> Network Inflation</h3>
 <p>When people talk about mining and baking, there are often discussions of <em>inflation</em> and what economic effects this has.</p>
 <p>Specifically, there tends to be concern about the inflation of cryptocurrencies. Is it harmful? Does it mean participants will lose value over time?</p>
-<h4 id="blockchaininflation">Blockchain Inflation?</h4>
+<h3 id="blockchaininflation">Blockchain Inflation?</h3>
 <p>Inflation, when used in an economic sense, usually means the <em>decrease</em> of purchasing power over time due to the price of things increasing. That is, the $10k you put under your mattress today will be effectively worth less than $10k at some point in the future, because your rent, car payment and takeout food have all become more expensive.</p>
 <p>Periods of economic turmoil aside, there tends to be, globally, a slow but steady increase in the price of things. Inflation is measured as a few percentage points per year in many countries that have otherwise normally functioning economies.</p>
 <p>When it comes to blockchain, inflation has a specific, if somewhat related, meaning: Inflation is the increase of circulating cryptocurrency units over time, usually due to them being created as a side effect of baking or mining.</p>
 <p>In other words, baking and mining often create new coins "out of thin air". For some spectators, this is troubling.</p>
-<h4 id="priceandmarketcapitalization">Price and Market Capitalization</h4>
+<h3 id="priceandmarketcapitalization">Price and Market Capitalization</h3>
 <p>To understand what effect inflation can have on a cryptocurrency, we have to understand the two main measuring sticks we use to assess a cryptocurrency's value:</p>
 <ol>
 <li>Price</li>
 <li>Market capitalization</li>
 </ol>
-<p>Price is straightforward. Prices are expressed in pairs, e.g., XTZ is worth 0.1 BTC. That means, in simple form, that we can exchange 1 XTZ for 0.1 BTC and vice versa. </p>
+<p>Price is straightforward. Prices are expressed in pairs, e.g., XTZ is worth 0.1 BTC. That means, in simple form, that we can exchange 1 XTZ for 0.1 BTC and vice versa.</p>
 <p>Cryptocurrency is like fiat currency (e.g. USD) in that regard. It doesn't have an <em>absolute</em> value, but it has a value relative to other currencies and also relative to purchasable things.</p>
 <p>For the sake of being thorough, we can argue that some currency-like things (e.g., gold) do have an absolute value since they themselves are intrinsically useful (gold is used jewelry and electronics). That is, if we didn't trade gold (and gold derivatives) we could still sell it. In contrast, if the world suddenly decided that USD had no value, it would be worthless. That sounds absurd, but there have been plenty of cases where hyperinflation has effectively caused a national currency to lose all value.</p>
 <p>Market capitalization, on the other hand, is a little hazier. How we calculate it is straightforward: Current price x the total number of units in circulation.</p>
@@ -73,24 +73,24 @@
 <p>But beyond that market cap gets pretty hazy. Market cap <em>only</em> means unit price x total number of units. What it <em>does not</em> mean include the following:</p>
 <ol>
 <li>The total value of the company or asset</li>
-<li>The "money in" of that asset </li>
+<li>The "money in" of that asset</li>
 </ol>
 <p>Market cap does not measure the value of a company since in order to realize that value, 100% of the stock of that company would have to be sold (and bought) which, due to market dynamics, would crash the price and the market cap along with it.</p>
 <p>(An exception to that could be in the case of the sale of a company, though we are then talking about the sale price, even if that number happened to match its market cap.)</p>
 <p>Nor does it represent the "money in" of that asset. If AwesomeCo's market cap doubles due to its share price reaching $200, that does not mean an additional $1M "flowed into" that asset.</p>
-<p>While this may be Econ 101, it's important to keep these basic concepts in mind when discussing cryptocurrencies and their relatively values. </p>
+<p>While this may be Econ 101, it's important to keep these basic concepts in mind when discussing cryptocurrencies and their relatively values.</p>
 <p>The crypto space in general puts a high value on the market cap of different cryptocurrencies and their relative rankings. In practice that mental model is too restrictive and limits conversations about what the future crypto market will look like.</p>
 <p>It's common, for example, to hear things along the lines of Bitcoin could never be worth X because that would mean a market cap of Y where Y is usually over $1T.</p>
-<p>But, again, a market capitalization of $1T <em>is neither</em> the value of the cryptocurrency, in any meaningful sense, nor does it mean $1T has flowed from some other market into the cryptocurrency market. </p>
-<h4 id="inflationandprice">Inflation and Price</h4>
+<p>But, again, a market capitalization of $1T <em>is neither</em> the value of the cryptocurrency, in any meaningful sense, nor does it mean $1T has flowed from some other market into the cryptocurrency market.</p>
+<h3 id="inflationandprice">Inflation and Price</h3>
 <p>One of the supposed issues with inflation is along the axis of market capitalization: That is, if AwesomeCo has a market cap of $1M &mdash; by extension is "worth" $1M &mdash; what happens if we issue more shares? Theoretically, our company is worth $1M so increasing our shares by 100% should cut our share price in half, yes? The math is $1M / 20000 = $50, correct?</p>
 <p>No, not correct. Market cap is not an intrinsic value that the market will adjust price against. Nor does the inflation of a cryptocurrency mean each individual unit is losing value over time.</p>
 <p>This error in thinking is probably a carryover from privately held companies, where an individual's share (say a founder or early employee) may be meaningfully diluted by the issuance of new shares, usually to new investors. In that case, they may end up with a significantly lower percentage of the company, which may mean less money in their pocket if the company is sold.</p>
 <p>…</p>
-<h3 id="speculationvsrewards">Speculation vs Rewards</h3>
+<h3 id="-speculation-vs-rewards"> Speculation vs Rewards</h3>
 <p>The first cryptocurrency markets were built solely on speculation. What had been missing for the average holder of cryptocurrency has been a mechanism similar to dividends, whereby long-term holders of an asset could enjoy the success of the underlying organization.</p>
 <p>Proof of Work does not have any such mechanism, apart from people wanting to set up mining operations. This is complex and expensive and completely out of the question for most participants.</p>
-<p>As Proof of Stake becomes more mainstream, this gap has been filled. With assets like Tezos' XTZ, which appreciate at a fixed rate, it's now possible for the average participant to be rewarded for simply holding an asset. </p>
+<p>As Proof of Stake becomes more mainstream, this gap has been filled. With assets like Tezos' XTZ, which appreciate at a fixed rate, it's now possible for the average participant to be rewarded for simply holding an asset.</p>
 <p>While speculation still plays a major role in these markets, additional avenues for ROI add depth to these markets and will attract new types of investors, which is positive for the market overall.</p>
 <div class="navigation navigation-bottom">
   <ul>
@@ -115,7 +115,7 @@
         <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
         <p class="license">By reading this site, you agree to the <a href="/terms.html">terms</a></p>
         
-          <p class="timestamp">Page last updated Thursday, May 16, 2019</p>
+          <p class="timestamp">Page last updated Saturday, Jun 15, 2019</p>
         
       </div>
     </div><!-- #content -->

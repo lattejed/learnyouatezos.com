@@ -3,6 +3,6 @@ template: page
 title: Fundraiser wallet
 ---
 
-###Pre steps: Verfication, password, etc.
+## Pre steps: Verfication, password, etc.
 
-###???
+## ???

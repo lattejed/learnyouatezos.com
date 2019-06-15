@@ -3,7 +3,7 @@ template: page
 title: Blockchain 201
 ---
 
-###Two Generals Problem
+## Two Generals Problem
 
 ![Two Generals Problem](/static/img/two_generals.png "Two Generals Problem")
 
@@ -29,7 +29,7 @@ Since there is no absolute solution, the problem then becomes one of achieving a
 
 We can never be absolutely certain, though we can achieve an acceptable degree of certainty, depending on our requirements. This probabilistic approach will become more critical as we expand this thought experiment.
 
-###Byzantine Generals Problem
+## Byzantine Generals Problem
 
 The Byzantine Generals Problem expands upon the Two Generals Problem to consider how a network of computers (usually more than two) may decide on the current state of the network while assuming it may have incomplete or incorrect information about the state of any individual computer.
 
@@ -41,7 +41,7 @@ In the general sense, a Byzantine fault is framed as a system failure resulting 
 
 In order to deal with this uncertainly, a network has to have a predefined set of rules for reaching *consensus* of the state of the network and its individual components.
 
-In this new thought experiment, the number of generals deciding on a plan of attack increases from two to many (let's say 11) and the decision expands from coordinating an attack to coordinating either an attack or retreat. 
+In this new thought experiment, the number of generals deciding on a plan of attack increases from two to many (let's say 11) and the decision expands from coordinating an attack to coordinating either an attack or retreat.
 
 Again, if the general do not act in concert, they will all be destroyed. To complicate things even further, some generals may be traitors!
 
@@ -54,7 +54,7 @@ To maximize chaos, bad generals can vote selectively, e.g., if the vote is split
 <p>An example of a conspiring network could be a vehicle control system with faulty sensors.</p>
 </div>
 
-###Practical Solutions (PoW & PoS)
+## Practical Solutions (PoW & PoS)
 
 Solutions are complex and depend entirely on the problem at hand, but in general we find similarities along the lines of:
 
@@ -64,15 +64,15 @@ Solutions are complex and depend entirely on the problem at hand, but in general
 
 In the blockchain space, we find a number solutions, starting with Bitcoin's PoW.
 
-Whereas BFT was originally formulated in networks where the conspiring may be de-facto and related to failure, in the case of blockchain we are primarily guarding against actual conspiracies to steal value or create chaos. 
+Whereas BFT was originally formulated in networks where the conspiring may be de-facto and related to failure, in the case of blockchain we are primarily guarding against actual conspiracies to steal value or create chaos.
 
 That is, we're designing systems that can deal successfully with *actual* bad actors -- nefarious crypto hackers who attempt to (and sometimes do) steal millions of dollars in crypto assets.
 
-The most frequently used protocols in blockchain today are Proof of Work (like Bitcoin) and Proof of Stake (like Tezos). While they are very different in operation, they both are designed with the same end goal: To make these networks Byzantine fault tolerant. 
+The most frequently used protocols in blockchain today are Proof of Work (like Bitcoin) and Proof of Stake (like Tezos). While they are very different in operation, they both are designed with the same end goal: To make these networks Byzantine fault tolerant.
 
 Where they are similar is this: They both, in essence, make it too expensive for individual participants to act in bad faith and "take over" a network.
 
-####BFT algos in blockchain
+### BFT algos in blockchain
 
 While we won't go into Proof of Work in depth here, the anonymous creator of Bitcoin, Satoshi Nakamoto, was the first to formulate a Byzatine Fault tolerant protocol in the context of "digital money", that is, how could we build a decentralized network that could securely represent transactions that couldn't be tampered with or forged?
 
@@ -89,13 +89,13 @@ The largest downside to Proof of Work systems is the large amount of computing p
 
 Bitcoin mining operations cost a lot, take up a lot of space and waste a lot of electricity.
 
-####Consensus Protocol in Tezos 
+### Consensus Protocol in Tezos
 
 Tezos, having been conceived of after Bitcoin, chose another BFT protocol &mdash; Proof of Stake. Proof of Stake has a similar economic disincentive that makes it too expensive or impractical to attack the network, but it does not share Proof of Work's extreme inefficiency.
 
 There are other benefits to Tezos' particular style of Proof of Stake, which we'll get into in following chapters.
 
-###Consensus Protocols in General
+## Consensus Protocols in General
 
 There are also a number of other Proof of X protocols, but we won't go into them as they're not very widely used.
 

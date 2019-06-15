@@ -36,15 +36,15 @@
   </ul>
 </div>
 
-<h3 id="ubuntulocalefix">Ubuntu Locale Fix</h3>
+<h3 id="-ubuntu-locale-fix"> Ubuntu Locale Fix</h3>
 <pre><code class="hljs bash language-bash">sudo locale-gen <span class="hljs-string">"en_US.UTF-8"</span>
 <span class="hljs-built_in">echo</span> -e <span class="hljs-string">'\nexport LANG="en_US.UTF-8"\nexport LC_ALL="en_US.UTF-8"'</span> &gt;&gt; ~/.bashrc
 <span class="hljs-built_in">source</span> ~/.bashrc
 </code></pre>
-<p>If you prefer another default locale, substitute it for en_US. </p>
-<p>Even if your locale is configured correctly, your terminal may attempt to set environment variables and corrupt the locale settings in the process. This seems to be particularly be an issue when connecting via ssh from macOS. </p>
+<p>If you prefer another default locale, substitute it for en_US.</p>
+<p>Even if your locale is configured correctly, your terminal may attempt to set environment variables and corrupt the locale settings in the process. This seems to be particularly be an issue when connecting via ssh from macOS.</p>
 <p>Explicitly setting the default locale in <code>.profile</code> should fix this.</p>
-<h3 id="hostkeyverificationfailed">Host Key Verification Failed</h3>
+<h3 id="-host-key-verification-failed"> Host Key Verification Failed</h3>
 <p>If you have an issue while provisioning a VM, you make run into an issue where your ssh 'knowns_hosts' file has a bad entry. To remove without having to edit the file manually, run:</p>
 <pre><code class="hljs bash language-bash">ssh-keygen -R &lt;ip address or host&gt;
 </code></pre>
@@ -71,7 +71,7 @@
         <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
         <p class="license">By reading this site, you agree to the <a href="/terms.html">terms</a></p>
         
-          <p class="timestamp">Page last updated Monday, May 27, 2019</p>
+          <p class="timestamp">Page last updated Saturday, Jun 15, 2019</p>
         
       </div>
     </div><!-- #content -->

@@ -3,6 +3,6 @@ template: page
 title: Installed Node tour
 ---
 
-###Where everything is
+## Where everything is
 
-###What to back up
+## What to back up

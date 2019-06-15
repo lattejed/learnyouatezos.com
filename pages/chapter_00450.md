@@ -3,11 +3,11 @@ template: page
 title: Blockchain 301
 ---
 
-###Economics of Blockchain
+## Economics of Blockchain
 
 The last point we made was that we not only have to make attacking our blockchain impractical, we also need to encourage people to participate at all. In fact, the number of participants in our blockchain network is one of the most basic measures of the health of the blockchain. A blockchain with participants is more vulnerable to attack.
 
-###Proof of Work Mining
+## Proof of Work Mining
 
 Bitcoin's Proof of Work protocol, in which miners process billions of disposable cryptographic hashing operations in a race to be selected to generate the next block, has a built in incentive: The winning miner gets newly minted [TODO: Check this] Bitcoin as a reward.
 
@@ -18,9 +18,9 @@ These rewards offset the CAPEX and OPEX of the mining operations.
 [TODO: Profitabilty vs price]
 [TOOD: Difficulty adjustments, upcoming issues]
 
-###Proof of Stake Baking
+## Proof of Stake Baking
 
-Although "baking" isn't the universally accepted term for Proof of Stake "mining" it is what Tezos uses and is the term that will be used here. 
+Although "baking" isn't the universally accepted term for Proof of Stake "mining" it is what Tezos uses and is the term that will be used here.
 
 Baking fills the same role as mining: The creation of new blocks to encapsulate transactions and extend the blockchain. The economic incentive is the same as well: Successfully baking the next block includes rewards.
 
@@ -30,13 +30,13 @@ While baking (and endorsing) *bonds* are captured by the network in order to de-
 
 Current this reward is X% and this number will move towards zero as time goes on. The idea behind this *decrease* in rewards is that over time transaction fees will increase (due to increasing number of transactions in the network) and replace them. To incdentive early participation, baking includes a reward of newly created XTZ.
 
-###Network Inflation
+## Network Inflation
 
 When people talk about mining and baking, there are often discussions of *inflation* and what economic effects this has.
 
 Specifically, there tends to be concern about the inflation of cryptocurrencies. Is it harmful? Does it mean participants will lose value over time?
 
-####Blockchain Inflation?
+### Blockchain Inflation?
 
 Inflation, when used in an economic sense, usually means the *decrease* of purchasing power over time due to the price of things increasing. That is, the $10k you put under your mattress today will be effectively worth less than $10k at some point in the future, because your rent, car payment and takeout food have all become more expensive.
 
@@ -46,14 +46,14 @@ When it comes to blockchain, inflation has a specific, if somewhat related, mean
 
 In other words, baking and mining often create new coins "out of thin air". For some spectators, this is troubling.
 
-####Price and Market Capitalization
+### Price and Market Capitalization
 
 To understand what effect inflation can have on a cryptocurrency, we have to understand the two main measuring sticks we use to assess a cryptocurrency's value:
 
 1. Price
 2. Market capitalization
 
-Price is straightforward. Prices are expressed in pairs, e.g., XTZ is worth 0.1 BTC. That means, in simple form, that we can exchange 1 XTZ for 0.1 BTC and vice versa. 
+Price is straightforward. Prices are expressed in pairs, e.g., XTZ is worth 0.1 BTC. That means, in simple form, that we can exchange 1 XTZ for 0.1 BTC and vice versa.
 
 Cryptocurrency is like fiat currency (e.g. USD) in that regard. It doesn't have an *absolute* value, but it has a value relative to other currencies and also relative to purchasable things.
 
@@ -68,7 +68,7 @@ Market cap can be useful for comparing the value of two entities because share p
 But beyond that market cap gets pretty hazy. Market cap *only* means unit price x total number of units. What it *does not* mean include the following:
 
 1. The total value of the company or asset
-2. The "money in" of that asset 
+2. The "money in" of that asset
 
 Market cap does not measure the value of a company since in order to realize that value, 100% of the stock of that company would have to be sold (and bought) which, due to market dynamics, would crash the price and the market cap along with it.
 
@@ -76,15 +76,15 @@ Market cap does not measure the value of a company since in order to realize tha
 
 Nor does it represent the "money in" of that asset. If AwesomeCo's market cap doubles due to its share price reaching $200, that does not mean an additional $1M "flowed into" that asset.
 
-While this may be Econ 101, it's important to keep these basic concepts in mind when discussing cryptocurrencies and their relatively values. 
+While this may be Econ 101, it's important to keep these basic concepts in mind when discussing cryptocurrencies and their relatively values.
 
 The crypto space in general puts a high value on the market cap of different cryptocurrencies and their relative rankings. In practice that mental model is too restrictive and limits conversations about what the future crypto market will look like.
 
 It's common, for example, to hear things along the lines of Bitcoin could never be worth X because that would mean a market cap of Y where Y is usually over $1T.
 
-But, again, a market capitalization of $1T *is neither* the value of the cryptocurrency, in any meaningful sense, nor does it mean $1T has flowed from some other market into the cryptocurrency market. 
+But, again, a market capitalization of $1T *is neither* the value of the cryptocurrency, in any meaningful sense, nor does it mean $1T has flowed from some other market into the cryptocurrency market.
 
-####Inflation and Price
+### Inflation and Price
 
 One of the supposed issues with inflation is along the axis of market capitalization: That is, if AwesomeCo has a market cap of $1M &mdash; by extension is "worth" $1M &mdash; what happens if we issue more shares? Theoretically, our company is worth $1M so increasing our shares by 100% should cut our share price in half, yes? The math is $1M / 20000 = $50, correct?
 
@@ -94,13 +94,12 @@ This error in thinking is probably a carryover from privately held companies, wh
 
 ...
 
-###Speculation vs Rewards
+## Speculation vs Rewards
 
 The first cryptocurrency markets were built solely on speculation. What had been missing for the average holder of cryptocurrency has been a mechanism similar to dividends, whereby long-term holders of an asset could enjoy the success of the underlying organization.
 
 Proof of Work does not have any such mechanism, apart from people wanting to set up mining operations. This is complex and expensive and completely out of the question for most participants.
 
-As Proof of Stake becomes more mainstream, this gap has been filled. With assets like Tezos' XTZ, which appreciate at a fixed rate, it's now possible for the average participant to be rewarded for simply holding an asset. 
+As Proof of Stake becomes more mainstream, this gap has been filled. With assets like Tezos' XTZ, which appreciate at a fixed rate, it's now possible for the average participant to be rewarded for simply holding an asset.
 
 While speculation still plays a major role in these markets, additional avenues for ROI add depth to these markets and will attract new types of investors, which is positive for the market overall.
-

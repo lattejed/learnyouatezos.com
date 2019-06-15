@@ -3,7 +3,7 @@ template: page
 title: Handling Protocol Upgrades
 ---
 
-###Handling Protocol Upgrades
+## Handling Protocol Upgrades
 
 We're only going to handle the case of an active baker?
 
@@ -46,7 +46,7 @@ rm peers.json version.json
 cd -
 ```
 
-NOTE: DO NOT delete `identity.json` unless you know what you're doing 
+NOTE: DO NOT delete `identity.json` unless you know what you're doing
 
 ```
 tezos-node snapshot import mainnet-BLBkkYEhhPUk36marQSdYY3G6Aexi5YGGFFBoRNzriw6eTJw1da.full
@@ -116,7 +116,7 @@ sudo systemctl daemon-reload
 
 Other terminal:
 ```
-sudo tail -f /var/log/syslog 
+sudo tail -f /var/log/syslog
 ```
 
 
