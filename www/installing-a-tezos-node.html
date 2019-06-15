@@ -98,7 +98,7 @@ make
 <pre><code class="hljs bash language-bash">tezos-node identity generate
 </code></pre>
 <p>There is some proof of work here (to prevent spam -- which is why it was conceived)</p>
-<pre><code class="hljs bash language-bash">tezos-node run --rpc-addr 127.0.0.1 --<span class="hljs-built_in">history</span>-mode experimental-rolling
+<pre><code class="hljs bash language-bash">tezos-node run --rpc-addr 127.0.0.1 --<span class="hljs-built_in">history</span>-mode full
 </code></pre>
 <p>TODO: History modes:</p>
 <ol>
@@ -148,6 +148,14 @@ Unix.Unix_error(Unix.EAGAIN, <span class="hljs-string">"launch_thread"</span>, <
     Trying 4GB / 2 CPU </p>
   </blockquote>
 </blockquote>
+<p>// not enough in one account:
+tezos-client transfer 35096.918915 from secondary to primary --dry-run
+// exclude some for fees</p>
+<p>// Send to remote signer address:
+Fatal error:
+  The operation will burn 0.257 which is higher than the configured burn cap ( 0).
+   Use <code>--burn-cap 0.257</code> to emit this operation.</p>
+<p>tezos-client set delegate for azure<em>tz3 to azure</em>tz3</p>
 <pre><code class="hljs bash language-bash">tezos-client activate account my_faucet_2 with <span class="hljs-string">"faucet_wallet_2.json"</span> --force
 </code></pre>
 <pre><code class="hljs bash language-bash">  Rpc request failed:
@@ -182,6 +190,8 @@ https://alphanet.tzscan.io/tz1aiRi3UMWAcq4qg9oPfD2xAZisavD8A1QS</p>
 <h3 id="installing-on-macos-10-x-">Installing on macOS (10.x)</h3>
 <h3 id="other-platforms-some-generic-info-">Other platforms (Some generic info)</h3>
 <h3 id="setting-up-env-vars-autocompletion">Setting up env. vars, autocompletion</h3>
+<h1 id="zeronetnotes">ZERONET NOTES</h1>
+<p>Upgrade step -- if you get prompted about service restarts (pink screen) select 'yes'</p>
 <div class="navigation">
   <ul>
     <li style="text-align: left">
@@ -203,8 +213,9 @@ https://alphanet.tzscan.io/tz1aiRi3UMWAcq4qg9oPfD2xAZisavD8A1QS</p>
       <div id="footer">
         <hr>
         <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
+        <p class="license">By reading this site, you agree to the <a href="/terms.html">terms</a></p>
         
-          <p class="timestamp">Page last updated Monday, Jun 10, 2019</p>
+          <p class="timestamp">Page last updated Friday, Jun 14, 2019</p>
         
       </div>
     </div><!-- #content -->

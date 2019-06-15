@@ -182,7 +182,7 @@ az vm create \
 	--name TezosSigner-VM \
 	--resource-group TezosSigner-ResourceGroup \
 	--image Canonical:UbuntuServer:18.04-LTS:latest \
-	--size Standard_B1ls \
+	--size Standard_B1s \
 	--storage-sku Standard_LRS \
 	--admin-username deploy \
 	--authentication-type ssh \
@@ -200,16 +200,17 @@ You should get output that looks like this:
 ```bash
 {
   ...
-  "powerState": "VM running",
-  "privateIpAddress": <private IP address>,
-  "publicIpAddress": <public IP address>,
+  "identity": {
+    "principalId": "<UUID>",
+    ...
+  },
   ...
 }
 ```
 
-You'll want to record your public IP address for future reference.
+Record the `principalId` so we can assign it to our Key Vault.
 
-You can also get the IP address with the following command:
+We'll also need to get the VM's public IP:
 
 ```bash
 az vm list-ip-addresses \
@@ -279,7 +280,7 @@ az keyvault create \
 
 <note>
 `--sku premium` is mandatory as that will allow for HSM operations.
-</node>
+</note>
 
 You should get output that looks like this:
 
@@ -404,6 +405,19 @@ Your output should look like this:
 
 Ensure that the default action is `Deny` and that your subnet and signer's IP address are listed.
 
+###Set Key Vault service principal
+
+This will authorize our VM to access our Key Vault. When we created our VM, we used the flag `--assign-identity` to create an identity suitable for this purpose.
+
+To connect these two, use the following command, adding our the UUID of the service principal that we recorded when we created our VM.
+
+```bash
+az keyvault set-policy \
+	--name TezosSigner-KeyVault \
+	--key-permissions get sign \
+	--object-id <VM service principal ID>
+```
+	
 ##Generating private keys
 
 <warning>
@@ -775,11 +789,17 @@ found 0 vulnerabilities
 
 ###Installing Node.js
 
+SSH into your signer VM, if you haven't already:
+
+```bash
+ssh deploy@<signer IP address>
+```
+
 We're going to install Node version 10. We first need to add the repository and then install.
 
 ```bash
 curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-sudo apt-get install -y nodejs
+sudo apt-get install -y build-essential nodejs
 ```
 
 If you have objections to piping installation scripts to bash, you can find instructions for manually installing here: [https://github.com/nodesource/distributions/blob/master/README.md](https://github.com/nodesource/distributions/blob/master/README.md).
@@ -787,17 +807,11 @@ If you have objections to piping installation scripts to bash, you can find inst
 Confirm installation:
 
 ```bash
-node --version # 
-npm --version #
+node --version # e.g., v10.16.0
+npm --version # e.g., 6.9.0
 ```
 
 ###Installing the signer
-
-SSH into your signer VM, if you haven't already:
-
-```bash
-ssh deploy@<signer IP address>
-```
 
 ```bash
 git clone https://github.com/lattejed/tezos-azure-hsm-signer.git
@@ -805,91 +819,236 @@ cd tezos-azure-hsm-signer
 npm install
 ```
 
-We're first going to test out operation. You'll need the Azure Key Vault URI from when we setup our Key Vault above. It should look like `https://<...>.vault.azure.net/`.
+The response should look like:
 
 ```bash
-AZURE_KEYVAULT_URI='https://my-keyvault.azure.com' node server.js
+added 307 packages from 666 contributors and audited 1098 packages in 21.286s
+found 0 vulnerabilities
 ```
 
+###Testing the installation
 
+We're first going to run the inlcluded tests, to make sure everything is working correctly.
 
+```bash
+npm run test
+```
 
+The response should look like:
 
+```bash
+...
+...
+30 passing (38ms)
+```
 
-You'll get a lot of output, but you'll want to record the `vaultUri` property, which should look something like: `https://<...>.vault.azure.net/`.  
+Now we're going to test our connection to our KeyVault. You'll need the Azure Key Vault URI from when we setup our Key Vault above. It should look like `https://<...>.vault.azure.net/`.
 
-`EC-HSM` and `P-256K` should create a `tz2` key.
+```bash
+AZURE_KEYVAULT_URI='https://tezossigner-keyvault.vault.azure.net/' node server.js
+```
+
+If everything has been set up correctly, you should see output like:
+
+```json
+{
+  "tz3...": {
+    "kid": "https://tezossigner-keyvault.vault.azure.net/keys/TezosSigner-KeyP256/...",
+    "pk": "p2pk...",
+    "pkh": "tz3...",
+    "signAlgo": "ES256"
+  }
+}
+```
+
+The signing algorithm should be `ECDSA256` for `tz2` keys and `ES256` for `tz3` keys.
+
+###Finishing signer installation
+
+We're going to run our signing server as a daemon, using `systemd`. 
+
+```bash
+cp tezos-signer.service.template tezos-signer.service
+```
+
+Now edit the `tezos-signer.service` file, adding in your vault URI at this line:
+
+```bash
+Environment = AZURE_KEYVAULT_URI=https://<REPLACE ME>.vault.azure.net/
+```
+
+When finished, do the following:
+
+```bash
+sudo cp tezos-signer.service /etc/systemd/system/tezos-signer.service
+sudo systemctl enable tezos-signer.service
+sudo systemctl start tezos-signer.service
+sudo systemctl status tezos-signer.service
+```
+
+Make sure you see a line starting `Active: active (running)...`. 
+
+##Final setup and testing
+
+<highlight>TODO: Link to tezos alphanet setup.</highlight>
+
+<warning>
+It is *strongly recommended* that you first test out your signer on `zeronet` or `alphanet` using a test key.
+</warning>
+
+Now that we've got our signer running, it's time to test it out against our baker node. 
+
+###Setting up the firewall
+
+First, ensure that your default inbound rule is set to `Deny`:
+
+```bash
+az network nsg list \
+	--resource-group TezosSigner-ResourceGroup \
+	--query '[].defaultSecurityRules[].name'
+```
+
+You should get output that looks like:
+
+```json
+[
+  ...
+  "DenyAllInBound",
+  ...
+]
+```
+
+<warning>
+The string `DenyAllInBound` tells us we have to explicitly add inbound port rules, which is critical. Make sure it is there before using your signer.
+</warning>
+
+Now, get the name of your network security group:
+
+```bash
+az network nsg list \
+	--resource-group TezosSigner-ResourceGroup \
+	--query '[].name'
+```
+
+You should get a response like:
+
+```json
+[
+  "TezosSigner-VMNSG"
+]
+```
+
+Now, list your current rules.
+
+```bash
+az network nsg rule list \
+	--nsg-name TezosSigner-VMNSG \
+	--resource-group TezosSigner-ResourceGroup
+```
+
+The results should look like this:
+
+```json
+[
+  {
+    "access": "Allow",
+    ...
+    "destinationPortRange": "22",
+    "direction": "Inbound",
+    ...
+    "name": "default-allow-ssh",
+    "priority": 1001,
+    ...
+    "sourceAddressPrefix": "*",
+  }
+]
+```
+
+This is the ssh rule we added when the VM was created. It basically says allow any inbound address to connect to port 22.
+
+Now, let's add a rule to allow our baker to access our VM. We're going to pick a priority of 1001 as the default ssh rule should have a priority of 1000 and each rule's priority must be unique. If you add additional rules, use 1002, etc.
+
+Let's say your baker's IP is 127.127.127.127, the command could look like this:
 
 
 ```bash
-az keyvault key create \
-	--name KeyVaultTest-SignerKey2 \
-	--vault-name KeyVaultTest-KeyVault \
-	--curve P-256K \
-	--kty EC-HSM \
-	--ops sign \
-	--protection hsm
+az network nsg rule create \
+	--name Rule_127_127_127_127__6732 \
+	--nsg-name TezosSigner-VMNSG \
+	--resource-group TezosSigner-ResourceGroup \
+	--priority 1001 \
+	--access Allow \
+	--destination-port-ranges 6732 \
+	--source-address-prefixes 127.127.127.127
 ```
+
+If you move your baker, you *must* delete this rule, using:
 
 ```bash
-openssl rand -base64 16 // 128 bits of entropy
-> 59oER7LlKbJfNgmsPljYwg== # EXAMPLE DO NOT USE
+az network nsg rule delete \
+	--name Rule_127_127_127_127__6732 \
+	--nsg-name TezosSigner-VMNSG \
+	--resource-group TezosSigner-ResourceGroup
 ```
 
-Consider writing this on paper with the following format:
+###Testing out the firewall
 
-```
-59oER7LlKbJfNgmsPljYwg== # EXAMPLE DO NOT USE
-NNLUUNULULULULLLULLULL
-```
-
-Where `N = number`, `L = lowercase` and `U = uppercase`. This will prevent confusing `0` with `O` or `5` with `S` when reading it back.
-
-Base 58 encoding helps eliminate this ambiguity but there is no base 58 software installed on Ubuntu by default.
-
+Now, let's test that our firewall will reject requests from everywhere except our baker. From a machine that's not your baker, run the following:
 
 ```bash
-az keyvault key import \
-	--name KeyVaultTest-SignerKeyED25519 \
-	--vault-name KeyVaultTest-KeyVault \
-	--ops sign \
-	--pem-file ed25519 \
-	--protection hsm;
+curl --connect-timeout 10 http://<signer VM address>:6732/keys/<tz address>
 ```
 
-```bash
-read -sp "Passphrase: " PASS; echo; \
-az keyvault key import \
-	--name KeyVaultTest-SignerKeyP256 \
-	--vault-name KeyVaultTest-KeyVault \
-	--ops sign \
-	--pem-file prime256v1_sk.pem \
-	--pem-password "$PASS" \
-	--protection hsm; \
-unset PASS
+After ten seconds, you should get a response like:
+
+```plaintext
+curl: (28) Connection timed out after 10001 milliseconds
 ```
 
-List keys:
+If you get any other response, do not use your signer until you've diagnosed the problem.
+
+###Importing the key
+
+Now, from your baker, issue the following command:
 
 ```bash
-az keyvault key list --vault-name KeyVaultTest-KeyVault
+tezos-client import secret key my_azure_key http://<signer IP address>:6732/<tz address>
 ```
 
-Show key:
+The response should be:
 
-```bash
-az keyvault key show --vault-name KeyVaultTest-KeyVault --name KeyVaultTest-SignerKey
+```plaintext
+Tezos address added: <tz address>
 ```
 
+###Testing the key
 
+You may get an error transferring to your new address that looks like:
+
+```plaintext
+Fatal error:
+  The operation will burn 0.257 which is higher than the configured burn cap ( 0).
+   Use `--burn-cap 0.257` to emit this operation.
+```
+
+This is the cost of a "reveal" operation, where a new account has its public included in the blockchain. This is a one time *storage fee* for newly created accounts. To allow this transaction, add the `--burn-cap 0.257` flag to the end of the `transfer` command.
+
+This is 
+
+```plaintext
+tezos-client set delegate for azure_tz3 to azure_tz3
+```
+
+// TODO: REMOVE
 ```bash
-tezos-client import secret key temp http://52.187.116.146:5001/tz3XTrPiQaqJW33BcRXpBBLXURPwqNiNw1no --force
+tezos-client import secret key azure_tz3 http://52.230.0.52:6732/tz3LoZzqEV8McYD5iEC6YFHFJguaeFXPRDfn
 
 tezos-client list known addresses
 tezos-client list forget address temp --force 
 ```
 
 
+tezos-client import secret key test_tz3 http://52.230.0.52:6732/tz3LoZzqEV8McYD5iEC6YFHFJguaeFXPRDfn
 
 
 
@@ -899,42 +1058,3 @@ tezos-client list forget address temp --force
 
 
 
-
-
-
-
-
-// TODO:
-```
-No access was given yet to the 'TezosSigner-VM', because '--scope' was not provided. You should setup by creating a role assignment, e.g. 'az role assignment create --assignee <principal-id> --role contributor -g TezosSigner-ResourceGroup' would let it access the current resource group. To get the pricipal id, run 'az vm show -g TezosSigner-ResourceGroup -n TezosSigner-VM --query "identity.principalId" -otsv'
-```
-
-Where `xxx` is a non-existent node.
-
-
-```bash
-curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-sudo apt-get install -y nodejs
-node --version
-v10.15.3 # Or similar 
-```
-
-> http://www.ocamlpro.com/2018/11/21/an-introduction-to-tezos-rpcs-signing-operations/
-
-
-
-https://docs.microsoft.com/en-us/azure/key-vault/quick-create-cli
-https://docs.microsoft.com/en-us/cli/azure/keyvault?view=azure-cli-latest
-https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb
-https://gitlab.com/polychainlabs/key-encoder/blob/master/encoder/tezos.go
-http://www.ocamlpro.com/2018/11/21/an-introduction-to-tezos-rpcs-signing-operations/
-https://github.com/bitcoinjs/tiny-secp256k1
-https://github.com/ludios/node-blake2
-https://github.com/bitcoinjs/bs58check
-
-https://github.com/Azure/azure-sdk-for-node/issues/4603
-
-
-https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki#Low_S_values_in_signatures
-
-It looks like tz3 (P-256) have been deprecated (https://github.com/murbard/pytezos/blob/master/tests/test_crypto.py `tezos-client sign bytes` does not support P256) (https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb)

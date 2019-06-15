@@ -1,3 +1,20 @@
+
+https://docs.microsoft.com/en-us/azure/key-vault/quick-create-cli
+https://docs.microsoft.com/en-us/cli/azure/keyvault?view=azure-cli-latest
+https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb
+https://gitlab.com/polychainlabs/key-encoder/blob/master/encoder/tezos.go
+http://www.ocamlpro.com/2018/11/21/an-introduction-to-tezos-rpcs-signing-operations/
+https://github.com/bitcoinjs/tiny-secp256k1
+https://github.com/ludios/node-blake2
+https://github.com/bitcoinjs/bs58check
+
+https://github.com/Azure/azure-sdk-for-node/issues/4603
+
+
+https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki#Low_S_values_in_signatures
+
+
+
 ### Bootable live USB
 
 DOES NOT WORK ON NEWER VERSIONS OF MACOS

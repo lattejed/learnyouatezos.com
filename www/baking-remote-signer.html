@@ -148,7 +148,7 @@ This will delete <em>everything</em> inside the resource group. Only use this co
     --name TezosSigner-VM \
     --resource-group TezosSigner-ResourceGroup \
     --image Canonical:UbuntuServer:18.04-LTS:latest \
-    --size Standard_B1ls \
+    --size Standard_B1s \
     --storage-sku Standard_LRS \
     --admin-username deploy \
     --authentication-type ssh \
@@ -162,14 +162,15 @@ If you do not have a keypair set up for ssh (i.e., you don't have an <code>id_rs
 <p>You should get output that looks like this:</p>
 <pre><code class="hljs bash language-bash">{
   ...
-  <span class="hljs-string">"powerState"</span>: <span class="hljs-string">"VM running"</span>,
-  <span class="hljs-string">"privateIpAddress"</span>: &lt;private IP address&gt;,
-  <span class="hljs-string">"publicIpAddress"</span>: &lt;public IP address&gt;,
+  <span class="hljs-string">"identity"</span>: {
+    <span class="hljs-string">"principalId"</span>: <span class="hljs-string">"&lt;UUID&gt;"</span>,
+    ...
+  },
   ...
 }
 </code></pre>
-<p>You'll want to record your public IP address for future reference.</p>
-<p>You can also get the IP address with the following command:</p>
+<p>Record the <code>principalId</code> so we can assign it to our Key Vault.</p>
+<p>We'll also need to get the VM's public IP:</p>
 <pre><code class="hljs bash language-bash">az vm list-ip-addresses \
     --name TezosSigner-VM \
     --resource-group TezosSigner-ResourceGroup
@@ -214,7 +215,7 @@ If you do not have a keypair set up for ssh (i.e., you don't have an <code>id_rs
 </code></pre>
 <p><note>
 <code>--sku premium</code> is mandatory as that will allow for HSM operations.
-</node></p>
+</note></p>
 <p>You should get output that looks like this:</p>
 <pre><code class="hljs json language-json">{
   ...
@@ -302,6 +303,14 @@ Make sure you copy down your vault URI as you'll need it to run your signer.
 }
 </code></pre>
 <p>Ensure that the default action is <code>Deny</code> and that your subnet and signer's IP address are listed.</p>
+<h3 id="set-key-vault-service-principal">Set Key Vault service principal</h3>
+<p>This will authorize our VM to access our Key Vault. When we created our VM, we used the flag <code>--assign-identity</code> to create an identity suitable for this purpose.</p>
+<p>To connect these two, use the following command, adding our the UUID of the service principal that we recorded when we created our VM.</p>
+<pre><code class="hljs bash language-bash">az keyvault <span class="hljs-built_in">set</span>-policy \
+    --name TezosSigner-KeyVault \
+    --key-permissions get sign \
+    --object-id &lt;VM service principal ID&gt;
+</code></pre>
 <h2 id="generatingprivatekeys">Generating private keys</h2>
 <p><warning>
 Key security is a very big topic. The guidelines here offer one possible way to securely create and backup keys. They are not bulletproof and only represent an acceptable level of security for the author, for the author's own needs. It is strongly recommended that you research best practices on your own. If your private keys are controlling non-trivial amounts of XTZ, you should consider hiring a security consultant.
@@ -542,96 +551,166 @@ found 0 vulnerabilities
  <span class="hljs-keyword">in</span> 1098 scanned packages
 </code></pre>
 <h3 id="installing-node-js">Installing Node.js</h3>
-<p>We're going to install Node version 10. We first need to add the repository and then install.</p>
-<pre><code class="hljs bash language-bash">curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-sudo apt-get install -y nodejs
-</code></pre>
-<p>If you have objections to piping installation scripts to bash, you can find instructions for manually installing here: <a href="https://github.com/nodesource/distributions/blob/master/README.md">https://github.com/nodesource/distributions/blob/master/README.md</a>.</p>
-<p>Confirm installation:</p>
-<pre><code class="hljs bash language-bash">node --version <span class="hljs-comment"># </span>
-npm --version <span class="hljs-comment">#</span>
-</code></pre>
-<h3 id="installing-the-signer">Installing the signer</h3>
 <p>SSH into your signer VM, if you haven't already:</p>
 <pre><code class="hljs bash language-bash">ssh deploy@&lt;signer IP address&gt;
 </code></pre>
+<p>We're going to install Node version 10. We first need to add the repository and then install.</p>
+<pre><code class="hljs bash language-bash">curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt-get install -y build-essential nodejs
+</code></pre>
+<p>If you have objections to piping installation scripts to bash, you can find instructions for manually installing here: <a href="https://github.com/nodesource/distributions/blob/master/README.md">https://github.com/nodesource/distributions/blob/master/README.md</a>.</p>
+<p>Confirm installation:</p>
+<pre><code class="hljs bash language-bash">node --version <span class="hljs-comment"># e.g., v10.16.0</span>
+npm --version <span class="hljs-comment"># e.g., 6.9.0</span>
+</code></pre>
+<h3 id="installing-the-signer">Installing the signer</h3>
 <pre><code class="hljs bash language-bash">git <span class="hljs-built_in">clone</span> https://github.com/lattejed/tezos-azure-hsm-signer.git
 <span class="hljs-built_in">cd</span> tezos-azure-hsm-signer
 npm install
 </code></pre>
-<p>We're first going to test out operation. You'll need the Azure Key Vault URI from when we setup our Key Vault above. It should look like <code>https://&lt;...&gt;.vault.azure.net/</code>.</p>
-<pre><code class="hljs bash language-bash">AZURE_KEYVAULT_URI=<span class="hljs-string">'https://my-keyvault.azure.com'</span> node server.js
+<p>The response should look like:</p>
+<pre><code class="hljs bash language-bash">added 307 packages from 666 contributors and audited 1098 packages <span class="hljs-keyword">in</span> 21.286s
+found 0 vulnerabilities
 </code></pre>
-<p>You'll get a lot of output, but you'll want to record the <code>vaultUri</code> property, which should look something like: <code>https://&lt;...&gt;.vault.azure.net/</code>.  </p>
-<p><code>EC-HSM</code> and <code>P-256K</code> should create a <code>tz2</code> key.</p>
-<pre><code class="hljs bash language-bash">az keyvault key create \
-    --name KeyVaultTest-SignerKey2 \
-    --vault-name KeyVaultTest-KeyVault \
-    --curve P-256K \
-    --kty EC-HSM \
-    --ops sign \
-    --protection hsm
+<h3 id="testing-the-installation">Testing the installation</h3>
+<p>We're first going to run the inlcluded tests, to make sure everything is working correctly.</p>
+<pre><code class="hljs bash language-bash">npm run <span class="hljs-built_in">test</span>
 </code></pre>
-<pre><code class="hljs bash language-bash">openssl rand -base64 16 // 128 bits of entropy
-&gt; 59oER7LlKbJfNgmsPljYwg== <span class="hljs-comment"># EXAMPLE DO NOT USE</span>
+<p>The response should look like:</p>
+<pre><code class="hljs bash language-bash">...
+...
+30 passing (38ms)
 </code></pre>
-<p>Consider writing this on paper with the following format:</p>
-<pre><code class="hljs"><span class="hljs-attribute">59oER7LlKbJfNgmsPljYwg</span>== # EXAMPLE <span class="hljs-keyword">DO</span> <span class="hljs-keyword">NOT</span> USE
-NNLUUNULULULULLLULLULL
+<p>Now we're going to test our connection to our KeyVault. You'll need the Azure Key Vault URI from when we setup our Key Vault above. It should look like <code>https://&lt;...&gt;.vault.azure.net/</code>.</p>
+<pre><code class="hljs bash language-bash">AZURE_KEYVAULT_URI=<span class="hljs-string">'https://tezossigner-keyvault.vault.azure.net/'</span> node server.js
 </code></pre>
-<p>Where <code>N = number</code>, <code>L = lowercase</code> and <code>U = uppercase</code>. This will prevent confusing <code>0</code> with <code>O</code> or <code>5</code> with <code>S</code> when reading it back.</p>
-<p>Base 58 encoding helps eliminate this ambiguity but there is no base 58 software installed on Ubuntu by default.</p>
-<pre><code class="hljs bash language-bash">az keyvault key import \
-    --name KeyVaultTest-SignerKeyED25519 \
-    --vault-name KeyVaultTest-KeyVault \
-    --ops sign \
-    --pem-file ed25519 \
-    --protection hsm;
+<p>If everything has been set up correctly, you should see output like:</p>
+<pre><code class="hljs json language-json">{
+  <span class="hljs-attr">"tz3..."</span>: {
+    <span class="hljs-attr">"kid"</span>: <span class="hljs-string">"https://tezossigner-keyvault.vault.azure.net/keys/TezosSigner-KeyP256/..."</span>,
+    <span class="hljs-attr">"pk"</span>: <span class="hljs-string">"p2pk..."</span>,
+    <span class="hljs-attr">"pkh"</span>: <span class="hljs-string">"tz3..."</span>,
+    <span class="hljs-attr">"signAlgo"</span>: <span class="hljs-string">"ES256"</span>
+  }
+}
 </code></pre>
-<pre><code class="hljs bash language-bash"><span class="hljs-built_in">read</span> -sp <span class="hljs-string">"Passphrase: "</span> PASS; <span class="hljs-built_in">echo</span>; \
-az keyvault key import \
-    --name KeyVaultTest-SignerKeyP256 \
-    --vault-name KeyVaultTest-KeyVault \
-    --ops sign \
-    --pem-file prime256v1_sk.pem \
-    --pem-password <span class="hljs-string">"<span class="hljs-variable">$PASS</span>"</span> \
-    --protection hsm; \
-<span class="hljs-built_in">unset</span> PASS
+<p>The signing algorithm should be <code>ECDSA256</code> for <code>tz2</code> keys and <code>ES256</code> for <code>tz3</code> keys.</p>
+<h3 id="finishing-signer-installation">Finishing signer installation</h3>
+<p>We're going to run our signing server as a daemon, using <code>systemd</code>. </p>
+<pre><code class="hljs bash language-bash">cp tezos-signer.service.template tezos-signer.service
 </code></pre>
-<p>List keys:</p>
-<pre><code class="hljs bash language-bash">az keyvault key list --vault-name KeyVaultTest-KeyVault
+<p>Now edit the <code>tezos-signer.service</code> file, adding in your vault URI at this line:</p>
+<pre><code class="hljs bash language-bash">Environment = AZURE_KEYVAULT_URI=https://&lt;REPLACE ME&gt;.vault.azure.net/
 </code></pre>
-<p>Show key:</p>
-<pre><code class="hljs bash language-bash">az keyvault key show --vault-name KeyVaultTest-KeyVault --name KeyVaultTest-SignerKey
+<p>When finished, do the following:</p>
+<pre><code class="hljs bash language-bash">sudo cp tezos-signer.service /etc/systemd/system/tezos-signer.service
+sudo systemctl <span class="hljs-built_in">enable</span> tezos-signer.service
+sudo systemctl start tezos-signer.service
+sudo systemctl status tezos-signer.service
 </code></pre>
-<pre><code class="hljs bash language-bash">tezos-client import secret key temp http://52.187.116.146:5001/tz3XTrPiQaqJW33BcRXpBBLXURPwqNiNw1no --force
+<p>Make sure you see a line starting <code>Active: active (running)...</code>. </p>
+<h2 id="finalsetupandtesting">Final setup and testing</h2>
+<p><highlight>TODO: Link to tezos alphanet setup.</highlight></p>
+<p><warning>
+It is <em>strongly recommended</em> that you first test out your signer on <code>zeronet</code> or <code>alphanet</code> using a test key.
+</warning></p>
+<p>Now that we've got our signer running, it's time to test it out against our baker node. </p>
+<h3 id="setting-up-the-firewall">Setting up the firewall</h3>
+<p>First, ensure that your default inbound rule is set to <code>Deny</code>:</p>
+<pre><code class="hljs bash language-bash">az network nsg list \
+    --resource-group TezosSigner-ResourceGroup \
+    --query <span class="hljs-string">'[].defaultSecurityRules[].name'</span>
+</code></pre>
+<p>You should get output that looks like:</p>
+<pre><code class="hljs json language-json">[
+  ...
+  <span class="hljs-string">"DenyAllInBound"</span>,
+  ...
+]
+</code></pre>
+<p><warning>
+The string <code>DenyAllInBound</code> tells us we have to explicitly add inbound port rules, which is critical. Make sure it is there before using your signer.
+</warning></p>
+<p>Now, get the name of your network security group:</p>
+<pre><code class="hljs bash language-bash">az network nsg list \
+    --resource-group TezosSigner-ResourceGroup \
+    --query <span class="hljs-string">'[].name'</span>
+</code></pre>
+<p>You should get a response like:</p>
+<pre><code class="hljs json language-json">[
+  <span class="hljs-string">"TezosSigner-VMNSG"</span>
+]
+</code></pre>
+<p>Now, list your current rules.</p>
+<pre><code class="hljs bash language-bash">az network nsg rule list \
+    --nsg-name TezosSigner-VMNSG \
+    --resource-group TezosSigner-ResourceGroup
+</code></pre>
+<p>The results should look like this:</p>
+<pre><code class="hljs json language-json">[
+  {
+    "access": "Allow",
+    ...
+    "destinationPortRange": "22",
+    "direction": "Inbound",
+    ...
+    "name": "default-allow-ssh",
+    "priority": 1001,
+    ...
+    "sourceAddressPrefix": "*",
+  }
+]
+</code></pre>
+<p>This is the ssh rule we added when the VM was created. It basically says allow any inbound address to connect to port 22.</p>
+<p>Now, let's add a rule to allow our baker to access our VM. We're going to pick a priority of 1001 as the default ssh rule should have a priority of 1000 and each rule's priority must be unique. If you add additional rules, use 1002, etc.</p>
+<p>Let's say your baker's IP is 127.127.127.127, the command could look like this:</p>
+<pre><code class="hljs bash language-bash">az network nsg rule create \
+    --name Rule_127_127_127_127__6732 \
+    --nsg-name TezosSigner-VMNSG \
+    --resource-group TezosSigner-ResourceGroup \
+    --priority 1001 \
+    --access Allow \
+    --destination-port-ranges 6732 \
+    --<span class="hljs-built_in">source</span>-address-prefixes 127.127.127.127
+</code></pre>
+<p>If you move your baker, you <em>must</em> delete this rule, using:</p>
+<pre><code class="hljs bash language-bash">az network nsg rule delete \
+    --name Rule_127_127_127_127__6732 \
+    --nsg-name TezosSigner-VMNSG \
+    --resource-group TezosSigner-ResourceGroup
+</code></pre>
+<h3 id="testing-out-the-firewall">Testing out the firewall</h3>
+<p>Now, let's test that our firewall will reject requests from everywhere except our baker. From a machine that's not your baker, run the following:</p>
+<pre><code class="hljs bash language-bash">curl --connect-timeout 10 http://&lt;signer VM address&gt;:6732/keys/&lt;tz address&gt;
+</code></pre>
+<p>After ten seconds, you should get a response like:</p>
+<pre><code class="hljs plaintext language-plaintext">curl: (28) Connection timed out after 10001 milliseconds
+</code></pre>
+<p>If you get any other response, do not use your signer until you've diagnosed the problem.</p>
+<h3 id="importing-the-key">Importing the key</h3>
+<p>Now, from your baker, issue the following command:</p>
+<pre><code class="hljs bash language-bash">tezos-client import secret key my_azure_key http://&lt;signer IP address&gt;:6732/&lt;tz address&gt;
+</code></pre>
+<p>The response should be:</p>
+<pre><code class="hljs plaintext language-plaintext">Tezos address added: &lt;tz address&gt;
+</code></pre>
+<h3 id="testing-the-key">Testing the key</h3>
+<p>You may get an error transferring to your new address that looks like:</p>
+<pre><code class="hljs plaintext language-plaintext">Fatal error:
+  The operation will burn 0.257 which is higher than the configured burn cap ( 0).
+   Use `--burn-cap 0.257` to emit this operation.
+</code></pre>
+<p>This is the cost of a "reveal" operation, where a new account has its public included in the blockchain. This is a one time <em>storage fee</em> for newly created accounts. To allow this transaction, add the <code>--burn-cap 0.257</code> flag to the end of the <code>transfer</code> command.</p>
+<p>This is </p>
+<pre><code class="hljs plaintext language-plaintext">tezos-client set delegate for azure_tz3 to azure_tz3
+</code></pre>
+<p>// TODO: REMOVE</p>
+<pre><code class="hljs bash language-bash">tezos-client import secret key azure_tz3 http://52.230.0.52:6732/tz3LoZzqEV8McYD5iEC6YFHFJguaeFXPRDfn
 
 tezos-client list known addresses
 tezos-client list forget address temp --force 
 </code></pre>
-<p>// TODO:</p>
-<pre><code class="hljs"><span class="hljs-keyword">No</span> <span class="hljs-keyword">access</span> was given yet <span class="hljs-keyword">to</span> the <span class="hljs-string">'TezosSigner-VM'</span>, because <span class="hljs-string">'--scope'</span> was <span class="hljs-keyword">not</span> provided. You should setup <span class="hljs-keyword">by</span> creating a <span class="hljs-keyword">role</span> assignment, e.g. <span class="hljs-string">'az role assignment create --assignee &lt;principal-id&gt; --role contributor -g TezosSigner-ResourceGroup'</span> would let it <span class="hljs-keyword">access</span> the <span class="hljs-keyword">current</span> resource <span class="hljs-keyword">group</span>. <span class="hljs-keyword">To</span> <span class="hljs-keyword">get</span> the pricipal id, run <span class="hljs-string">'az vm show -g TezosSigner-ResourceGroup -n TezosSigner-VM --query "identity.principalId" -otsv'</span>
-</code></pre>
-<p>Where <code>xxx</code> is a non-existent node.</p>
-<pre><code class="hljs bash language-bash">curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-sudo apt-get install -y nodejs
-node --version
-v10.15.3 <span class="hljs-comment"># Or similar </span>
-</code></pre>
-<blockquote>
-  <p>http://www.ocamlpro.com/2018/11/21/an-introduction-to-tezos-rpcs-signing-operations/</p>
-</blockquote>
-<p>https://docs.microsoft.com/en-us/azure/key-vault/quick-create-cli
-https://docs.microsoft.com/en-us/cli/azure/keyvault?view=azure-cli-latest
-https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb
-https://gitlab.com/polychainlabs/key-encoder/blob/master/encoder/tezos.go
-http://www.ocamlpro.com/2018/11/21/an-introduction-to-tezos-rpcs-signing-operations/
-https://github.com/bitcoinjs/tiny-secp256k1
-https://github.com/ludios/node-blake2
-https://github.com/bitcoinjs/bs58check</p>
-<p>https://github.com/Azure/azure-sdk-for-node/issues/4603</p>
-<p>https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki#Low<em>S</em>values<em>in</em>signatures</p>
-<p>It looks like tz3 (P-256) have been deprecated (https://github.com/murbard/pytezos/blob/master/tests/test_crypto.py <code>tezos-client sign bytes</code> does not support P256) (https://medium.com/tezos-capital/introducing-the-new-tezos-tz2-staking-wallet-4c9573fe9dcb)</p>
+<p>tezos-client import secret key test_tz3 http://52.230.0.52:6732/tz3LoZzqEV8McYD5iEC6YFHFJguaeFXPRDfn</p>
 <div class="navigation">
   <ul>
     <li style="text-align: left">
@@ -653,8 +732,9 @@ https://github.com/bitcoinjs/bs58check</p>
       <div id="footer">
         <hr>
         <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
+        <p class="license">By reading this site, you agree to the <a href="/terms.html">terms</a></p>
         
-          <p class="timestamp">Page last updated Thursday, Jun 13, 2019</p>
+          <p class="timestamp">Page last updated Saturday, Jun 15, 2019</p>
         
       </div>
     </div><!-- #content -->

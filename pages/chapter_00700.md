@@ -114,7 +114,7 @@ There is some proof of work here (to prevent spam -- which is why it was conceiv
 
 
 ```bash
-tezos-node run --rpc-addr 127.0.0.1 --history-mode experimental-rolling
+tezos-node run --rpc-addr 127.0.0.1 --history-mode full
 ```
 
 TODO: History modes:
@@ -181,6 +181,20 @@ Unix.Unix_error(Unix.EAGAIN, "launch_thread", "")
 >> Unix.EAGAIN <-- may be 100% mem or CPU usage
 >> 2GB / 1 CPU is too small, hitting both CPU and MEM limits
 >> Trying 4GB / 2 CPU 
+>> 
+
+// not enough in one account:
+tezos-client transfer 35096.918915 from secondary to primary --dry-run
+// exclude some for fees
+
+
+
+// Send to remote signer address:
+Fatal error:
+  The operation will burn 0.257 which is higher than the configured burn cap ( 0).
+   Use `--burn-cap 0.257` to emit this operation.
+   
+tezos-client set delegate for azure_tz3 to azure_tz3
 
 ```bash
 tezos-client activate account my_faucet_2 with "faucet_wallet_2.json" --force
@@ -235,4 +249,12 @@ Balance is 0
 ###Other platforms (Some generic info)
 
 ###Setting up env. vars, autocompletion
+
+
+
+
+
+#ZERONET NOTES
+
+Upgrade step -- if you get prompted about service restarts (pink screen) select 'yes'
 
