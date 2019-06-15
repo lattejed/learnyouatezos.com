@@ -18,7 +18,7 @@
 
 <h1>Installing a Tezos node</h1>
 
-<div class="navigation">
+<div class="navigation navigation-top">
   <ul>
     <li style="text-align: left">
       
@@ -36,7 +36,7 @@
   </ul>
 </div>
 
-<h3 id="installing-on-ubuntu-18-x-">Installing on Ubuntu (18.x)</h3>
+<h3 id="installingonubuntu18x">Installing on Ubuntu (18.x)</h3>
 <p>Fresh install 18.04.2 (ON DO)</p>
 <p>Lock down Ubuntu </p>
 <pre><code class="hljs bash language-bash">ssh root@&lt;ip address&gt;
@@ -124,6 +124,9 @@ tezos-client list known addresses
 <p>Get Tezos from alphanet faucet</p>
 <pre><code class="hljs bash language-bash">https://faucet.tzalpha.net
 </code></pre>
+<p>// THESE SEEM TO BE THE SAME:</p>
+<h1 id="tezosclientsetdelegateforxtox">tezos-client set delegate for x to x</h1>
+<p>tezos-client register key x as delegate</p>
 <p>Copy wallet JSON to file <code>faucet_wallet.json</code></p>
 <pre><code class="hljs bash language-bash">tezos-client activate account my_faucet_2 with <span class="hljs-string">"faucet_wallet_2.json"</span>
 &gt; This will <span class="hljs-built_in">wait</span> on alphanet
@@ -187,12 +190,12 @@ https://alphanet.tzscan.io/tz1aiRi3UMWAcq4qg9oPfD2xAZisavD8A1QS</p>
   }
 }
 </code></pre>
-<h3 id="installing-on-macos-10-x-">Installing on macOS (10.x)</h3>
-<h3 id="other-platforms-some-generic-info-">Other platforms (Some generic info)</h3>
-<h3 id="setting-up-env-vars-autocompletion">Setting up env. vars, autocompletion</h3>
+<h3 id="installingonmacos10x">Installing on macOS (10.x)</h3>
+<h3 id="otherplatformssomegenericinfo">Other platforms (Some generic info)</h3>
+<h3 id="settingupenvvarsautocompletion">Setting up env. vars, autocompletion</h3>
 <h1 id="zeronetnotes">ZERONET NOTES</h1>
 <p>Upgrade step -- if you get prompted about service restarts (pink screen) select 'yes'</p>
-<div class="navigation">
+<div class="navigation navigation-bottom">
   <ul>
     <li style="text-align: left">
       
@@ -215,7 +218,7 @@ https://alphanet.tzscan.io/tz1aiRi3UMWAcq4qg9oPfD2xAZisavD8A1QS</p>
         <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
         <p class="license">By reading this site, you agree to the <a href="/terms.html">terms</a></p>
         
-          <p class="timestamp">Page last updated Friday, Jun 14, 2019</p>
+          <p class="timestamp">Page last updated Saturday, Jun 15, 2019</p>
         
       </div>
     </div><!-- #content -->

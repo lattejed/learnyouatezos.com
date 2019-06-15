@@ -990,7 +990,7 @@ az network nsg rule delete \
 	--nsg-name TezosSigner-VMNSG \
 	--resource-group TezosSigner-ResourceGroup
 ```
-
+	
 ###Testing out the firewall
 
 Now, let's test that our firewall will reject requests from everywhere except our baker. From a machine that's not your baker, run the following:
@@ -1023,6 +1023,18 @@ Tezos address added: <tz address>
 
 ###Testing the key
 
+<highlight>TODO: Link to tezos alphanet setup.</highlight>
+
+To test that our setup is safe to use, we're going to transfer a small amount of XTZ to it (e.g., 1 xtz) from an existing address and then transfer it back. This assumes that you already have an account and key set up on your baker node.
+
+```bash
+tezos-client transfer 1 from my_account to my_azure_key
+```
+
+<note>
+It's always a good idea to first test a transaction by appending `--dry-run` to it. This will execute all parts of the transaction other than injecting it into the network.
+</note>
+
 You may get an error transferring to your new address that looks like:
 
 ```plaintext
@@ -1031,24 +1043,65 @@ Fatal error:
    Use `--burn-cap 0.257` to emit this operation.
 ```
 
-This is the cost of a "reveal" operation, where a new account has its public included in the blockchain. This is a one time *storage fee* for newly created accounts. To allow this transaction, add the `--burn-cap 0.257` flag to the end of the `transfer` command.
+This is the cost of a "reveal" operation, where a new account has its public key included in the blockchain. This is a one time *storage fee* for newly created accounts. To allow this transaction, add the `--burn-cap 0.257` flag to the end of the `transfer` command.
 
-This is 
+You should get a confirmation. Check the balance of your new account with:
+
+```bash
+tezos-client get balance for my_azure_key
+```
+
+Make sure the balance has been updated before continuing.
+
+*Before* we transfer back, we're going to have to start the `client` of our signer. From your signer VM, do the following:
+
+```bash
+cd tezos-azure-hsm-signer	
+node client.js
+```
+
+You should see:
 
 ```plaintext
-tezos-client set delegate for azure_tz3 to azure_tz3
+Waiting for signing request. Ctrl-C to quit.
 ```
 
-// TODO: REMOVE
+<warn>
+You *have to* start your signer client *before* you attempt a transaction. By design, it will ignore any signing requests that have been made before it was started.
+</warn>
+
+Now, from your node:
+
 ```bash
-tezos-client import secret key azure_tz3 http://52.230.0.52:6732/tz3LoZzqEV8McYD5iEC6YFHFJguaeFXPRDfn
-
-tezos-client list known addresses
-tezos-client list forget address temp --force 
+tezos-client transfer 0.5 from my_azure_key to my_account
 ```
 
+We're only going to transfer half of the amount back so we can ignore the fee calculation. You should get the following prompt on your `client`:
 
-tezos-client import secret key test_tz3 http://52.230.0.52:6732/tz3LoZzqEV8McYD5iEC6YFHFJguaeFXPRDfn
+```plaintext
+Confirm transaction 03... [Ny]?
+```
+
+Press `y` to accept it.
+
+You should get a response that looks like:
+
+```plaintext
+The operation has only been included 0 blocks ago.
+We recommend to wait more.
+Use command
+  tezos-client wait for XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX to be included --confirmations 30 --branch XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+and/or an external block explorer.
+```
+
+<warning>
+If you were not able to transfer XTZ in *and* out of your new `tz` address, *DO NOT* use it until you've diagnosed the problem.
+</warning>
+
+If you made it this far, congratulations on your new HSM signer.
+
+
+
 
 
 

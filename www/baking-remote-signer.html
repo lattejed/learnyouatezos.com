@@ -18,7 +18,7 @@
 
 <h1>Baking: Remote Signer</h1>
 
-<div class="navigation">
+<div class="navigation navigation-top">
   <ul>
     <li style="text-align: left">
       
@@ -36,16 +36,16 @@
   </ul>
 </div>
 
-<h2 id="remotesigners">Remote signers</h2>
+<h3 id="remote-signers">Remote signers</h3>
 <p><highlight>[TODO: Tie this into previous discussion of security and baker topology]</highlight></p>
-<h3 id="why-an-hsm-">Why an HSM?</h3>
+<h3 id="whyanhsm">Why an HSM?</h3>
 <p>While baking is relatively straightforward, <em>key security</em> is not and necessitates an approach that usually means separating private keys from a baker, ideally residing in a hardware security module (HSM).</p>
 <p>An HSM's primary security feature is that signing (and other cryptographic) operations take place on a dedicated hardward chip that contains your private key and handles operations <em>without your private key leaving the device.</em> The key material is not exposed to the attached computer, meaning a compromise of that computer does not leak your private key.</p>
 <p>Low cost, consumer-grade HSMs are common in the cryptocurrency world, with Ledger Nano being probably the most common. While Tezos signing (and wallet) software is avaiable for the Ledger, it requies a physical USB connection to a computer, requiring either the signing computer or the entire baking node reside in your home or office.</p>
 <p>While this can be simple and low-cost, it does require an always-available internet connection, the ability to open ports to the public network and an uninterruptible power supply. In practice it's not easy to achieve high availability with this setup. Lots of things can go wrong, especially when the setup is unattended (e.g., you're on holiday).</p>
 <p>A cloud signer with an attached HSM is a solution to this problem, but dedicated HSMs are expensive to operate, out of the price range of any but the largest baking operations. </p>
 <p>However, Google Cloud KMS and Azure Key Vault have started to offer per-use pricing that makes HSM-backed signing operations very inexpensive, making them affordable for even very small bakers.</p>
-<h3 id="why-azure-">Why Azure?</h3>
+<h3 id="whyazure">Why Azure?</h3>
 <p>As both Google and Microsoft's offerings are compatible with Tezos, the main consideration is whether or not private keys can be backed up. Azure allows for it and Google does not.</p>
 <p>It is <em>strongly not recommended</em> to use a cloud HSM service that does not allow for backing up of private keys. Ask yourself these questions:</p>
 <ol>
@@ -56,7 +56,7 @@
 <p><note>
 To be precise, Azure does not allow you to back up your HSM-generated keys. The backup functionality will only allow you to move your key within the same availability region. However, they do allow you to generate your own keys and import them, which is what we're going to do.
 </note></p>
-<h3 id="two-vms-and-an-hsm-">Two VMs and an HSM?</h3>
+<h3 id="twovmsandanhsm">Two VMs and an HSM?</h3>
 <p>This setup calls for a separate baker and signer VM. It is possible run the signing service on the same VM as the baker, so why not do that? The answer is it's less secure.</p>
 <ol>
 <li>An attacker who could gain access to your baker could sign any operation, including moving all of your XTZ to another address</li>
@@ -67,12 +67,12 @@ To be precise, Azure does not allow you to back up your HSM-generated keys. The 
 <p>Since your signer will only be known to your baker, the baker itself would have to be accessed to discover the IP address. After that, your signer VM would also have to be compromised. </p>
 <p>To help offset this, the signing software provided here is very lightweight and can be run on the cheapest available VM.</p>
 <p>This also allows for the entire signer to reside on Azure (which simplifies authentication for the signer and makes it more secure) while allowing you to run your baker node on another service, as the author does.</p>
-<h2 id="gettingstartedwithazure">Getting started with Azure</h2>
-<h3 id="get-an-azure-account">Get an Azure account</h3>
+<h3 id="getting-started-with-azure">Getting started with Azure</h3>
+<h3 id="getanazureaccount">Get an Azure account</h3>
 <p>If you don't already have one, go here <a href="https://azure.microsoft.com/en-us/free">https://azure.microsoft.com/en-us/free</a> to get a new Azure account.</p>
 <p>You'll likely have to go through a privacy-violating ID verification with a phone number <em>and</em> credit card, but given that you'll be supplying them with billing information anyway, it's a moot point.</p>
 <p>It is <em>strongly recommended</em> that you set up two-factor authentication (2FA) for the Microsoft account you use to access Azure. Someone gaining acess to you Azure account could change your security settings and allow access to your signer from a rogue computer. More info <a href="https://support.microsoft.com/en-us/help/12408/microsoft-account-how-to-use-two-step-verification">here</a>.</p>
-<h3 id="install-azure-cli">Install Azure CLI</h3>
+<h3 id="installazurecli">Install Azure CLI</h3>
 <p>It's recommended that you install the CLI on your local machine or on a local VM. It is <em>not recommended</em> to install the cli on the remote signer you'll provision nor your baker's VM. We'll be authenticating the CLI and having those credentials on a remote machine can be a security issue. </p>
 <p><note>
 Running a VM on your local computer <em>do not</em> protect you against key loggers and other forms of malicious monitoring. If you are unsure of your local computer's security, you should at least do a clean install of your OS before continuing.
@@ -86,7 +86,7 @@ If you see errors or warnings about default locale go to <a href="/appendix.html
 <p>Check the version of <code>az</code> and ensure it has some meaningful output and you don't get any errors:</p>
 <pre><code class="hljs bash language-bash">az --version
 </code></pre>
-<h3 id="authenticate-and-determine-region">Authenticate and determine region</h3>
+<h3 id="authenticateanddetermineregion">Authenticate and determine region</h3>
 <p>Now, login:</p>
 <pre><code class="hljs bash language-bash">az login
 </code></pre>
@@ -115,7 +115,7 @@ If you see errors or warnings about default locale go to <a href="/appendix.html
 <span class="hljs-string">"subscriptionId"</span>: null
 </code></pre>
 <p>In this case the identifier is the name field <code>southeastasia</code>. Copy that down as you'll need it for the next step.</p>
-<h3 id="create-a-resource-group">Create a resource group</h3>
+<h3 id="createaresourcegroup">Create a resource group</h3>
 <p>Create a resource group, giving it the name of your choice and using the location we've just determined.</p>
 <pre><code class="hljs bash language-bash">az group create \
     --name TezosSigner-ResourceGroup \
@@ -141,8 +141,8 @@ This will delete <em>everything</em> inside the resource group. Only use this co
     --name <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
     --yes
 </code></pre>
-<h2 id="settingupasignervm">Setting up a signer VM</h2>
-<h3 id="create-a-virtual-machine">Create a virtual machine</h3>
+<h3 id="setting-up-a-signer-vm">Setting up a signer VM</h3>
+<h3 id="createavirtualmachine">Create a virtual machine</h3>
 <p>Next let's create the VM we'll be running our signer in. We use the <code>az vm create</code> command for this. We won't do anything with this until later, but we'll need to get its public IP so we can set up the firewall of our Key Vault.</p>
 <pre><code class="hljs bash language-bash">az vm create \
     --name TezosSigner-VM \
@@ -179,7 +179,7 @@ If you do not have a keypair set up for ssh (i.e., you don't have an <code>id_rs
 <pre><code class="hljs bash language-bash">ssh deploy@&lt;public IP address&gt;
 </code></pre>
 <p>You should have logged in successfully.</p>
-<h3 id="secure-your-vm">Secure your VM</h3>
+<h3 id="secureyourvm">Secure your VM</h3>
 <p>Become root user:</p>
 <pre><code class="hljs bash language-bash">sudo -i
 </code></pre>
@@ -204,8 +204,8 @@ If you do not have a keypair set up for ssh (i.e., you don't have an <code>id_rs
     --resource-group <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
     --yes
 </code></pre>
-<h2 id="settingupyourkeyvaults">Setting up your Key Vaults</h2>
-<h3 id="create-a-key-vault">Create a Key Vault</h3>
+<h3 id="setting-up-your-key-vaults">Setting up your Key Vaults</h3>
+<h3 id="createakeyvault">Create a Key Vault</h3>
 <p>Next, create a Key Vault that will contain your imported keys.</p>
 <pre><code class="hljs bash language-bash">az keyvault create \
     --name TezosSigner-KeyVault \
@@ -234,7 +234,7 @@ Make sure you copy down your vault URI as you'll need it to run your signer.
 <pre><code class="hljs bash language-bash">az keyvault delete \
     --name TezosSigner-KeyVault
 </code></pre>
-<h3 id="set-up-key-vault-firewall">Set up Key Vault firewall</h3>
+<h3 id="setupkeyvaultfirewall">Set up Key Vault firewall</h3>
 <p>This is a multi-step process, but is <em>strongly recommended</em> as it will secure the connection between your signer VM and your Key Vault.</p>
 <p>First, get a list of virtual networks in your resource group:</p>
 <pre><code class="hljs bash language-bash">az network vnet list \
@@ -303,7 +303,7 @@ Make sure you copy down your vault URI as you'll need it to run your signer.
 }
 </code></pre>
 <p>Ensure that the default action is <code>Deny</code> and that your subnet and signer's IP address are listed.</p>
-<h3 id="set-key-vault-service-principal">Set Key Vault service principal</h3>
+<h3 id="setkeyvaultserviceprincipal">Set Key Vault service principal</h3>
 <p>This will authorize our VM to access our Key Vault. When we created our VM, we used the flag <code>--assign-identity</code> to create an identity suitable for this purpose.</p>
 <p>To connect these two, use the following command, adding our the UUID of the service principal that we recorded when we created our VM.</p>
 <pre><code class="hljs bash language-bash">az keyvault <span class="hljs-built_in">set</span>-policy \
@@ -311,7 +311,7 @@ Make sure you copy down your vault URI as you'll need it to run your signer.
     --key-permissions get sign \
     --object-id &lt;VM service principal ID&gt;
 </code></pre>
-<h2 id="generatingprivatekeys">Generating private keys</h2>
+<h3 id="generating-private-keys">Generating private keys</h3>
 <p><warning>
 Key security is a very big topic. The guidelines here offer one possible way to securely create and backup keys. They are not bulletproof and only represent an acceptable level of security for the author, for the author's own needs. It is strongly recommended that you research best practices on your own. If your private keys are controlling non-trivial amounts of XTZ, you should consider hiring a security consultant.
 </warning></p>
@@ -325,7 +325,7 @@ Key security is a very big topic. The guidelines here offer one possible way to 
 <li>Wipe our USB key</li>
 </ol>
 <p>This procedure is not flawless, but it is what the author considers acceptable and uses for his own keys. </p>
-<h3 id="download-ubuntu-18-04">Download Ubuntu 18.04</h3>
+<h3 id="downloadubuntu1804">Download Ubuntu 18.04</h3>
 <p>We're going to first download Ubuntu 18.04 <em>desktop</em> edition. It has to be the desktop edition in order to run it as a live CD (USB).</p>
 <p>Search for "Ubuntu download". A link is not provided here as that opens up an avenue for attack. Ensure that the link you follow is on <code>https://ubunutu.com</code> and that your browser indicates that it is a secure connection. The actual download should be labeled "Ubuntu 18.04.2 LTS". </p>
 <p>On that page should be instructions for verifying the download once it is complete. It will look something like:</p>
@@ -338,7 +338,7 @@ If your local machine doesn't have <code>sha256sum</code> installed, you can use
 <p>Make sure you get a result like:</p>
 <pre><code class="hljs bash language-bash">ubuntu-18.04.2-desktop-amd64.iso: OK
 </code></pre>
-<h3 id="creating-a-usb-drive">Creating a USB drive</h3>
+<h3 id="creatingausbdrive">Creating a USB drive</h3>
 <p>You'll need a USB drive that will fit the ISO you downloaded. Plug that into your computer and run the following command:</p>
 <p><note>
 The <code>diskutil</code> command is macOS-specific. If you are on Linux, use <code>sudo fdisk -l</code> instead.
@@ -362,7 +362,7 @@ Using <code>sudo dd</code> is a destructive command. Make sure you double check 
 <pre><code class="hljs">sudo dd <span class="hljs-attribute">if</span>=~/&lt;path&gt;/ubuntu-18.04.2-desktop-amd64.iso <span class="hljs-attribute">of</span>=/dev/disk2 <span class="hljs-attribute">bs</span>=1m
 </code></pre>
 <p>This will take a while. Eventually the command will exit and your drive will be usable.</p>
-<h3 id="run-on-an-air-gapped-machine">Run on an air-gapped machine</h3>
+<h3 id="runonanairgappedmachine">Run on an air-gapped machine</h3>
 <p>What is an air-gapped machine? That means our machine does not have the ability to connect to the internet or other networks. In this case, it should be sufficient to do two things:</p>
 <ol>
 <li>Unplug any LAN or other networking cables</li>
@@ -379,7 +379,7 @@ If you're using Mac hardware, you may need to plug in a wired keyboard and mouse
 If you're using a new Mac with a T2 security chip, you may have to disable Secure Boot in order to boot from a USB drive. More information can be found <highlight>TODO:</highlight>
 </nope></p>
 <p>Plug it in and boot it up!</p>
-<h3 id="generating-a-passphrase">Generating a passphrase</h3>
+<h3 id="generatingapassphrase">Generating a passphrase</h3>
 <p>We're going to use <code>openssl</code> to generate a passphrase that we'll use to encrypt our private key. </p>
 <pre><code class="hljs bash language-bash">openssl rand -base64 16
 &gt; 59oER7LlKbJfNgmsPljYwg== <span class="hljs-comment"># EXAMPLE DO NOT USE</span>
@@ -400,7 +400,7 @@ NNLUUNULULULULLLULLULLPP
 <p><note>
 Base 58 encoding helps eliminate this ambiguity but there is no base 58 software installed on Ubuntu by default.
 </note></p>
-<h3 id="generating-your-key">Generating your key</h3>
+<h3 id="generatingyourkey">Generating your key</h3>
 <p>You'll need to decide if you want to generate a <code>tz2</code> or <code>tz3</code> address for your baking operation. There is currently no practial difference between the two and Azure has support for both. Azure does not support <code>tz1</code> addresses.</p>
 <p>To generate a <code>tz2</code> address:</p>
 <pre><code class="hljs bash language-bash">openssl ecparam -genkey -name secp256k1 | openssl ec -aes256 -out secp256k1_sk.pem
@@ -409,7 +409,7 @@ Base 58 encoding helps eliminate this ambiguity but there is no base 58 software
 <pre><code class="hljs bash language-bash">openssl ecparam -genkey -name prime256v1 | openssl ec -aes256 -out prime256v1_sk.pem
 </code></pre>
 <p>You'll be prompted to enter your passphrase that was generated in the previous step.</p>
-<h3 id="testing-your-passphrase">Testing your passphrase</h3>
+<h3 id="testingyourpassphrase">Testing your passphrase</h3>
 <p>Before you copy your key to a USB drive, you should test that your passphrase was recorded correctly. </p>
 <p><warning>
 <em>Do not</em> copy and paste the passphrase for this step. You want to ensure that your phyiscal backup has been recorded correctly. Read it from your backup and type it in by hand.
@@ -420,7 +420,7 @@ Base 58 encoding helps eliminate this ambiguity but there is no base 58 software
 <pre><code class="hljs plaintext language-plaintext">EC Key valid.
 </code></pre>
 <p>If it is not, start over from the beginning.</p>
-<h3 id="securing-your-key">Securing your key</h3>
+<h3 id="securingyourkey">Securing your key</h3>
 <p>It's strongly recommended that you back up your key redundantly (e.g., mutliple USB drives in multiple secure locations). Your passphrase should also be backed up in a <em>separate</em> secure location.</p>
 <p><warning>
 If you lose your key <em>or</em> your passphrase the associated <code>tz</code> address can <em>never be</em> recovered. If you have any XTZ in that address, it will be lost forever.
@@ -428,13 +428,13 @@ If you lose your key <em>or</em> your passphrase the associated <code>tz</code> 
 <p><warning>
 If someone were to find your key and passphrase, they would have full access to the associated <code>tz</code> address. 
 </warning></p>
-<h3 id="clean-up">Clean up</h3>
+<h3 id="cleanup">Clean up</h3>
 <p>You should wipe the contents of the USB drive containing Ubuntu.</p>
 <pre><code class="hljs bash language-bash">sudo dd <span class="hljs-keyword">if</span>=/dev/urandom of=/dev/disk2 bs=10m
 </code></pre>
 <p>Again, <em>double check</em> that this is the correct drive using the procedure above. This is a destructive procedure.</p>
 <p>This operation will take a long time, depending on the size of your device.</p>
-<h2 id="azurekeyimport">Azure key import</h2>
+<h3 id="azure-key-import">Azure key import</h3>
 <p>Now that we've securely generated our key and passphrase, we can import our key into the Azure Key Vault. We're going to follow a procedure very similar to the one we used for generating our keys, except this time we will not be able to air-gap this computer as it needs to talk to Azure.</p>
 <p><warning>
 Azure Key Vault does not offer a way to import keys with a key pair, which would be more secure than this method. That means your private key (and passphrase) will exist, in unencrypted form, in your machine's RAM until your computer is rebooted. If you are dealing with non-trivial amounts of XTZ, you should hire a security consultant.
@@ -450,7 +450,7 @@ Azure Key Vault does not offer a way to import keys with a key pair, which would
 <p><note>
 Ubuntu tends to be picky about WiFi adaptors. If possible, use a machine with a wired ethernet connection.
 </note></p>
-<h3 id="get-azure-running-again-">Get Azure running (again)</h3>
+<h3 id="getazurerunningagain">Get Azure running (again)</h3>
 <p>As above, install the CLI and then log in:</p>
 <pre><code class="hljs bash language-bash">curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 az login
@@ -458,7 +458,7 @@ az login
 <pre><code class="hljs plaintext language-plaintext">To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXXXXXXX to authenticate.
 </code></pre>
 <p>Open a browser to the url that is returned and enter the code given.</p>
-<h3 id="import-your-key">Import your key</h3>
+<h3 id="importyourkey">Import your key</h3>
 <p>Use the following commands, adding in your desired key name, the name of the vault you've already created and the path to the encrypted <code>pem</code> file you've backed up on USB.</p>
 <p>If you're creating a <code>tz2</code> address, you could use the following:</p>
 <pre><code class="hljs bash language-bash"><span class="hljs-built_in">read</span> -sp <span class="hljs-string">"Passphrase: "</span> PASS; <span class="hljs-built_in">echo</span>; \
@@ -513,14 +513,14 @@ Do not copy and paste your passphrase from somewhere. Type it in by hand from th
     --vault-name TezosSigner-KeyVault
 </code></pre>
 <p>Now, remove your USB drive(s) and reboot your computer.</p>
-<h3 id="clean-up">Clean up</h3>
+<h3 id="cleanup-1">Clean up</h3>
 <p>It is <em>strongly recommended</em> that you wipe the contents of the USB drive 
 containing Ubuntu.</p>
 <pre><code class="hljs bash language-bash">sudo dd <span class="hljs-keyword">if</span>=/dev/urandom of=/dev/disk2 bs=10m
 </code></pre>
 <p>Again, <em>double check</em> that this is the correct drive using the procedure above. This is a destructive procedure.</p>
 <p>This operation will take a long time, depending on the size of your device.</p>
-<h2 id="settingupsigningsoftware">Setting up signing software</h2>
+<h3 id="setting-up-signing-software">Setting up signing software</h3>
 <p>The author has created signing software for this application with the following features:</p>
 <ol>
 <li>Supports <code>tz2</code> and <code>tz3</code> addresses</li>
@@ -533,9 +533,9 @@ containing Ubuntu.</p>
 <ol>
 <li>Does not support high-availabilty setups where more than one baker or signer may be operating at the same time.</li>
 </ol>
-<h3 id="why-node-js-">Why Node.js?</h3>
+<h3 id="whynodejs">Why Node.js?</h3>
 <p>A number of existing signers use the Python scripting language, so why use JavaScript instead? In short, Node has a more user-friendly system for handling versioning and package management. Installing Node and NPM-based software is hassle free in general.</p>
-<h3 id="node-js-security-">Node.js security?</h3>
+<h3 id="nodejssecurity">Node.js security?</h3>
 <p>There have been a couple of recent cases of popular packages having malicious code added to them to target cryptocurrency private keys. The reasons the author still considers Node acceptable for this purpose:</p>
 <ol>
 <li>These exploits targeted popular wallets and <em>private keys</em>. This signer <em>does not</em> have access to your private keys</li>
@@ -550,7 +550,7 @@ containing Ubuntu.</p>
 found 0 vulnerabilities
  <span class="hljs-keyword">in</span> 1098 scanned packages
 </code></pre>
-<h3 id="installing-node-js">Installing Node.js</h3>
+<h3 id="installingnodejs">Installing Node.js</h3>
 <p>SSH into your signer VM, if you haven't already:</p>
 <pre><code class="hljs bash language-bash">ssh deploy@&lt;signer IP address&gt;
 </code></pre>
@@ -563,7 +563,7 @@ sudo apt-get install -y build-essential nodejs
 <pre><code class="hljs bash language-bash">node --version <span class="hljs-comment"># e.g., v10.16.0</span>
 npm --version <span class="hljs-comment"># e.g., 6.9.0</span>
 </code></pre>
-<h3 id="installing-the-signer">Installing the signer</h3>
+<h3 id="installingthesigner">Installing the signer</h3>
 <pre><code class="hljs bash language-bash">git <span class="hljs-built_in">clone</span> https://github.com/lattejed/tezos-azure-hsm-signer.git
 <span class="hljs-built_in">cd</span> tezos-azure-hsm-signer
 npm install
@@ -572,7 +572,7 @@ npm install
 <pre><code class="hljs bash language-bash">added 307 packages from 666 contributors and audited 1098 packages <span class="hljs-keyword">in</span> 21.286s
 found 0 vulnerabilities
 </code></pre>
-<h3 id="testing-the-installation">Testing the installation</h3>
+<h3 id="testingtheinstallation">Testing the installation</h3>
 <p>We're first going to run the inlcluded tests, to make sure everything is working correctly.</p>
 <pre><code class="hljs bash language-bash">npm run <span class="hljs-built_in">test</span>
 </code></pre>
@@ -595,7 +595,7 @@ found 0 vulnerabilities
 }
 </code></pre>
 <p>The signing algorithm should be <code>ECDSA256</code> for <code>tz2</code> keys and <code>ES256</code> for <code>tz3</code> keys.</p>
-<h3 id="finishing-signer-installation">Finishing signer installation</h3>
+<h3 id="finishingsignerinstallation">Finishing signer installation</h3>
 <p>We're going to run our signing server as a daemon, using <code>systemd</code>. </p>
 <pre><code class="hljs bash language-bash">cp tezos-signer.service.template tezos-signer.service
 </code></pre>
@@ -609,13 +609,13 @@ sudo systemctl start tezos-signer.service
 sudo systemctl status tezos-signer.service
 </code></pre>
 <p>Make sure you see a line starting <code>Active: active (running)...</code>. </p>
-<h2 id="finalsetupandtesting">Final setup and testing</h2>
+<h3 id="final-setup-and-testing">Final setup and testing</h3>
 <p><highlight>TODO: Link to tezos alphanet setup.</highlight></p>
 <p><warning>
 It is <em>strongly recommended</em> that you first test out your signer on <code>zeronet</code> or <code>alphanet</code> using a test key.
 </warning></p>
 <p>Now that we've got our signer running, it's time to test it out against our baker node. </p>
-<h3 id="setting-up-the-firewall">Setting up the firewall</h3>
+<h3 id="settingupthefirewall">Setting up the firewall</h3>
 <p>First, ensure that your default inbound rule is set to <code>Deny</code>:</p>
 <pre><code class="hljs bash language-bash">az network nsg list \
     --resource-group TezosSigner-ResourceGroup \
@@ -679,7 +679,7 @@ The string <code>DenyAllInBound</code> tells us we have to explicitly add inboun
     --nsg-name TezosSigner-VMNSG \
     --resource-group TezosSigner-ResourceGroup
 </code></pre>
-<h3 id="testing-out-the-firewall">Testing out the firewall</h3>
+<h3 id="testingoutthefirewall">Testing out the firewall</h3>
 <p>Now, let's test that our firewall will reject requests from everywhere except our baker. From a machine that's not your baker, run the following:</p>
 <pre><code class="hljs bash language-bash">curl --connect-timeout 10 http://&lt;signer VM address&gt;:6732/keys/&lt;tz address&gt;
 </code></pre>
@@ -687,31 +687,60 @@ The string <code>DenyAllInBound</code> tells us we have to explicitly add inboun
 <pre><code class="hljs plaintext language-plaintext">curl: (28) Connection timed out after 10001 milliseconds
 </code></pre>
 <p>If you get any other response, do not use your signer until you've diagnosed the problem.</p>
-<h3 id="importing-the-key">Importing the key</h3>
+<h3 id="importingthekey">Importing the key</h3>
 <p>Now, from your baker, issue the following command:</p>
 <pre><code class="hljs bash language-bash">tezos-client import secret key my_azure_key http://&lt;signer IP address&gt;:6732/&lt;tz address&gt;
 </code></pre>
 <p>The response should be:</p>
 <pre><code class="hljs plaintext language-plaintext">Tezos address added: &lt;tz address&gt;
 </code></pre>
-<h3 id="testing-the-key">Testing the key</h3>
+<h3 id="testingthekey">Testing the key</h3>
+<p><highlight>TODO: Link to tezos alphanet setup.</highlight></p>
+<p>To test that our setup is safe to use, we're going to transfer a small amount of XTZ to it (e.g., 1 xtz) from an existing address and then transfer it back. This assumes that you already have an account and key set up on your baker node.</p>
+<pre><code class="hljs bash language-bash">tezos-client transfer 1 from my_account to my_azure_key
+</code></pre>
+<p><note>
+It's always a good idea to first test a transaction by appending <code>--dry-run</code> to it. This will execute all parts of the transaction other than injecting it into the network.
+</note></p>
 <p>You may get an error transferring to your new address that looks like:</p>
 <pre><code class="hljs plaintext language-plaintext">Fatal error:
   The operation will burn 0.257 which is higher than the configured burn cap ( 0).
    Use `--burn-cap 0.257` to emit this operation.
 </code></pre>
-<p>This is the cost of a "reveal" operation, where a new account has its public included in the blockchain. This is a one time <em>storage fee</em> for newly created accounts. To allow this transaction, add the <code>--burn-cap 0.257</code> flag to the end of the <code>transfer</code> command.</p>
-<p>This is </p>
-<pre><code class="hljs plaintext language-plaintext">tezos-client set delegate for azure_tz3 to azure_tz3
+<p>This is the cost of a "reveal" operation, where a new account has its public key included in the blockchain. This is a one time <em>storage fee</em> for newly created accounts. To allow this transaction, add the <code>--burn-cap 0.257</code> flag to the end of the <code>transfer</code> command.</p>
+<p>You should get a confirmation. Check the balance of your new account with:</p>
+<pre><code class="hljs bash language-bash">tezos-client get balance <span class="hljs-keyword">for</span> my_azure_key
 </code></pre>
-<p>// TODO: REMOVE</p>
-<pre><code class="hljs bash language-bash">tezos-client import secret key azure_tz3 http://52.230.0.52:6732/tz3LoZzqEV8McYD5iEC6YFHFJguaeFXPRDfn
-
-tezos-client list known addresses
-tezos-client list forget address temp --force 
+<p>Make sure the balance has been updated before continuing.</p>
+<p><em>Before</em> we transfer back, we're going to have to start the <code>client</code> of our signer. From your signer VM, do the following:</p>
+<pre><code class="hljs bash language-bash"><span class="hljs-built_in">cd</span> tezos-azure-hsm-signer    
+node client.js
 </code></pre>
-<p>tezos-client import secret key test_tz3 http://52.230.0.52:6732/tz3LoZzqEV8McYD5iEC6YFHFJguaeFXPRDfn</p>
-<div class="navigation">
+<p>You should see:</p>
+<pre><code class="hljs plaintext language-plaintext">Waiting for signing request. Ctrl-C to quit.
+</code></pre>
+<p><warn>
+You <em>have to</em> start your signer client <em>before</em> you attempt a transaction. By design, it will ignore any signing requests that have been made before it was started.
+</warn></p>
+<p>Now, from your node:</p>
+<pre><code class="hljs bash language-bash">tezos-client transfer 0.5 from my_azure_key to my_account
+</code></pre>
+<p>We're only going to transfer half of the amount back so we can ignore the fee calculation. You should get the following prompt on your <code>client</code>:</p>
+<pre><code class="hljs plaintext language-plaintext">Confirm transaction 03... [Ny]?
+</code></pre>
+<p>Press <code>y</code> to accept it.</p>
+<p>You should get a response that looks like:</p>
+<pre><code class="hljs plaintext language-plaintext">The operation has only been included 0 blocks ago.
+We recommend to wait more.
+Use command
+  tezos-client wait for XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX to be included --confirmations 30 --branch XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+and/or an external block explorer.
+</code></pre>
+<p><warning>
+If you were not able to transfer XTZ in <em>and</em> out of your new <code>tz</code> address, <em>DO NOT</em> use it until you've diagnosed the problem.
+</warning></p>
+<p>If you made it this far, congratulations on your new HSM signer.</p>
+<div class="navigation navigation-bottom">
   <ul>
     <li style="text-align: left">
       

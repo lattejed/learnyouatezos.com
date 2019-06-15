@@ -11,13 +11,25 @@
 
   <% pages.forEach((page) => { %>
 
-    <li><a href="/<%= page.slug %>"><%= page.title %></a></li>
-    <ul>
-    <% page.sections.forEach((section) => { %>
-      <li><a href="/<%= page.slug %>#<%= section.slug %>"><%= section.title
-      %></a></li>
-    <% }); %>
-    </ul>
+    <% if (site.whitelist.indexOf(page.path) !== -1) { %>
+
+      <li><a href="/<%= page.slug %>"><%= page.title %></a></li>
+      <ul>
+      <% page.sections.forEach((section) => { %>
+        <li><a href="/<%= page.slug %>#<%= section.slug %>"><%= section.title %></a></li>
+      <% }); %>
+      </ul>
+
+    <% } else { %>
+
+      <li><%= page.title %></li>
+      <ul>
+      <% page.sections.forEach((section) => { %>
+        <li><%= section.title %></li>
+      <% }); %>
+      </ul>
+
+    <% } %>
 
   <% }); %>
 

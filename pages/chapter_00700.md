@@ -156,6 +156,12 @@ Get Tezos from alphanet faucet
 https://faucet.tzalpha.net
 ```
 
+// THESE SEEM TO BE THE SAME:
+
+tezos-client set delegate for x to x
+=
+tezos-client register key x as delegate
+
 Copy wallet JSON to file `faucet_wallet.json`
 
 ```bash

@@ -7,7 +7,7 @@ const ejs = require('ejs')
 const sd = require('showdown')
 const highlight = require('showdown-highlight')
 const site = require('./config')
-const sectionRe = /^###[^#]+/
+const sectionRe = /^##[^#]+/
 
 try {
   fse.emptyDirSync(site.wwwDir)
@@ -34,13 +34,13 @@ let pages = site.pages.map((pagePath) => {
   var md = fs.readFileSync(mdpath).toString('utf8')
   let sectionHeaders = md.split('\n').map((line) => {
     let m = line.match(sectionRe)
-    if (m && m.length) {		
+    if (m && m.length) {
       return m[0].trim()
     }
     return null
   }).filter((el) => !!el)
   sectionHeaders.forEach((section) => {
-    let title = section.replace('###', '')
+    let title = section.replace('##', '')
     let slug = title.toLowerCase().replace(/\W+/g, '-')
     md = md.replace(section, '<h3 id="' + slug + '">' + title + '</h3>')
   })
@@ -49,6 +49,7 @@ let pages = site.pages.map((pagePath) => {
   page.content = new sd.Converter({
     extensions: [highlight]
   }).makeHtml(parsed.body)
+  page.path = pagePath
   page.slug = page.title.toLowerCase()
     .replace(/\W+/g, '-')
     .replace(/(^-|-$)/, '') + '.html'
@@ -60,9 +61,9 @@ let pages = site.pages.map((pagePath) => {
     day: 'numeric'
   })
   page.sections = sectionHeaders.map((section) => {
-    let title = section.replace('###', '')
+    let title = section.replace('##', '')
     let slug = title.toLowerCase().replace(/\W+/g, '-')
-    return {slug: slug, title: title} 
+    return {slug: slug, title: title}
   })
   return page
 })
@@ -117,4 +118,3 @@ Promise.all(ps).then((pages) => {
   process.exit(1)
 
 })
-

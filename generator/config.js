@@ -17,6 +17,8 @@ config.staticDir = path.join(CWD, config.staticDir)
 config.pages = fs.readdirSync(path.join(config.pagesDir))
   .filter((page) => { return /\.md$/.test(page) })
 
+config.whitelist = JSON.parse(fs.readFileSync(path.join(CWD, 'whitelist.json')).toString())
+
 if (config.pages.length < 1) {
   console.log('[ERROR] No pages to process')
   process.exit(1)

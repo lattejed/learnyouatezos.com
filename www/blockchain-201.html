@@ -18,7 +18,7 @@
 
 <h1>Blockchain 201</h1>
 
-<div class="navigation">
+<div class="navigation navigation-top">
   <ul>
     <li style="text-align: left">
       
@@ -36,7 +36,7 @@
   </ul>
 </div>
 
-<h3 id="two-generals-problem">Two Generals Problem</h3>
+<h3 id="twogeneralsproblem">Two Generals Problem</h3>
 <p><img src="/static/img/two_generals.png" alt="Two Generals Problem" title="Two Generals Problem" /></p>
 <p>The Two Generals Problem is a thought experiment that highlights the fact that communicating over an unreliable network makes coordinating or establishing common knowledge an unsolvable problem.</p>
 <p>In other words, getting two computers to communicate over an unreliable or adversarial network (which describes any real world network) is an unsolvable problem. We simply <em>can't</em> make two computers know the same thing in an exacting way using a real world communication channel.</p>
@@ -52,7 +52,7 @@
 <p>Simply sending redundant messages or extra rounds of acknowledgements won't solve the problem, since any message may be lost in transit.</p>
 <p>Since there is no absolute solution, the problem then becomes one of achieving a degree of certainty. If we were to, say, send 100 messages simultaneously, the likelihood that one message and one acknowledgement make the round trip should be significantly higher than if we just send one.</p>
 <p>We can never be absolutely certain, though we can achieve an acceptable degree of certainty, depending on our requirements. This probabilistic approach will become more critical as we expand this thought experiment.</p>
-<h3 id="byzantine-generals-problem">Byzantine Generals Problem</h3>
+<h3 id="byzantinegeneralsproblem">Byzantine Generals Problem</h3>
 <p>The Byzantine Generals Problem expands upon the Two Generals Problem to consider how a network of computers (usually more than two) may decide on the current state of the network while assuming it may have incomplete or incorrect information about the state of any individual computer.</p>
 <p>In the case of a blockchain network, we usually add that one or more individual computers may be purposefully giving false information.</p>
 <p>If a system cannot adequately recover from this uncertainty, it is said to be in <em>Byzantine fault</em>. If it can, it is said to be <em>Byzantine fault tolerant</em>.</p>
@@ -67,7 +67,7 @@
 
 <p>An example of a conspiring network could be a vehicle control system with faulty sensors.</p>
 </div>
-<h3 id="practical-solutions-pow-pos-">Practical Solutions (PoW & PoS)</h3>
+<h3 id="practicalsolutionspowpos">Practical Solutions (PoW &amp; PoS)</h3>
 <p>Solutions are complex and depend entirely on the problem at hand, but in general we find similarities along the lines of:</p>
 <ol>
 <li>Requiring some form of majority (e.g., 2/3 of all nodes must agree)</li>
@@ -92,7 +92,7 @@
 <h4 id="consensusprotocolintezos">Consensus Protocol in Tezos</h4>
 <p>Tezos, having been conceived of after Bitcoin, chose another BFT protocol &mdash; Proof of Stake. Proof of Stake has a similar economic disincentive that makes it too expensive or impractical to attack the network, but it does not share Proof of Work's extreme inefficiency.</p>
 <p>There are other benefits to Tezos' particular style of Proof of Stake, which we'll get into in following chapters.</p>
-<h3 id="consensus-protocols-in-general">Consensus Protocols in General</h3>
+<h3 id="consensusprotocolsingeneral">Consensus Protocols in General</h3>
 <p>There are also a number of other Proof of X protocols, but we won't go into them as they're not very widely used.</p>
 <p>It's worth pointing out that while blockchain protocols can vary widely in their operation, but they must share the following characteristics:</p>
 <ol>
@@ -102,7 +102,7 @@
 </ol>
 <p>This last point may be overlooked. We not only have to thwart bad actors, we need to attract <em>good</em> actors to participate in our blockchain, otherwise there won't be anything to hack!</p>
 <p><a href="https://www.mail-archive.com/cryptography@metzdowd.com/msg09997.html">Satoshi's original email about BFT and PoW</a></p>
-<div class="navigation">
+<div class="navigation navigation-bottom">
   <ul>
     <li style="text-align: left">
       

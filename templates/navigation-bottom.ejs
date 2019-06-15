@@ -1,0 +1,17 @@
+<div class="navigation navigation-bottom">
+  <ul>
+    <li style="text-align: left">
+      <% if (page.prevSlug) { %>
+        <a id="prevlink" href="/<%= page.prevSlug %>"><%= page.prevTitle %></a>
+      <% } %>
+    </li>
+    <li style="text-align: center">
+      <a href="/<%= site.tocPath %>">Table of Contents</a>
+    </li>
+    <li style="text-align: right">
+      <% if (page.nextSlug) { %>
+        <a id="nextlink" href="/<%= page.nextSlug %>"><%= page.nextTitle %></a>
+      <% } %>
+    </li>
+  </ul>
+</div>
