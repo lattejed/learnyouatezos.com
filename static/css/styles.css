@@ -10,7 +10,6 @@ html, body {
 }
 
 body {
-  /*font-family: -apple-system, BlinkMacSystemFont, sans-serif;*/
   font-family: Tahoma, Arial, sans-serif;
   color: rgb(29, 31, 33);
   line-height: 1.5em;
@@ -19,6 +18,7 @@ body {
 
 h1, h2, h3, h4, h5 {
   margin-top: 2em;
+  line-height: 1em;
 }
 
 #background {
@@ -34,6 +34,7 @@ h1, h2, h3, h4, h5 {
 
 #maintitle {
   color: #497CBF;
+  margin-top: 0;
 }
 
 #prevlink {
@@ -72,7 +73,6 @@ del {
 
 #footer {
   padding-top: 2em;
-  margin-top: 2em;
 }
 
 #footer hr {
@@ -92,6 +92,10 @@ del {
 .navigation {
   display: table;
   width: 100%;
+}
+
+.navigation-bottom {
+  margin-top: 6em;
 }
 
 .navigation > ul {
@@ -136,11 +140,20 @@ pre {
   word-break: keep-all;
 }
 
+code {
+  color: #f8f8f2;
+  background-color: #282a36;
+  padding: 0.125em 0.25em;
+  border-radius: 2px;
+}
+
 note, warning {
   display: block;
   line-height: 1.4;
   border-radius: 3px;
   color: #FFFFFF;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
 }
 
 note {

@@ -15,6 +15,9 @@
 <body class="">
   <div id="background">
     <div id="content">
+      <warning>
+        <strong>This document is in DRAFT form and should be used with extreme caution</strong>
+      </warning>
 
 <h1>Installing a Tezos node</h1>
 
@@ -36,165 +39,8 @@
   </ul>
 </div>
 
-<h3 id="-installing-on-ubuntu-18-x-"> Installing on Ubuntu (18.x)</h3>
-<p>Fresh install 18.04.2 (ON DO)</p>
-<p>Lock down Ubuntu</p>
-<pre><code class="hljs bash language-bash">ssh root@&lt;ip address&gt;
-curl -sO https://gist.githubusercontent.com/lattejed/5047d9f85896b8946c7d/raw/ubuntu_basic_setup_do.sh &amp;&amp; bash ubuntu_basic_setup_do.sh
-</code></pre>
-<p>TODO: Explain
-Create a new user:</p>
-<pre><code class="hljs bash language-bash">useradd deploy
-</code></pre>
-<p>This assumes your pubkey has been added for root already:</p>
-<pre><code class="hljs bash language-bash">cp /root/.ssh/authorized_keys /home/deploy/.ssh/authorized_keys
-</code></pre>
-<p>…</p>
-<p>Make sure there we no errors. Log out and log back in as <em>deploy</em>.</p>
-<p>exit
-ssh <em>deploy</em><ip address></p>
-<hr />
-<p>Optional:</p>
-<pre><code class="hljs bash language-bash">sudo apt install mosh -y
-sudo ufw allow 60000:61000/udp
-curl -s https://gist.githubusercontent.com/lattejed/60ebc7ef7d82b8323e3ad9b562bb036f/raw/vimrc_basic &gt; ~/.vimrc
-</code></pre>
-<pre><code class="hljs bash language-bash">sudo apt update
-</code></pre>
-<pre><code class="hljs bash language-bash">sudo apt install -y rsync git m4 build-essential patch unzip bubblewrap wget pkg-config libgmp-dev libev-dev libhidapi-dev
-</code></pre>
-<blockquote>
-  <p>If bubblewrap is not available in your distribution you can also skip it and init opam with --disable-sandbox.
-  <code>which</code> may not show up as a package but it's also most likely already installed</p>
-</blockquote>
-<pre><code class="hljs bash language-bash">wget https://github.com/ocaml/opam/releases/download/2.0.3/opam-2.0.3-x86_64-linux
-sudo mv opam-2.0.3-x86_64-linux /usr/<span class="hljs-built_in">local</span>/bin/opam
-sudo chmod a+x /usr/<span class="hljs-built_in">local</span>/bin/opam
-</code></pre>
-<pre><code class="hljs bash language-bash">git <span class="hljs-built_in">clone</span> https://gitlab.com/tezos/tezos.git
-<span class="hljs-built_in">cd</span> tezos
-git checkout alphanet
-git branch <span class="hljs-comment"># double check that it is `alphanet`</span>
-</code></pre>
-<pre><code class="hljs bash language-bash">opam init --bare
-&gt; Do you want opam to modify ~/.profile? [N/y/f]
-&gt; A hook can be added to opam<span class="hljs-string">'s init scripts to ensure that the shell remains in
-sync with the opam environment when they are loaded. Set that up? [y/N]
-&gt; Answer defaults N, N
-</span></code></pre>
-<pre><code class="hljs bash language-bash">make build-deps
-&gt; [ERROR] No repository tezos found &lt;-- is normal, ignore
-&gt; This can be slow
-</code></pre>
-<pre><code class="hljs bash language-bash"><span class="hljs-built_in">eval</span> $(opam env)
-make
-</code></pre>
-<pre><code class="hljs bash language-bash"><span class="hljs-built_in">echo</span> -e <span class="hljs-string">'\nexport PATH=~/tezos:$PATH\nsource ~/tezos/src/bin_client/bash-completion.sh\nexport TEZOS_CLIENT_UNSAFE_DISABLE_DISCLAIMER=Y'</span> &gt;&gt; ~/.bashrc
 
-<span class="hljs-built_in">source</span> ~/.bashrc
-</code></pre>
-<pre><code class="hljs bash language-bash">sudo ufw allow 9732
-</code></pre>
-<pre><code class="hljs bash language-bash">tezos-node identity generate
-</code></pre>
-<p>There is some proof of work here (to prevent spam -- which is why it was conceived)</p>
-<pre><code class="hljs bash language-bash">tezos-node run --rpc-addr 127.0.0.1 --<span class="hljs-built_in">history</span>-mode full
-</code></pre>
-<p>TODO: History modes:</p>
-<ol>
-<li>Appropriateness</li>
-<li>Sync speed
-3.</li>
-</ol>
-<p>Locally:
-Started syncing at 15:18 May 25 - finished sometime before 16:53 &lt;~~ failed to resync the second time for a very long time
-&lt;~~ THis is probably not correct, syncing takes a long time with alphanet</p>
-<p>Syncing may appear to start slowly, with <code>BLockGenesis</code> as current head for a long time.</p>
-<p>Remote:
-19:16 27 May -</p>
-<pre><code class="hljs bash language-bash">tezos-client bootstrapped
-</code></pre>
-<p>^This will wait (on alphanet)
-NOTE: If CPU is maxed out, the bootstrap command can return successful even if it's not</p>
-<pre><code class="hljs bash language-bash">tezos-client gen keys <span class="hljs-built_in">local</span> --sig secp256k1 --force
-tezos-client list known addresses
-</code></pre>
-<pre><code class="hljs bash language-bash">tezos-client import secret key remote http://52.187.116.146:6732/tz2KVjptLTqUH5tUk6cTHsTGi7pSHL4Xe1mZ --force
-</code></pre>
-<p>Get Tezos from alphanet faucet</p>
-<pre><code class="hljs bash language-bash">https://faucet.tzalpha.net
-</code></pre>
-<p>// THESE SEEM TO BE THE SAME:</p>
-<h1 id="tezosclientsetdelegateforxtox">tezos-client set delegate for x to x</h1>
-<p>tezos-client register key x as delegate</p>
-<p>Copy wallet JSON to file <code>faucet_wallet.json</code></p>
-<pre><code class="hljs bash language-bash">tezos-client activate account my_faucet_2 with <span class="hljs-string">"faucet_wallet_2.json"</span>
-&gt; This will <span class="hljs-built_in">wait</span> on alphanet
-&gt;
-&gt; Operation successfully injected <span class="hljs-keyword">in</span> the node.
-&gt; Operation <span class="hljs-built_in">hash</span> is <span class="hljs-string">'op7mihw1uoybFBBRyeEjzEsYYtX1gLptpWkZu8PThDcCdV8vbpq'</span>
-&gt; Waiting <span class="hljs-keyword">for</span> the operation to be included...
-</code></pre>
-<pre><code class="hljs bash language-bash">Uncaught (asynchronous) exception (30827):
-Unix.Unix_error(Unix.EAGAIN, <span class="hljs-string">"launch_thread"</span>, <span class="hljs-string">""</span>)
-  Backtrace:
-    Raised by primitive operation at file <span class="hljs-string">"src/unix/lwt_unix.cppo.ml"</span>, line 183, characters 5-31
-    Called from file <span class="hljs-string">"lwt/lwt_cstruct.ml"</span>, line 26, characters 4-8
-    Called from file <span class="hljs-string">"lwt/nocrypto_entropy_lwt.ml"</span>, line 40, characters 17-39
-    Called from file <span class="hljs-string">"lwt/nocrypto_entropy_lwt.ml"</span>, line 33, characters 25-29
-    Called from file <span class="hljs-string">"src/core/lwt.ml"</span>, line 2463, characters 16-20
-</code></pre>
-<blockquote>
-  <blockquote>
-    <p>Unix.EAGAIN &lt;-- may be 100% mem or CPU usage
-    2GB / 1 CPU is too small, hitting both CPU and MEM limits
-    Trying 4GB / 2 CPU</p>
-  </blockquote>
-</blockquote>
-<p>// not enough in one account:
-tezos-client transfer 35096.918915 from secondary to primary --dry-run
-// exclude some for fees</p>
-<p>// Send to remote signer address:
-Fatal error:
-  The operation will burn 0.257 which is higher than the configured burn cap ( 0).
-   Use <code>--burn-cap 0.257</code> to emit this operation.</p>
-<p>tezos-client set delegate for azure<em>tz3 to azure</em>tz3</p>
-<pre><code class="hljs bash language-bash">tezos-client activate account my_faucet_2 with <span class="hljs-string">"faucet_wallet_2.json"</span> --force
-</code></pre>
-<pre><code class="hljs bash language-bash">  Rpc request failed:
-     - meth: POST
-     - uri: http://localhost:8732/chains/main/blocks/head/helpers/preapply/operations
-     - error: Unable to connect to the node: <span class="hljs-string">"Resource temporarily unavailable"</span>
-</code></pre>
-<pre><code class="hljs bash language-bash">tezos-client activate account my_faucet_2 with <span class="hljs-string">"faucet_wallet_2.json"</span> --force
-</code></pre>
-<pre><code class="hljs bash language-bash">Error:
-  Unregistred error:
-    { <span class="hljs-string">"kind"</span>: <span class="hljs-string">"generic"</span>,
-      <span class="hljs-string">"error"</span>:
-        <span class="hljs-string">"Error while applying operation ooukGv44JRkeYXG48JKW9RjhaEQf2rqYvNni4aUN7tyHH6eUSPi:\nrefused (Error:\n           Invalid activation. The public key tz1aiRi3UMWAcq4qg9oPfD2xAZisavD8A1QS does not match any commitment.\n)"</span> }
-</code></pre>
-<p>Copy the operation hash
-https://alphanet.tzscan.io/op7mihw1uoybFBBRyeEjzEsYYtX1gLptpWkZu8PThDcCdV8vbpq</p>
-<pre><code class="hljs bash language-bash">tezos-client get balance <span class="hljs-keyword">for</span> faucet
-</code></pre>
-<p>View address (before activation)
-https://alphanet.tzscan.io/tz1aiRi3UMWAcq4qg9oPfD2xAZisavD8A1QS</p>
-<p>Balance is 0</p>
-<pre><code class="hljs">{
-  <span class="hljs-attr">"tz2KVjptLTqUH5tUk6cTHsTGi7pSHL4Xe1mZ"</span>: {
-    <span class="hljs-attr">"tz2"</span>: <span class="hljs-string">"tz2KVjptLTqUH5tUk6cTHsTGi7pSHL4Xe1mZ"</span>,
-    <span class="hljs-attr">"sppk"</span>: <span class="hljs-string">"sppk7ammMu3bhurNViCr6EeBQWK45jKxxHaMDuE9JrophZeUMC5WfHH"</span>,
-    <span class="hljs-attr">"privateKey"</span>: <span class="hljs-string">"52f4062e20bb2d103d553f693280d3ecafb68d3fd898142e3cf45d84058c90e3"</span>,
-    <span class="hljs-attr">"publicKey"</span>: <span class="hljs-string">"04c14bf6c71a7c44fd413e5976462f08443424f27bd77018ed9e2b3b88ac33a78a4e16b9a6c06ca5e9ba60f27de1ad21fc6edbc87e85b973dd11d5ccc77b9ee4bc"</span>
-  }
-}
-</code></pre>
-<h3 id="-installing-on-macos-10-x-"> Installing on macOS (10.x)</h3>
-<h3 id="-other-platforms-some-generic-info-"> Other platforms (Some generic info)</h3>
-<h3 id="-setting-up-env-vars-autocompletion"> Setting up env. vars, autocompletion</h3>
-<h1 id="zeronetnotes">ZERONET NOTES</h1>
-<p>Upgrade step -- if you get prompted about service restarts (pink screen) select 'yes'</p>
+
 <div class="navigation navigation-bottom">
   <ul>
     <li style="text-align: left">

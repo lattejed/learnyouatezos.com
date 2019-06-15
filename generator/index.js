@@ -42,7 +42,7 @@ let pages = site.pages.map((pagePath) => {
   sectionHeaders.forEach((section) => {
     let title = section.replace('##', '')
     let slug = title.toLowerCase().replace(/\W+/g, '-')
-    md = md.replace(section, '<h3 id="' + slug + '">' + title + '</h3>')
+    md = md.replace(section, '<h2 id="' + slug + '">' + title + '</h2>')
   })
   let parsed = fm(md)
   Object.assign(page, parsed.attributes)

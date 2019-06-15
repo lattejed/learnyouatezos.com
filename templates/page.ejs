@@ -4,7 +4,11 @@
 
 <%- include('navigation-top'); -%>
 
-<%- page.content -%>
+<% if (site.whitelist.indexOf(page.path) !== -1) { %>
+
+  <%- page.content -%>
+
+<% } %>
 
 <%- include('navigation-bottom'); -%>
 <%- include('footer'); -%>

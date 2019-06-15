@@ -1047,7 +1047,7 @@ This is the cost of a "reveal" operation, where a new account has its public key
 
 You should get a confirmation. Check the balance of your new account with:
 
-```bash
+```plaintext
 tezos-client get balance for my_azure_key
 ```
 
@@ -1072,7 +1072,7 @@ You *have to* start your signer client *before* you attempt a transaction. By de
 
 Now, from your node:
 
-```bash
+```plaintext
 tezos-client transfer 0.5 from my_azure_key to my_account
 ```
 
@@ -1098,7 +1098,9 @@ and/or an external block explorer.
 If you were not able to transfer XTZ in *and* out of your new `tz` address, *DO NOT* use it until you've diagnosed the problem.
 </warning>
 
-If you made it this far, congratulations on your new HSM signer.
+###Whew!
+
+If you made it this far, congratulations on your new HSM signer!
 
 
 

@@ -15,6 +15,9 @@
 <body class="">
   <div id="background">
     <div id="content">
+      <warning>
+        <strong>This document is in DRAFT form and should be used with extreme caution</strong>
+      </warning>
 
 <h1>Baking: Remote Signer</h1>
 
@@ -36,7 +39,9 @@
   </ul>
 </div>
 
-<h3 id="remote-signers">Remote signers</h3>
+
+
+  <h2 id="remote-signers">Remote signers</h2>
 <p><highlight>[TODO: Tie this into previous discussion of security and baker topology]</highlight></p>
 <h3 id="whyanhsm">Why an HSM?</h3>
 <p>While baking is relatively straightforward, <em>key security</em> is not and necessitates an approach that usually means separating private keys from a baker, ideally residing in a hardware security module (HSM).</p>
@@ -67,7 +72,7 @@ To be precise, Azure does not allow you to back up your HSM-generated keys. The 
 <p>Since your signer will only be known to your baker, the baker itself would have to be accessed to discover the IP address. After that, your signer VM would also have to be compromised. </p>
 <p>To help offset this, the signing software provided here is very lightweight and can be run on the cheapest available VM.</p>
 <p>This also allows for the entire signer to reside on Azure (which simplifies authentication for the signer and makes it more secure) while allowing you to run your baker node on another service, as the author does.</p>
-<h3 id="getting-started-with-azure">Getting started with Azure</h3>
+<h2 id="getting-started-with-azure">Getting started with Azure</h2>
 <h3 id="getanazureaccount">Get an Azure account</h3>
 <p>If you don't already have one, go here <a href="https://azure.microsoft.com/en-us/free">https://azure.microsoft.com/en-us/free</a> to get a new Azure account.</p>
 <p>You'll likely have to go through a privacy-violating ID verification with a phone number <em>and</em> credit card, but given that you'll be supplying them with billing information anyway, it's a moot point.</p>
@@ -141,7 +146,7 @@ This will delete <em>everything</em> inside the resource group. Only use this co
     --name <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
     --yes
 </code></pre>
-<h3 id="setting-up-a-signer-vm">Setting up a signer VM</h3>
+<h2 id="setting-up-a-signer-vm">Setting up a signer VM</h2>
 <h3 id="createavirtualmachine">Create a virtual machine</h3>
 <p>Next let's create the VM we'll be running our signer in. We use the <code>az vm create</code> command for this. We won't do anything with this until later, but we'll need to get its public IP so we can set up the firewall of our Key Vault.</p>
 <pre><code class="hljs bash language-bash">az vm create \
@@ -204,7 +209,7 @@ If you do not have a keypair set up for ssh (i.e., you don't have an <code>id_rs
     --resource-group <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
     --yes
 </code></pre>
-<h3 id="setting-up-your-key-vaults">Setting up your Key Vaults</h3>
+<h2 id="setting-up-your-key-vaults">Setting up your Key Vaults</h2>
 <h3 id="createakeyvault">Create a Key Vault</h3>
 <p>Next, create a Key Vault that will contain your imported keys.</p>
 <pre><code class="hljs bash language-bash">az keyvault create \
@@ -311,7 +316,7 @@ Make sure you copy down your vault URI as you'll need it to run your signer.
     --key-permissions get sign \
     --object-id &lt;VM service principal ID&gt;
 </code></pre>
-<h3 id="generating-private-keys">Generating private keys</h3>
+<h2 id="generating-private-keys">Generating private keys</h2>
 <p><warning>
 Key security is a very big topic. The guidelines here offer one possible way to securely create and backup keys. They are not bulletproof and only represent an acceptable level of security for the author, for the author's own needs. It is strongly recommended that you research best practices on your own. If your private keys are controlling non-trivial amounts of XTZ, you should consider hiring a security consultant.
 </warning></p>
@@ -434,7 +439,7 @@ If someone were to find your key and passphrase, they would have full access to 
 </code></pre>
 <p>Again, <em>double check</em> that this is the correct drive using the procedure above. This is a destructive procedure.</p>
 <p>This operation will take a long time, depending on the size of your device.</p>
-<h3 id="azure-key-import">Azure key import</h3>
+<h2 id="azure-key-import">Azure key import</h2>
 <p>Now that we've securely generated our key and passphrase, we can import our key into the Azure Key Vault. We're going to follow a procedure very similar to the one we used for generating our keys, except this time we will not be able to air-gap this computer as it needs to talk to Azure.</p>
 <p><warning>
 Azure Key Vault does not offer a way to import keys with a key pair, which would be more secure than this method. That means your private key (and passphrase) will exist, in unencrypted form, in your machine's RAM until your computer is rebooted. If you are dealing with non-trivial amounts of XTZ, you should hire a security consultant.
@@ -520,7 +525,7 @@ containing Ubuntu.</p>
 </code></pre>
 <p>Again, <em>double check</em> that this is the correct drive using the procedure above. This is a destructive procedure.</p>
 <p>This operation will take a long time, depending on the size of your device.</p>
-<h3 id="setting-up-signing-software">Setting up signing software</h3>
+<h2 id="setting-up-signing-software">Setting up signing software</h2>
 <p>The author has created signing software for this application with the following features:</p>
 <ol>
 <li>Supports <code>tz2</code> and <code>tz3</code> addresses</li>
@@ -609,7 +614,7 @@ sudo systemctl start tezos-signer.service
 sudo systemctl status tezos-signer.service
 </code></pre>
 <p>Make sure you see a line starting <code>Active: active (running)...</code>. </p>
-<h3 id="final-setup-and-testing">Final setup and testing</h3>
+<h2 id="final-setup-and-testing">Final setup and testing</h2>
 <p><highlight>TODO: Link to tezos alphanet setup.</highlight></p>
 <p><warning>
 It is <em>strongly recommended</em> that you first test out your signer on <code>zeronet</code> or <code>alphanet</code> using a test key.
@@ -709,7 +714,7 @@ It's always a good idea to first test a transaction by appending <code>--dry-run
 </code></pre>
 <p>This is the cost of a "reveal" operation, where a new account has its public key included in the blockchain. This is a one time <em>storage fee</em> for newly created accounts. To allow this transaction, add the <code>--burn-cap 0.257</code> flag to the end of the <code>transfer</code> command.</p>
 <p>You should get a confirmation. Check the balance of your new account with:</p>
-<pre><code class="hljs bash language-bash">tezos-client get balance <span class="hljs-keyword">for</span> my_azure_key
+<pre><code class="hljs plaintext language-plaintext">tezos-client get balance for my_azure_key
 </code></pre>
 <p>Make sure the balance has been updated before continuing.</p>
 <p><em>Before</em> we transfer back, we're going to have to start the <code>client</code> of our signer. From your signer VM, do the following:</p>
@@ -723,7 +728,7 @@ node client.js
 You <em>have to</em> start your signer client <em>before</em> you attempt a transaction. By design, it will ignore any signing requests that have been made before it was started.
 </warn></p>
 <p>Now, from your node:</p>
-<pre><code class="hljs bash language-bash">tezos-client transfer 0.5 from my_azure_key to my_account
+<pre><code class="hljs plaintext language-plaintext">tezos-client transfer 0.5 from my_azure_key to my_account
 </code></pre>
 <p>We're only going to transfer half of the amount back so we can ignore the fee calculation. You should get the following prompt on your <code>client</code>:</p>
 <pre><code class="hljs plaintext language-plaintext">Confirm transaction 03... [Ny]?
@@ -739,7 +744,10 @@ and/or an external block explorer.
 <p><warning>
 If you were not able to transfer XTZ in <em>and</em> out of your new <code>tz</code> address, <em>DO NOT</em> use it until you've diagnosed the problem.
 </warning></p>
-<p>If you made it this far, congratulations on your new HSM signer.</p>
+<h3 id="whew">Whew!</h3>
+<p>If you made it this far, congratulations on your new HSM signer!</p>
+
+
 <div class="navigation navigation-bottom">
   <ul>
     <li style="text-align: left">
