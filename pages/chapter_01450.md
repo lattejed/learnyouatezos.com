@@ -171,7 +171,7 @@ This will delete *everything* inside the resource group. Only use this command w
 
 ```bash
 az group delete \
-	--name "TezosSigner-ResourceGroup" \
+	--name TezosSigner-ResourceGroup \
 	--yes
 ```
 
@@ -263,8 +263,8 @@ If you need to delete the VM while testing, use the following command:
 
 ```bash
 az vm delete \
-	--name "TezosSigner-VM" \
-	--resource-group "TezosSigner-ResourceGroup" \
+	--name TezosSigner-VM \
+	--resource-group TezosSigner-ResourceGroup \
 	--yes
 ```
 

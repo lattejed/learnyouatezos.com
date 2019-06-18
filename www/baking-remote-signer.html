@@ -145,7 +145,7 @@ In this tutorial, we're going to be using names like <code>TezosSigner-ResourceG
 This will delete <em>everything</em> inside the resource group. Only use this command when trying things out.
 </warning></p>
 <pre><code class="hljs bash language-bash">az group delete \
-    --name <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
+    --name TezosSigner-ResourceGroup \
     --yes
 </code></pre>
 <h2 id="setting-up-a-signer-vm">Setting up a signer VM</h2>
@@ -207,8 +207,8 @@ If you do not have a keypair set up for ssh (i.e., you don't have an <code>id_rs
 </code></pre>
 <p>If you need to delete the VM while testing, use the following command:</p>
 <pre><code class="hljs bash language-bash">az vm delete \
-    --name <span class="hljs-string">"TezosSigner-VM"</span> \
-    --resource-group <span class="hljs-string">"TezosSigner-ResourceGroup"</span> \
+    --name TezosSigner-VM \
+    --resource-group TezosSigner-ResourceGroup \
     --yes
 </code></pre>
 <h2 id="setting-up-your-key-vaults">Setting up your Key Vaults</h2>
