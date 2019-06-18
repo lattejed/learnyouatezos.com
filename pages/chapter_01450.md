@@ -136,6 +136,10 @@ In this case the identifier is the name field `southeastasia`. Copy that down as
 
 ###Create a resource group
 
+<note>
+In this tutorial, we're going to be using names like `TezosSigner-ResourceGroup`, `TezosSigner-VM`, `TezosSigner-KeyVault`, etc. These are just examples and you are encouraged to use your own naming conventions. 
+</note>
+
 Create a resource group, giving it the name of your choice and using the location we've just determined.
 
 ```bash
@@ -1102,6 +1106,12 @@ If you were not able to transfer XTZ in *and* out of your new `tz` address, *DO 
 
 If you made it this far, congratulations on your new HSM signer!
 
+##Further Information
+
+1. [Remote signer GitHub repo](https://github.com/lattejed/tezos-azure-hsm-signer)
+2. [Azure Portal](https://portal.azure.com)
+3. [Azure CLI docs - Keyvault](https://docs.microsoft.com/en-us/cli/azure/keyvault?view=azure-cli-latest)
+4. [Azure CLI docs - Virtual Machines](https://docs.microsoft.com/en-us/cli/azure/vm?view=azure-cli-latest)
 
 
 

@@ -17,10 +17,3 @@ Even if your locale is configured correctly, your terminal may attempt to set en
 
 Explicitly setting the default locale in `.profile` should fix this.
 
-## Host Key Verification Failed
-
-If you have an issue while provisioning a VM, you make run into an issue where your ssh 'knowns_hosts' file has a bad entry. To remove without having to edit the file manually, run:
-
-```bash
-ssh-keygen -R <ip address or host>
-```

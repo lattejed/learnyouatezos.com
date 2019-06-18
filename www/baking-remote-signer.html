@@ -120,6 +120,9 @@ If you see errors or warnings about default locale go to <a href="/appendix.html
 </code></pre>
 <p>In this case the identifier is the name field <code>southeastasia</code>. Copy that down as you'll need it for the next step.</p>
 <h3 id="createaresourcegroup">Create a resource group</h3>
+<p><note>
+In this tutorial, we're going to be using names like <code>TezosSigner-ResourceGroup</code>, <code>TezosSigner-VM</code>, <code>TezosSigner-KeyVault</code>, etc. These are just examples and you are encouraged to use your own naming conventions. 
+</note></p>
 <p>Create a resource group, giving it the name of your choice and using the location we've just determined.</p>
 <pre><code class="hljs bash language-bash">az group create \
     --name TezosSigner-ResourceGroup \
@@ -745,6 +748,13 @@ If you were not able to transfer XTZ in <em>and</em> out of your new <code>tz</c
 </warning></p>
 <h3 id="whew">Whew!</h3>
 <p>If you made it this far, congratulations on your new HSM signer!</p>
+<h2 id="further-information">Further Information</h2>
+<ol>
+<li><a href="https://github.com/lattejed/tezos-azure-hsm-signer">Remote signer GitHub repo</a></li>
+<li><a href="https://portal.azure.com">Azure Portal</a></li>
+<li><a href="https://docs.microsoft.com/en-us/cli/azure/keyvault?view=azure-cli-latest">Azure CLI docs - Keyvault</a></li>
+<li><a href="https://docs.microsoft.com/en-us/cli/azure/vm?view=azure-cli-latest">Azure CLI docs - Virtual Machines</a></li>
+</ol>
 
 
 <div class="navigation navigation-bottom">
@@ -770,7 +780,7 @@ If you were not able to transfer XTZ in <em>and</em> out of your new <code>tz</c
       <p class="license">This work is licensed under the Creative Commons license <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</a></p>
       <p class="license">By reading this site, you agree to the <a href="/terms.html">terms</a></p>
       
-        <p class="timestamp">Page last updated Saturday, Jun 15, 2019</p>
+        <p class="timestamp">Page last updated Tuesday, Jun 18, 2019</p>
       
     </div>
   </div><!-- #content -->

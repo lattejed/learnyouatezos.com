@@ -19,11 +19,11 @@ As stated above, a main goal of this book is to be both approachable (light hear
 
 And that's an achievement for a topic as complex and abstract as Haskell &mdash; a programming language that can be challenging to learn even for seasoned software engineers.
 
-If this book captures a little bit of spirit of its namesake, the author will consider it a success.
+If this book captures even a little bit of spirit of its namesake, the author will consider it a success.
 
 ## About the author
 
-Matthew Smith is a technology consultant and sometimes entrepreneur. In a previous career, he owned a PR agency. Hopefully both of those careers help with this book.
+Matthew Smith is a technology consultant, software engineer and sometimes entrepreneur. In a previous career, he owned a PR agency. Hopefully both of those careers assist in making this book useful to people interested in Tezos.
 
 He also participated in the Tezos ICO, runs a private baker and is a long-term holder of XTZ. Previously he was in the Ethereum ICO (pre-sale). He believes Tezos will deliver on a lot of the promises Tezos' predecessors (should) have made.
 
