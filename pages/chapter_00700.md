@@ -3,7 +3,22 @@ template: page
 title: Installing a Tezos node
 ---
 
-## Installing on Ubuntu (18.x)
+In a further chapter it's recommended to use Azure to run a remote (HSM-backed) signer. Azure is a requirement, in that specific case, for reasons dicussed in that chaper.
+
+For this chapter the following are *suggestions*:
+
+1. If you're running a node locally for testing, you should use a virtual machine as a guest inside your computer as a host
+2. If you're running a node to participate in the network, run it with a cloud provider, specifically Digital Ocean
+
+Note that these are merely suggestions. Installing on macOS and Windows will also be covered.
+
+The author is not affilicated with Digital Ocean in any way and recommends it because of ease of use, low cost and their use of high-performance SSDs by default. While DO is nice to use in general, the performance is particularly a good fit for running a node.
+
+Running the node in a VM on your local machine is mostly about being able to isolve the node and cleanly remove its installation afterwards. Also using the same OS everywhere simplifies administration.
+
+Ubuntu 18.04 is recommended as it's the current long term support (LTS) version, available everywhere and well suited for the task.
+
+## Installing on Ubuntu (18.04)
 
 Fresh install 18.04.2 (ON DO)
 
